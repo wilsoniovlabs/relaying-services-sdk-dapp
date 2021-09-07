@@ -1,0 +1,231 @@
+{
+  "contractName": "RelayVerifier",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "walletFactory",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "tokens",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "versionVerifier",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "relayHub",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "from",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "tokenContract",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "value",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "gas",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "nonce",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "tokenAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "tokenGas",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct IForwarder.ForwardRequest",
+              "name": "request",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "gasPrice",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "domainSeparator",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "relayWorker",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "callForwarder",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "callVerifier",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct EnvelopingTypes.RelayData",
+              "name": "relayData",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct EnvelopingTypes.RelayRequest",
+          "name": "relayRequest",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        }
+      ],
+      "name": "verifyRelayedCall",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "context",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "acceptToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]
+}
