@@ -16,11 +16,14 @@ function SmartWallet(props) {
     function setSmartWalletDeployData(smartWallet){
         setCurrentSmartWallet(smartWallet);
     }
-    
+
     function setSmartWalletTransferData(smartWallet){
         setCurrentSmartWallet(smartWallet);
     }
 
+    function setSmartWalletReceiveData(smartWallet){
+        setCurrentSmartWallet(smartWallet);
+    }
     return (
         <div className="smart-wallets">
             <div id="no-smart-wallets" className="row grey">
@@ -55,7 +58,7 @@ function SmartWallet(props) {
                             </a>
                         </div>
                         <div className="col s1 center-align">
-                            <a id="receive-button-0" className="btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger" data-position="bottom" data-tooltip="Receive" href="#receive-modal" onClick="App.setSmartWalletReceiveData(this)">
+                            <a id="receive-button-0" className="btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger" data-position="bottom" data-tooltip="Receive" href="#receive-modal" onClick={()=>{setSmartWalletReceiveData(smartWallet)}}>
                                 <i className="material-icons">arrow_downward</i>
                             </a>
                         </div>

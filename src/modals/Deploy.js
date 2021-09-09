@@ -1,5 +1,4 @@
 import Utils, { TRIF_PRICE } from '../Utils';
-import { toBN } from 'web3-utils'
 import './Deploy.css';
 import { useState } from 'react';
 import abiDecoder from 'abi-decoder';
@@ -104,11 +103,11 @@ function Deploy(props) {
         if (acceptsToken(process.env.REACT_APP_CONTRACTS_RIF_TOKEN)) {
             const smartWallet = await deploySmartWallet(index, tokenAmount, tokenGas, relayGas)
             if (!await checkSmartWalletDeployment(smartWallet.deployTransaction)) {
-                throw 'SmartWallet deployment failed';
+                throw new Error('SmartWallet deployment failed');
             }
             return smartWallet;
         } else {
-            throw 'SmartWallet was not created because Verifier does not accept the specified token for payment';
+            throw new Error('SmartWallet was not created because Verifier does not accept the specified token for payment');
         }
     }
 
@@ -127,7 +126,7 @@ function Deploy(props) {
             const smartWalletList = smartWallets.filter((sw) =>{
                 return sw.index !== smartWallet.index;
             });
-            setSmartWallets([smartWallet, ...smartWallets]);
+            setSmartWallets([smartWallet, ...smartWalletList]);
 
             var instance = M.Modal.getInstance($('#deploy-modal'));
             instance.close();

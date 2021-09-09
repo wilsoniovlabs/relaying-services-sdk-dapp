@@ -7,9 +7,6 @@ import Header from './components/Header';
 import abiDecoder from 'abi-decoder';
 import { DefaultRelayingServices } from 'relaying-services-sdk';
 
-// Initial transaction id
-//const txId = 777
-
 import RIFToken from './contracts/RifToken.json';
 import IRelayHub from './contracts/IRelayHub.json';
 import ISmartWalletFactory from './contracts/ISmartWalletFactory.json';
@@ -25,7 +22,7 @@ import Footer from './components/Footer';
 
 import Deploy from './modals/Deploy';
 //import Execute from './modals/Execute';
-//import Receive from './modals/Receive';
+import Receive from './modals/Receive';
 //import Transfer from './modals/Transfer';
 
 function init() {
@@ -47,7 +44,7 @@ function App() {
     const [account, setAccount] = useState('');
     const [currentSmartWallet, setCurrentSmartWallet] = useState(null);
     const [provider, setProvider] = useState(null);
-    const [rifTokenContract, setRifTokenContract] = useState();
+    //const [rifTokenContract, setRifTokenContract] = useState();
     const [ritTokenDecimals, setRitTokenDecimals] = useState();
     const [deployVerifierContract, setDeployVerifierContract] = useState();
     const [relayVerifierContract, setRelayVerifierContract] = useState();
@@ -57,16 +54,15 @@ function App() {
     useEffect(() =>{
         (async () =>{
             if(connected){
-                await start();
+                await this.start();
             }
             //await this.createBalanceRequest()
         })();
     }, [connected]);
 
-    async function start() {
+    this.start = async () => {
         const chainId = await web3.eth.getChainId();
         if (chainId === Number(process.env.REACT_APP_ENVELOPING_CHAIN_ID)) {
-            await initAccount();
             initEventDecoder();
             await initProvider();
             const rifTokenContract = initContracts();
@@ -109,13 +105,9 @@ function App() {
     }
 
     function initContracts() {
-        // Bootstrap the RIF Token contract
-        // The Enveloping RelayProvider is added to each contract that we want to interact with using Enveloping.
-
-        //this.rifTokenContract = new web3.eth.Contract(RIFToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN)
         let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN)
         rifTokenContract.setProvider(web3.currentProvider)
-        setRifTokenContract(rifTokenContract);
+        //setRifTokenContract(rifTokenContract);
 
         // Bootstrap the DeployVerifier contract
         // The Enveloping RelayProvider is added to each contract that we want to interact with using Enveloping.
@@ -127,15 +119,6 @@ function App() {
         relayVerifierContract.setProvider(web3.currentProvider);
         setRelayVerifierContract(relayVerifierContract);
         return rifTokenContract;
-    }
-
-    async function initAccount() {
-        const accounts = await web3.eth.getAccounts()
-        if (accounts.length === 0) {
-            console.error("Couldn't get any accounts! Make sure your Client is configured correctly.")
-            return
-        }
-        //setAccounts(accounts);
     }
 
     function initEventDecoder() {
@@ -176,9 +159,9 @@ function App() {
                 setSmartWallets={setSmartWallets}
                 smartWallets={smartWallets}
             />
+            <Receive />
             {/*
             <Execute />
-            <Receive />
             <Transfer />*/}
         </div>
     );
