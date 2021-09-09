@@ -17,10 +17,13 @@ function Header(props) {
   const [balance, setBalance] = useState();
 
   useEffect(() => {
+    if(!account){
+      return;
+    }
     (async () => {
-      const utils = new Utils();
-      const balance = utils.fromWei(await utils.getBalance(account));
-      setBalance(balance + ' RBTC  ');
+      const balance = await Utils.getBalance(account);
+      const balanceConverted = Utils.fromWei(balance);
+      setBalance(balanceConverted + ' RBTC  ');
     })();
   }, [account])
 
@@ -34,7 +37,6 @@ function Header(props) {
       isConnected = true;
     } catch (error) {
       console.error(error);
-      isConnected = false;
     }
     finally {
       setConnect(isConnected);
@@ -43,7 +45,7 @@ function Header(props) {
   }
 
   async function refreshAccount() {
-    const accounts = await new Utils().getAccounts();
+    const accounts = await Utils.getAccounts();
 
     const account = accounts[0];
     setAccount(account);
@@ -61,6 +63,7 @@ function Header(props) {
       }
       else {
         console.warn("Unable to connect to Metamask");
+        setConnect(isConnected);
       }
 
     } catch (error) {

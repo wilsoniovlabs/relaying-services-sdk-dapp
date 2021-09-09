@@ -5,7 +5,7 @@ import './App.css';
 import Header from './components/Header';
 
 import abiDecoder from 'abi-decoder';
-import { RelayProvider, resolveConfiguration } from 'relaying-services-sdk';
+import { DefaultRelayingServices } from 'relaying-services-sdk';
 
 // Initial transaction id
 //const txId = 777
@@ -24,9 +24,9 @@ import SmartWallet from './components/SmartWallet';
 import Footer from './components/Footer';
 
 import Deploy from './modals/Deploy';
-import Execute from './modals/Execute';
-import Receive from './modals/Receive';
-import Transfer from './modals/Transfer';
+//import Execute from './modals/Execute';
+//import Receive from './modals/Receive';
+//import Transfer from './modals/Transfer';
 
 function init() {
     if (window.ethereum) {
@@ -45,10 +45,12 @@ const web3 = window.web3;
 function App() {
     const [connected, setConnect] = useState(false);
     const [account, setAccount] = useState('');
+    const [currentSmartWallet, setCurrentSmartWallet] = useState(null);
+    const [provider, setProvider] = useState(null);
     const [rifTokenContract, setRifTokenContract] = useState();
     const [ritTokenDecimals, setRitTokenDecimals] = useState();
     const [deployVerifierContract, setDeployVerifierContract] = useState();
-    const [rxelayVerifierContract, setRelayVerifierContract] = useState();
+    const [relayVerifierContract, setRelayVerifierContract] = useState();
 
     const [smartWallets, setSmartWallets] = useState([]);
 
@@ -76,23 +78,34 @@ function App() {
     }
 
     async function initProvider() {
-        let config = await resolveConfiguration(web3.currentProvider, {
-            verbose: window.location.href.includes('verbose'),
-            chainId: process.env.REACT_APP_ENVELOPING_CHAIN_ID,
-            relayVerifierAddress: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER,
-            deployVerifierAddress: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER,
-            smartWalletFactoryAddress: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY,
-            gasPriceFactorPercent: process.env.REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT,
-            relayLookupWindowBlocks: process.env.REACT_APP_ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS,
-            preferredRelays: process.env.REACT_APP_ENVELOPING_PREFERRED_RELAYS,
-        });
-
-        config.relayHubAddress = process.env.REACT_APP_CONTRACTS_RELAY_HUB;
+        const config = {
+            verbose: window.location.href.includes('verbose')
+            , chainId: process.env.REACT_APP_ENVELOPING_CHAIN_ID
+            ,gasPriceFactorPercent: process.env.REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT
+            , relayLookupWindowBlocks: process.env.REACT_APP_ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS
+            , preferredRelays: [process.env.REACT_APP_ENVELOPING_PREFERRED_RELAYS]
+            , relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB
+            , relayVerifierAddress: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
+            , deployVerifierAddress: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
+            , smartWalletFactoryAddress: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
+        };
+        const contractAddresses = {
+            relayHub: process.env.REACT_APP_CONTRACTS_RELAY_HUB
+            , smartWallet: process.env.REACT_APP_CONTRACTS_SMART_WALLET
+            , smartWalletFactory: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
+            , smartWalletDeployVerifier: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
+            , smartWalletRelayVerifier: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
+            , sampleRecipient: process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT
+            , testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+        };
 
         // Get an Enveloping RelayProvider instance and assign it to Web3 to use Enveloping transparently
-        let provider = new RelayProvider(web3.currentProvider, config);
-        await provider.relayClient._init();
-        web3.setProvider(provider);
+        const relayingServices = new DefaultRelayingServices({
+            web3Instance: web3,
+            account: account
+        });
+        await relayingServices.initialize(config, contractAddresses);
+        setProvider(relayingServices);
     }
 
     function initContracts() {
@@ -135,8 +148,8 @@ function App() {
     return (
         <div className="App">
             <Header
-                account={account}
                 setAccount={setAccount}
+                account={account}
                 setConnect={setConnect}
                 connected={connected}
             />
@@ -144,6 +157,7 @@ function App() {
             <SmartWallet
                 connected={connected}
                 smartWallets={smartWallets}
+                setCurrentSmartWallet={setCurrentSmartWallet}
             />
 
             <Footer
@@ -153,10 +167,19 @@ function App() {
                 account={account}
             />
 
-            <Deploy />
+            <Deploy 
+                currentSmartWallet={currentSmartWallet}
+                provider={provider}
+                ritTokenDecimals={ritTokenDecimals}
+                deployVerifierContract={deployVerifierContract}
+                relayVerifierContract={relayVerifierContract}
+                setSmartWallets={setSmartWallets}
+                smartWallets={smartWallets}
+            />
+            {/*
             <Execute />
             <Receive />
-            <Transfer />
+            <Transfer />*/}
         </div>
     );
 }

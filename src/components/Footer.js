@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Utils from '../Utils';
+import Utils, { TRIF_PRICE } from '../Utils';
 import './Footer.css';
 //import { useState } from 'react';
 
@@ -18,21 +18,19 @@ function Footer(props) {
             return;
         }
         (async () => {
-            const utils = new Utils();
-
             let smartWalletIndex = 0;
             let found = true;
             const smartWalletList = [];
             while (found === true) {
-                let smartWalletAddress = await utils.calculateSmartWalletAddress((smartWalletIndex + 1).toString());
-                const deployed = await utils.isSmartWalletDeployed(smartWalletAddress);
-                const balance = await utils.tokenBalance(smartWalletAddress);
-                if (balance === '0' || !deployed) {
-                    found = false;
-                } else {
+                let smartWalletAddress = await Utils.calculateSmartWalletAddress((smartWalletIndex + 1).toString());
+                const deployed = await Utils.isSmartWalletDeployed(smartWalletAddress);
+                const balance = await Utils.tokenBalance(smartWalletAddress);
+                if (balance > '0' || deployed) {
                     const smartWallet = await createSmartWalletAddress(smartWalletAddress);
                     smartWalletList.push(smartWallet);
                     smartWalletIndex += 1;
+                } else {
+                    found = false;
                 }
             }
             setSmartWallets([...smartWallets, ...smartWalletList]);
@@ -41,30 +39,28 @@ function Footer(props) {
 
     useEffect(() =>{
         (async () =>{
-            const utils = new Utils();
             const workerAddress = process.env.REACT_APP_CONTRACTS_RELAY_WORKER;
-            const workerBalance = parseFloat(utils.fromWei(await utils.tokenBalance(workerAddress))).toFixed(4);
+            const workerBalance = parseFloat(Utils.fromWei(await Utils.tokenBalance(workerAddress))).toFixed(4);
             setWorkerBalance(workerBalance);
         })();
     }, [setWorkerBalance]);
 
-    async function createSmartWalletAddress(smartWalletAddress) {
+    async function createSmartWalletAddress(address) {
         let smartWallet = {};
-        const index = smartWallets.length + 0;
-        const utils = new Utils();
+        const index = smartWallets.length + 1;
 
-        if (!smartWalletAddress) {
-            smartWallet.smartWalletAddress = await utils.calculateSmartWalletAddress(index);
+        if (!address) {
+            smartWallet.address = await Utils.calculateSmartWalletAddress(index );
         } else {
-            smartWallet.smartWalletAddress = smartWalletAddress;
+            smartWallet.address = address;
         }
+        smartWallet.index = index;
+        const balance = await Utils.tokenBalance(smartWallet.address);
+        const rbtcBalance = await Utils.getBalance(smartWallet.address);
 
-        const balance = await utils.tokenBalance(smartWallet.smartWalletAddress);
-        const rbtcBalance = await utils.getBalance(smartWallet.smartWalletAddress);
-
-        smartWallet.balance = utils.fromWei(balance) + ' tRIF';
-        smartWallet.rbtcBalance = utils.fromWei(rbtcBalance) + ' RBTC';
-        smartWallet.isDeployed = await utils.isSmartWalletDeployed(smartWallet.smartWalletAddress);
+        smartWallet.balance = Utils.fromWei(balance) + ' tRIF';
+        smartWallet.rbtcBalance = Utils.fromWei(rbtcBalance) + ' RBTC';
+        smartWallet.deployed = await Utils.isSmartWalletDeployed(smartWallet.address);
         return smartWallet;
     }
     async function create() {
@@ -76,15 +72,15 @@ function Footer(props) {
         <div className="row footer-controls">
             <div className="col s6">
                 <a href="#!"
-                    className={`waves-effect waves-light btn indigo accent-2 ${!connected ? 'disabled' : ''}create`}
-                    onClick={() => { create() }}>
+                    className={`waves-effect waves-light btn indigo accent-2 ${!connected ? 'disabled' : ''} create`}
+                    onClick={create}>
                     <i className="material-icons right">add_circle_outline</i>New Smart Wallet
                 </a>
             </div>
             <div className="col s6">
                 <h6 className="right-align">
                     tRIF price:
-                    <span id='trif-price'>0.000005739</span>
+                    <span id='trif-price'>{TRIF_PRICE}</span>
                     RBTC - Worker balance:
                     <span id='worker-balance'>{workerBalance}</span> tRIF
                 </h6>
