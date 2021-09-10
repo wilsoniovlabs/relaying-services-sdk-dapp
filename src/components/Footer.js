@@ -26,14 +26,14 @@ function Footer(props) {
                 const deployed = await Utils.isSmartWalletDeployed(smartWalletAddress);
                 const balance = await Utils.tokenBalance(smartWalletAddress);
                 if (balance > '0' || deployed) {
-                    const smartWallet = await this.createSmartWalletAddress(smartWalletAddress);
+                    const smartWallet = await createSmartWalletAddress(smartWalletAddress);
                     smartWalletList.push(smartWallet);
                     smartWalletIndex += 1;
                 } else {
                     found = false;
                 }
             }
-            this.setSmartWallets(smartWalletList)
+            setStorageSmartWallets(smartWalletList)
         })();
     }, [account, setSmartWallets]);
 
@@ -45,11 +45,11 @@ function Footer(props) {
         })();
     }, [setWorkerBalance]);
 
-    this.setSmartWallets = function(smartWalletList){
+    async function setStorageSmartWallets(smartWalletList){
         setSmartWallets([...smartWallets, ...smartWalletList]);
     }
     
-    this.createSmartWalletAddress = async (address) => {
+    async function createSmartWalletAddress(address) {
         let smartWallet = {};
         const index = smartWallets.length + 1;
 
@@ -68,7 +68,7 @@ function Footer(props) {
         return smartWallet;
     }
     async function create() {
-        const smartWallet = await this.createSmartWalletAddress();
+        const smartWallet = await createSmartWalletAddress();
         setSmartWallets([...smartWallets, smartWallet]);
     }
 

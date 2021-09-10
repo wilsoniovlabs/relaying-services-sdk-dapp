@@ -44,10 +44,10 @@ class Utils {
         const balance = await web3.eth.getBalance(address);
         return balance;
     }
-    static fromWei(balance){
+    static fromWei(balance) {
         return web3.utils.fromWei(balance);
     }
-    
+
     static async getReceipt(transactionHash) {
         let receipt = await web3.eth.getTransactionReceipt(transactionHash)
         let times = 0
@@ -82,20 +82,28 @@ class Utils {
         return (result !== '0x' && result !== '0x00');
     }
 
-    static async toWei(tRifPriceInRBTC){
+    static async toWei(tRifPriceInRBTC) {
         return web3.utils.toWei(tRifPriceInRBTC);
     }
 
-    static async SmartWalletFactoryContract(account, index){
+    static async SmartWalletFactoryContract(account, index) {
         const computedAddress = new web3.eth.Contract(
-                ISmartWalletFactory.abi,
-                process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
-            ).methods.getSmartWalletAddress(account, ZERO_ADDR, index).call();
+            ISmartWalletFactory.abi,
+            process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
+        ).methods.getSmartWalletAddress(account, ZERO_ADDR, index).call();
         return computedAddress;
     }
 
-    static async getTransactionReceipt(transactionHash){
+    static async getTransactionReceipt(transactionHash) {
         return await web3.eth.getTransactionReceipt(transactionHash);
+    }
+    // UI functions
+    static checkAddress(address) {
+        if (!/^(0x)?[0-9a-f]{40}$/i.test(address)) {
+            return false;
+        } else if (/^(0x)?[0-9a-f]{40}$/.test(address) || /^(0x)?[0-9A-F]{40}$/.test(address)) {
+            return true;
+        }
     }
 }
 

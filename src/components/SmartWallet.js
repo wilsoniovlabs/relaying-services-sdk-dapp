@@ -24,6 +24,9 @@ function SmartWallet(props) {
     function setSmartWalletReceiveData(smartWallet){
         setCurrentSmartWallet(smartWallet);
     }
+    function setSmartWalletExecuteData(smartWallet){
+        setCurrentSmartWallet(smartWallet);
+    }
     return (
         <div className="smart-wallets">
             <div id="no-smart-wallets" className="row grey">
@@ -53,7 +56,7 @@ function SmartWallet(props) {
                             <h6 >{smartWallet.rbtcBalance}</h6>
                         </div>
                         <div className="col s1 right-align">
-                            <a id="transfer-button-0" className="btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger disabled" data-position="bottom" data-tooltip="Transfer" href="#transfer-modal" onClick={()=>{setSmartWalletTransferData(smartWallet)}}>
+                            <a id="transfer-button-0" className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`} data-position="bottom" data-tooltip="Transfer" href="#transfer-modal" onClick={()=>{setSmartWalletTransferData(smartWallet)}}>
                                 <i className="material-icons">call_made</i>
                             </a>
                         </div>
@@ -63,7 +66,7 @@ function SmartWallet(props) {
                             </a>
                         </div>
                         <div className="col s1 left-align">
-                            <a id="execute-button-0" className="btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger disabled" data-position="bottom" data-tooltip="Execute" href="#execute-modal" onClick="App.setSmartWalletExecuteData(this)">
+                            <a id="execute-button-0" className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`} data-position="bottom" data-tooltip="Execute" href="#execute-modal" onClick={()=>{setSmartWalletExecuteData(smartWallet)}}>
                                 <i className="material-icons">play_circle_outline</i>
                             </a>
                         </div>

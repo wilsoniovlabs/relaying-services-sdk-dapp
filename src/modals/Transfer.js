@@ -1,31 +1,158 @@
+import { useState } from 'react';
+import Utils from '../Utils';
 import './Transfer.css';
+
+import abiDecoder from 'abi-decoder';
+
 //import { useState } from 'react';
+const M = window.M;
+const $ = window.$;
+var txId = 777;
 
 function Transfer(props) {
+    const {
+        currentSmartWallet
+        , rifTokenContract
+    } = props;
+
+    const [transfer, setTransfer] = useState({});
+    async function pasteRecipientAddress() {
+        const address = await navigator.clipboard.readText();
+        if (Utils.checkAddress(address.toLowerCase())) {
+            changeValue({ currentTarget: { value: address } }, 'address');
+        }
+    }
+
+    function changeValue(event, prop) {
+        let obj = Object.assign({}, transfer);
+        obj[prop] = event.currentTarget.value;
+        setTransfer(obj)
+    }
+
+    async function relayTransactionExecution(toAddress, swAddress, abiEncodedTx, tokenFees, callbackFunction) {
+        if (callbackFunction === undefined || callbackFunction === null) {
+            console.error('No callback function specified for relayTransactionExecution');
+            return
+        }
+
+        const jsonRpcPayload = {
+            jsonrpc: '2.0',
+            id: ++txId,
+            method: 'eth_sendTransaction',
+            params: [
+                {
+                    from: this.accounts[0],
+                    to: toAddress,
+                    value: "0",
+                    relayHub: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
+                    callVerifier: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER,
+                    callForwarder: swAddress,
+                    data: abiEncodedTx,
+                    tokenContract: process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT,
+                    tokenAmount: Utils.toWei(tokenFees),
+                    onlyPreferredRelays: true
+                }
+            ]
+        }
+
+        this.provider.send(jsonRpcPayload, callbackFunction)
+    }
+
+    async function handleTransferSmartWalletButtonClick() {
+        const from = currentSmartWallet.address;
+        const recipient = transfer.address;
+        const amount = transfer.amount;
+        const fees = transfer.fees === "" ? "0" : transfer.fees;
+
+        const encodedAbi = await rifTokenContract.methods
+            .transfer(recipient, Utils.toWei(amount)).encodeABI();
+
+        await relayTransactionExecution(
+            process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT
+            , from
+            , encodedAbi
+            , transfer.fees.toString()
+            , relayTransactionCallback)
+    }
+
+    async function relayTransactionCallback(error, data) {
+        if (error !== null) {
+            console.error('Error during transfer: ' + error);
+            return
+        }
+
+        // Verify that the contract was correctly executed
+        const txHash = data.result;
+        let receipt = await Utils.getReceipt(txHash);
+
+        if (receipt === null) {
+            console.error('Error during transfer: receipt not found');
+            return;
+        }
+        console.log(`Your receipt is`);
+        console.log(receipt);
+
+        const logs = abiDecoder.decodeLogs(receipt.logs);
+        const transactionRelayedEvent = logs.find((e) => e != null && e.name === 'TransactionRelayed');
+        const returnedResult = transactionRelayedEvent.events.find((e) => {
+            return e != null && e.name === 'relayedCallReturnValue';
+        });
+
+        if (returnedResult === null) {
+            console.error('Error during transfer: returned result not found');
+            return;
+        }
+        setTransfer({});
+
+        // Update from balance
+        //let balance = await Utils.tokenBalance(from);
+        //let index = parseInt($('h6:contains("' + from + '")').prop("id").match(/\d+/g), 10);
+        //$('h6[id^="smart-wallet-balance-' + index + '"]:last').text(Utils.fromWei(balance) + ' tRIF');
+
+        // Update recipient balance if it is one of our smart wallets
+        //balance = await Utils.tokenBalance(recipient);
+        //let $to = $('h6:contains("' + recipient + '")');
+        /*if ($to.length == 1) {
+            index = parseInt($to.prop("id").match(/\d+/g), 10);
+            $('h6[id^="smart-wallet-balance-' + index + '"]:last').text(web3.utils.fromWei(balance) + ' tRIF');
+        }*/
+
+        //$('#worker-balance').text(
+        //    parseFloat(web3.utils.fromWei(await Utils.tokenBalance(appConfig.contracts.relayWorker))).toFixed(4)
+        //)
+        var instance = M.Modal.getInstance($('#transfer-modal'));
+        instance.close();
+    }
+
     return (
         <div id="transfer-modal" className="modal">
-            <div className="modal-content" style={{'paddingBottom': '0em'}}>
-                <input type="hidden" id="transfer-smart-wallet-address" value="" />
+            <div className="modal-content">
                 <div className="row">
                     <form className="col s12 offset-s1">
                         <div className="row">
                             <div className="input-field col s9">
-                                <input placeholder="Address" id="transfer-to" type="text" className="validate" />
+                                <input placeholder="Address" type="text" className="validate" onChange={(event) => {
+                                    changeValue(event, 'address')
+                                }} value={transfer.address} />
                                 <label htmlFor="transfer-to">Transfer to</label>
                             </div>
-                            <div className="input-field col s1" style={{'paddingTop': '0.5em', 'paddingLeft': '0em'}}>
-                                <a href="#!" id="paste-recipient-address-button" className="btn waves-effect waves-light indigo accent-2"><i className="material-icons center">content_paste</i></a>
+                            <div className="input-field paste-container col s1">
+                                <a href="#!" className="btn waves-effect waves-light indigo accent-2"><i className="material-icons center" onClick={pasteRecipientAddress}>content_paste</i></a>
                             </div>
                         </div>
                         <div className="row">
                             <div className="input-field col s10">
-                                <input placeholder="0 tRIF" id="transfer-amount" type="number" min="0" className="validate" />
+                                <input placeholder="0 tRIF" type="number" min="0" className="validate" onChange={(event) => {
+                                    changeValue(event, 'amount')
+                                }} value={transfer.amount} />
                                 <label htmlFor="transfer-amount">Amount</label>
                             </div>
                         </div>
                         <div className="row">
-                            <div className="input-field col s7">
-                                <input placeholder="0 tRIF" id="transfer-fees" type="number" min="0" className="validate" />
+                            <div className="input-field col s8">
+                                <input placeholder="0 tRIF" type="number" min="0" className="validate" onChange={(event) => {
+                                    changeValue(event, 'fees')
+                                }} value={transfer.fees} />
                                 <label htmlFor="transfer-fees">Fees</label>
                             </div>
                         </div>
@@ -33,7 +160,7 @@ function Transfer(props) {
                 </div>
             </div>
             <div className="modal-footer">
-                <a href="#!" id="transfer-smart-wallet" className="waves-effect waves-green btn-flat">Transfer</a>
+                <a href="#!" onClick={handleTransferSmartWalletButtonClick} className="waves-effect waves-green btn-flat">Transfer</a>
                 <a href="#!" className="modal-close waves-effect waves-green btn-flat">Cancel</a>
             </div>
         </div>

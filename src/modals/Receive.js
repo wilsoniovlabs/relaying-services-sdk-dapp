@@ -1,10 +1,22 @@
+import { useEffect } from 'react';
 import './Receive.css';
 //import { useState } from 'react';
 
-function Receive(props) {
+const $ = window.$;
+function Receive(props) {   
+    const {
+        currentSmartWallet
+    } = props;
+    useEffect(()=>{
+        if(currentSmartWallet){
+            $('#qr-code').empty();
+            $('#qr-code').qrcode({ width: '256', height: '256', text: currentSmartWallet.address });
+        }
+    },[currentSmartWallet])
+
     return (
         <div id="receive-modal" className="modal">
-            <div className="modal-content" style={{'paddingBottom': '0em'}}>
+            <div className="modal-content">
                 <div className="row">
                     <div className="col s2"></div>
                     <div id="qr-code" className="col s8 center-align"></div>
@@ -12,7 +24,7 @@ function Receive(props) {
                 </div>
                 <div className="row">
                     <div className="col s12">
-                        <h6 id="receive-smart-wallet-address" className="col s12 center-align">o</h6>
+                        <h6 className="col s12 center-align">{currentSmartWallet? currentSmartWallet.address : ''}</h6>
                     </div>
                 </div>
             </div>

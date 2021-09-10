@@ -23,7 +23,7 @@ import Footer from './components/Footer';
 import Deploy from './modals/Deploy';
 //import Execute from './modals/Execute';
 import Receive from './modals/Receive';
-//import Transfer from './modals/Transfer';
+import Transfer from './modals/Transfer';
 
 function init() {
     if (window.ethereum) {
@@ -44,7 +44,7 @@ function App() {
     const [account, setAccount] = useState('');
     const [currentSmartWallet, setCurrentSmartWallet] = useState(null);
     const [provider, setProvider] = useState(null);
-    //const [rifTokenContract, setRifTokenContract] = useState();
+    const [rifTokenContract, setRifTokenContract] = useState();
     const [ritTokenDecimals, setRitTokenDecimals] = useState();
     const [deployVerifierContract, setDeployVerifierContract] = useState();
     const [relayVerifierContract, setRelayVerifierContract] = useState();
@@ -52,15 +52,12 @@ function App() {
     const [smartWallets, setSmartWallets] = useState([]);
 
     useEffect(() =>{
-        (async () =>{
-            if(connected){
-                await this.start();
-            }
-            //await this.createBalanceRequest()
-        })();
+        if(connected){
+            start();
+        }
     }, [connected]);
 
-    this.start = async () => {
+    async function start() {
         const chainId = await web3.eth.getChainId();
         if (chainId === Number(process.env.REACT_APP_ENVELOPING_CHAIN_ID)) {
             initEventDecoder();
@@ -107,7 +104,7 @@ function App() {
     function initContracts() {
         let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN)
         rifTokenContract.setProvider(web3.currentProvider)
-        //setRifTokenContract(rifTokenContract);
+        setRifTokenContract(rifTokenContract);
 
         // Bootstrap the DeployVerifier contract
         // The Enveloping RelayProvider is added to each contract that we want to interact with using Enveloping.
@@ -159,10 +156,12 @@ function App() {
                 setSmartWallets={setSmartWallets}
                 smartWallets={smartWallets}
             />
-            <Receive />
-            {/*
-            <Execute />
-            <Transfer />*/}
+            <Receive 
+                currentSmartWallet={currentSmartWallet}
+                rifTokenContract={rifTokenContract}
+            />
+            <Transfer />
+            {/*<Execute />*/}
         </div>
     );
 }
