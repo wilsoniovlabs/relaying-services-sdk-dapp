@@ -13,6 +13,7 @@ function Transfer(props) {
     const {
         currentSmartWallet
         , rifTokenContract
+        , provider
     } = props;
 
     const [transfer, setTransfer] = useState({});
@@ -59,20 +60,26 @@ function Transfer(props) {
     }
 
     async function handleTransferSmartWalletButtonClick() {
-        const from = currentSmartWallet.address;
-        const recipient = transfer.address;
         const amount = transfer.amount;
         const fees = transfer.fees === "" ? "0" : transfer.fees;
 
         const encodedAbi = await rifTokenContract.methods
-            .transfer(recipient, Utils.toWei(amount)).encodeABI();
-
-        await relayTransactionExecution(
-            process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT
-            , from
-            , encodedAbi
-            , transfer.fees.toString()
-            , relayTransactionCallback)
+            .transfer(transfer.address, await Utils.toWei(amount)).encodeABI();
+        
+        const txDetials = await provider.relayTransaction(
+            {
+                to: transfer.address
+                , data: encodedAbi
+            }
+            , {
+                tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+                , ...currentSmartWallet
+            }
+            , fees
+        );
+        console.log(txDetials);
+        var instance = M.Modal.getInstance($('#transfer-modal'));
+        instance.close();
     }
 
     async function relayTransactionCallback(error, data) {
@@ -104,22 +111,6 @@ function Transfer(props) {
         }
         setTransfer({});
 
-        // Update from balance
-        //let balance = await Utils.tokenBalance(from);
-        //let index = parseInt($('h6:contains("' + from + '")').prop("id").match(/\d+/g), 10);
-        //$('h6[id^="smart-wallet-balance-' + index + '"]:last').text(Utils.fromWei(balance) + ' tRIF');
-
-        // Update recipient balance if it is one of our smart wallets
-        //balance = await Utils.tokenBalance(recipient);
-        //let $to = $('h6:contains("' + recipient + '")');
-        /*if ($to.length == 1) {
-            index = parseInt($to.prop("id").match(/\d+/g), 10);
-            $('h6[id^="smart-wallet-balance-' + index + '"]:last').text(web3.utils.fromWei(balance) + ' tRIF');
-        }*/
-
-        //$('#worker-balance').text(
-        //    parseFloat(web3.utils.fromWei(await Utils.tokenBalance(appConfig.contracts.relayWorker))).toFixed(4)
-        //)
         var instance = M.Modal.getInstance($('#transfer-modal'));
         instance.close();
     }

@@ -158,9 +158,12 @@ function App() {
             />
             <Receive 
                 currentSmartWallet={currentSmartWallet}
+            />
+            <Transfer 
+                provider={provider}
+                currentSmartWallet={currentSmartWallet}
                 rifTokenContract={rifTokenContract}
             />
-            <Transfer />
             {/*<Execute />*/}
         </div>
     );

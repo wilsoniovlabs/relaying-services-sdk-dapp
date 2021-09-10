@@ -43,10 +43,9 @@
     "dotenv": "^10.0.0"
   },
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
-  "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wilsoniovlabs/relaying-services-sdk.git"
+    "url": "git+https://github.com/wilsoniovlabs/relaying-services-sdk-dapp.git"
   },
   "keywords": [
     "SDK",
@@ -56,7 +55,6 @@
   "author": "Wilson Hamilton",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/wilsoniovlabs/relaying-services-sdk/issues"
-  },
-  "homepage": "https://github.com/wilsoniovlabs/relaying-services-sdk#readme"
+    "url": "https://github.com/wilsoniovlabs/relaying-services-sdk-dapp/issues"
+  }
 }
