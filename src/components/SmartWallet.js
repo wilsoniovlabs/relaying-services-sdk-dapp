@@ -13,20 +13,6 @@ function SmartWallet(props) {
         await navigator.clipboard.writeText(address);
     }
     
-    function setSmartWalletDeployData(smartWallet){
-        setCurrentSmartWallet(smartWallet);
-    }
-
-    function setSmartWalletTransferData(smartWallet){
-        setCurrentSmartWallet(smartWallet);
-    }
-
-    function setSmartWalletReceiveData(smartWallet){
-        setCurrentSmartWallet(smartWallet);
-    }
-    function setSmartWalletExecuteData(smartWallet){
-        setCurrentSmartWallet(smartWallet);
-    }
     return (
         <div className="smart-wallets">
             <div id="no-smart-wallets" className="row grey">
@@ -41,7 +27,9 @@ function SmartWallet(props) {
                 return (
                     <div key={index} className={`smart-wallet row teal lighten-4`}>
                         <div className="col s1">
-                            <a className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? 'disabled' : ''}`} data-position="bottom" data-tooltip="Deploy" href="#deploy-modal" onClick={()=>{setSmartWalletDeployData(smartWallet)}}><i className="material-icons">file_upload</i></a>
+                            <a className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? 'disabled' : ''}`} data-position="bottom" data-tooltip="Deploy" href="#deploy-modal" onClick={()=>{
+                                setCurrentSmartWallet(smartWallet);
+                                }}><i className="material-icons">file_upload</i></a>
                         </div>
                         <div className="col s2">
                             <h6 className="tooltipped summary-smart-wallet-address" data-position="bottom" data-tooltip="0x">{smartWallet.address}</h6>
@@ -56,17 +44,23 @@ function SmartWallet(props) {
                             <h6 >{smartWallet.rbtcBalance}</h6>
                         </div>
                         <div className="col s1 right-align">
-                            <a id="transfer-button-0" className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`} data-position="bottom" data-tooltip="Transfer" href="#transfer-modal" onClick={()=>{setSmartWalletTransferData(smartWallet)}}>
+                            <a id="transfer-button-0" className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`} data-position="bottom" data-tooltip="Transfer" href="#transfer-modal" onClick={()=>{
+                                setCurrentSmartWallet(smartWallet);
+                            }}>
                                 <i className="material-icons">call_made</i>
                             </a>
                         </div>
                         <div className="col s1 center-align">
-                            <a id="receive-button-0" className="btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger" data-position="bottom" data-tooltip="Receive" href="#receive-modal" onClick={()=>{setSmartWalletReceiveData(smartWallet)}}>
+                            <a id="receive-button-0" className="btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger" data-position="bottom" data-tooltip="Receive" href="#receive-modal" onClick={()=>{
+                                setCurrentSmartWallet(smartWallet);
+                            }}>
                                 <i className="material-icons">arrow_downward</i>
                             </a>
                         </div>
                         <div className="col s1 left-align">
-                            <a id="execute-button-0" className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`} data-position="bottom" data-tooltip="Execute" href="#execute-modal" onClick={()=>{setSmartWalletExecuteData(smartWallet)}}>
+                            <a id="execute-button-0" className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`} data-position="bottom" data-tooltip="Execute" href="#execute-modal" onClick={()=>{
+                                setCurrentSmartWallet(smartWallet);
+                            }}>
                                 <i className="material-icons">play_circle_outline</i>
                             </a>
                         </div>
