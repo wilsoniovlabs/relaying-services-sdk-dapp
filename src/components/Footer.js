@@ -13,8 +13,8 @@ function Footer(props) {
     } = props;
 
     const [workerBalance, setWorkerBalance] = useState('0');
-    
-    const setBalance = useCallback( async (smartWallet) => {
+
+    const setBalance = useCallback(async (smartWallet) => {
         const balance = await Utils.tokenBalance(smartWallet.address);
         const rbtcBalance = await Utils.getBalance(smartWallet.address);
 
@@ -25,7 +25,7 @@ function Footer(props) {
     }, [provider]);
 
     useEffect(() => {
-        if(!account || !provider){
+        if (!account || !provider) {
             return;
         }
         (async () => {
@@ -36,7 +36,7 @@ function Footer(props) {
                 const balance = await Utils.tokenBalance(smartWallet.address);
                 if (balance > '0' || smartWallet.deployed) {
                     smartWallet = await setBalance(smartWallet);
-                    setSmartWallets((currentSmartWallet) =>[...currentSmartWallet, smartWallet]);
+                    setSmartWallets((currentSmartWallet) => [...currentSmartWallet, smartWallet]);
                     smartWalletIndex += 1;
                 } else {
                     found = false;
@@ -45,8 +45,8 @@ function Footer(props) {
         })();
     }, [account, provider, setSmartWallets, setBalance]);
 
-    useEffect(() =>{
-        (async () =>{
+    useEffect(() => {
+        (async () => {
             const workerAddress = process.env.REACT_APP_CONTRACTS_RELAY_WORKER;
             const workerBalance = parseFloat(Utils.fromWei(await Utils.tokenBalance(workerAddress))).toFixed(4);
             setWorkerBalance(workerBalance);
@@ -61,20 +61,24 @@ function Footer(props) {
 
     return (
         <div className="row footer-controls">
-            <div className="col s6">
-                <a href="#!"
-                    className={`waves-effect waves-light btn indigo accent-2 ${!connected ? 'disabled' : ''} create`}
-                    onClick={create}>
-                    <i className="material-icons right">add_circle_outline</i>New Smart Wallet
-                </a>
-            </div>
-            <div className="col s6">
-                <h6 className="right-align">
-                    tRIF price:
-                    <span id='trif-price'>{TRIF_PRICE}</span>
-                    RBTC - Worker balance:
-                    <span id='worker-balance'>{workerBalance}</span> tRIF
-                </h6>
+            <div className="col s12">
+                <div className="row">
+                    <div className="col s6">
+                        <a href="#!"
+                            className={`waves-effect waves-light btn indigo accent-2 ${!connected ? 'disabled' : ''} create`}
+                            onClick={create}>
+                            <i className="material-icons right">add_circle_outline</i>New Smart Wallet
+                        </a>
+                    </div>
+                    <div className="col s6">
+                        <h6 className="right-align">
+                            tRIF price:
+                            <span id='trif-price'>{TRIF_PRICE}</span>
+                            RBTC - Worker balance:
+                            <span id='worker-balance'>{workerBalance}</span> tRIF
+                        </h6>
+                    </div>
+                </div>
             </div>
         </div>
     );
