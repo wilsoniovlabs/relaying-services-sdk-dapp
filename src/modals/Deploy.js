@@ -14,8 +14,6 @@ function Deploy(props) {
         currentSmartWallet
         , provider
         , ritTokenDecimals
-        , deployVerifierContract
-        , relayVerifierContract
         , setSmartWallets
         , smartWallets
     } = props;
@@ -33,7 +31,7 @@ function Deploy(props) {
             , process.env.REACT_APP_CONTRACTS_RELAY_WORKER
         );
 
-        changeValue({currentTarget: {value: estimate}})
+        changeValue({ currentTarget: { value: estimate } })
 
         const costInRBTC = await Utils.fromWei(estimate.toString());
         console.log("Cost in RBTC:", costInRBTC);
@@ -53,16 +51,6 @@ function Deploy(props) {
 
     }
 
-    async function deploySmartWallet(index, tokenAmount, tokenGas, relayGas) {
-        const smartWallet = await provider.deploySmartWallet(
-            currentSmartWallet
-            , process.env.REACT_APP_CONTRACTS_RIF_TOKEN
-            , await Utils.toWei(tokenAmount + '')
-        );
-
-        return smartWallet;
-    }
-
     async function getReceipt(transactionHash) {
         let receipt = await Utils.getTransactionReceipt(transactionHash)
         let times = 0
@@ -78,30 +66,30 @@ function Deploy(props) {
     }
 
     async function checkSmartWalletDeployment(txHash) {
-        let receipt = await getReceipt(txHash)
+        let receipt = await getReceipt(txHash);
 
         if (receipt === null) {
             return false
         }
 
-        console.log(`Your receipt is`)
-        console.log(receipt)
+        console.log(`Your receipt is`);
+        console.log(receipt);
 
-        const logs = abiDecoder.decodeLogs(receipt.logs)
-        const smartWalletCreationEvents = logs.find((e) => e != null && e.name === 'Deployed')
+        const logs = abiDecoder.decodeLogs(receipt.logs);
+        const smartWalletCreationEvents = logs.find((e) => e != null && e.name === 'Deployed');
 
-        return !(smartWalletCreationEvents === null || smartWalletCreationEvents === undefined)
+        return !(smartWalletCreationEvents === null || smartWalletCreationEvents === undefined);
     }
 
-    async function acceptsToken(tokenAddress) {
-        let forDeploy = await deployVerifierContract.methods.tokens(tokenAddress).call()
-        let forRelay = await relayVerifierContract.methods.tokens(tokenAddress).call()
-        return forDeploy && forRelay
-    }
-
-    async function relaySmartWalletDeployment(index, tokenAmount, tokenGas, relayGas) {
-        if (acceptsToken(process.env.REACT_APP_CONTRACTS_RIF_TOKEN)) {
-            const smartWallet = await deploySmartWallet(index, tokenAmount, tokenGas, relayGas)
+    async function relaySmartWalletDeployment(tokenAmount) {
+        const isAllowToken = await provider.isAllowedToken(process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
+        if (isAllowToken) {
+            const smartWallet = await provider.deploySmartWallet(
+                currentSmartWallet
+                , process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+                , await Utils.toWei(tokenAmount + '')
+            );
+            
             if (!await checkSmartWalletDeployment(smartWallet.deployTransaction)) {
                 throw new Error('SmartWallet deployment failed');
             }
@@ -123,7 +111,7 @@ function Deploy(props) {
         );
         if (smartWallet.deployed) {
             //await this.refreshBalances()
-            const smartWalletList = smartWallets.filter((sw) =>{
+            const smartWalletList = smartWallets.filter((sw) => {
                 return sw.index !== smartWallet.index;
             });
             setSmartWallets([smartWallet, ...smartWalletList]);

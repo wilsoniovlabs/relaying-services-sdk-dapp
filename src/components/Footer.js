@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Utils, { TRIF_PRICE } from '../Utils';
 import './Footer.css';
 //import { useState } from 'react';
@@ -9,33 +9,41 @@ function Footer(props) {
         , setSmartWallets
         , connected
         , account
+        , provider
     } = props;
 
     const [workerBalance, setWorkerBalance] = useState('0');
     
+    const setBalance = useCallback( async (smartWallet) => {
+        const balance = await Utils.tokenBalance(smartWallet.address);
+        const rbtcBalance = await Utils.getBalance(smartWallet.address);
+
+        smartWallet.balance = Utils.fromWei(balance) + ' tRIF';
+        smartWallet.rbtcBalance = Utils.fromWei(rbtcBalance) + ' RBTC';
+        smartWallet.deployed = await provider.isSmartWalletDeployed(smartWallet.address);
+        return smartWallet;
+    }, [provider]);
+
     useEffect(() => {
-        if(!account){
+        if(!account || !provider){
             return;
         }
         (async () => {
             let smartWalletIndex = 0;
             let found = true;
-            const smartWalletList = [];
             while (found === true) {
-                let smartWalletAddress = await Utils.calculateSmartWalletAddress((smartWalletIndex + 1).toString());
-                const deployed = await Utils.isSmartWalletDeployed(smartWalletAddress);
-                const balance = await Utils.tokenBalance(smartWalletAddress);
-                if (balance > '0' || deployed) {
-                    const smartWallet = await createSmartWalletAddress(smartWalletAddress);
-                    smartWalletList.push(smartWallet);
+                let smartWallet = await provider.generateSmartWallet(smartWalletIndex + 1);
+                const balance = await Utils.tokenBalance(smartWallet.address);
+                if (balance > '0' || smartWallet.deployed) {
+                    smartWallet = await setBalance(smartWallet);
+                    setSmartWallets((currentSmartWallet) =>[...currentSmartWallet, smartWallet]);
                     smartWalletIndex += 1;
                 } else {
                     found = false;
                 }
             }
-            setStorageSmartWallets(smartWalletList)
         })();
-    }, [account, setSmartWallets]);
+    }, [account, provider, setSmartWallets, setBalance]);
 
     useEffect(() =>{
         (async () =>{
@@ -45,30 +53,9 @@ function Footer(props) {
         })();
     }, [setWorkerBalance]);
 
-    async function setStorageSmartWallets(smartWalletList){
-        setSmartWallets([...smartWallets, ...smartWalletList]);
-    }
-    
-    async function createSmartWalletAddress(address) {
-        let smartWallet = {};
-        const index = smartWallets.length + 1;
-
-        if (!address) {
-            smartWallet.address = await Utils.calculateSmartWalletAddress(index );
-        } else {
-            smartWallet.address = address;
-        }
-        smartWallet.index = index;
-        const balance = await Utils.tokenBalance(smartWallet.address);
-        const rbtcBalance = await Utils.getBalance(smartWallet.address);
-
-        smartWallet.balance = Utils.fromWei(balance) + ' tRIF';
-        smartWallet.rbtcBalance = Utils.fromWei(rbtcBalance) + ' RBTC';
-        smartWallet.deployed = await Utils.isSmartWalletDeployed(smartWallet.address);
-        return smartWallet;
-    }
     async function create() {
-        const smartWallet = await createSmartWalletAddress();
+        let smartWallet = await provider.generateSmartWallet(smartWallets.length + 1);
+        smartWallet = await setBalance(smartWallet);
         setSmartWallets([...smartWallets, smartWallet]);
     }
 

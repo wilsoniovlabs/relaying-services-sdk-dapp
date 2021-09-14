@@ -2,12 +2,9 @@ import { useState } from 'react';
 import Utils from '../Utils';
 import './Transfer.css';
 
-import abiDecoder from 'abi-decoder';
-
 //import { useState } from 'react';
 const M = window.M;
 const $ = window.$;
-var txId = 777;
 
 function Transfer(props) {
     const {
@@ -17,6 +14,7 @@ function Transfer(props) {
     } = props;
 
     const [transfer, setTransfer] = useState({});
+    
     async function pasteRecipientAddress() {
         const address = await navigator.clipboard.readText();
         if (Utils.checkAddress(address.toLowerCase())) {
@@ -28,35 +26,6 @@ function Transfer(props) {
         let obj = Object.assign({}, transfer);
         obj[prop] = event.currentTarget.value;
         setTransfer(obj)
-    }
-
-    async function relayTransactionExecution(toAddress, swAddress, abiEncodedTx, tokenFees, callbackFunction) {
-        if (callbackFunction === undefined || callbackFunction === null) {
-            console.error('No callback function specified for relayTransactionExecution');
-            return
-        }
-
-        const jsonRpcPayload = {
-            jsonrpc: '2.0',
-            id: ++txId,
-            method: 'eth_sendTransaction',
-            params: [
-                {
-                    from: this.accounts[0],
-                    to: toAddress,
-                    value: "0",
-                    relayHub: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
-                    callVerifier: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER,
-                    callForwarder: swAddress,
-                    data: abiEncodedTx,
-                    tokenContract: process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT,
-                    tokenAmount: Utils.toWei(tokenFees),
-                    onlyPreferredRelays: true
-                }
-            ]
-        }
-
-        this.provider.send(jsonRpcPayload, callbackFunction)
     }
 
     async function handleTransferSmartWalletButtonClick() {
@@ -78,39 +47,6 @@ function Transfer(props) {
             , fees
         );
         console.log(txDetials);
-        var instance = M.Modal.getInstance($('#transfer-modal'));
-        instance.close();
-    }
-
-    async function relayTransactionCallback(error, data) {
-        if (error !== null) {
-            console.error('Error during transfer: ' + error);
-            return
-        }
-
-        // Verify that the contract was correctly executed
-        const txHash = data.result;
-        let receipt = await Utils.getReceipt(txHash);
-
-        if (receipt === null) {
-            console.error('Error during transfer: receipt not found');
-            return;
-        }
-        console.log(`Your receipt is`);
-        console.log(receipt);
-
-        const logs = abiDecoder.decodeLogs(receipt.logs);
-        const transactionRelayedEvent = logs.find((e) => e != null && e.name === 'TransactionRelayed');
-        const returnedResult = transactionRelayedEvent.events.find((e) => {
-            return e != null && e.name === 'relayedCallReturnValue';
-        });
-
-        if (returnedResult === null) {
-            console.error('Error during transfer: returned result not found');
-            return;
-        }
-        setTransfer({});
-
         var instance = M.Modal.getInstance($('#transfer-modal'));
         instance.close();
     }

@@ -1,22 +1,13 @@
 /* eslint-disable import/first */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Web3 from 'web3';
 import './App.css';
-import Header from './components/Header';
 
-import abiDecoder from 'abi-decoder';
 import { DefaultRelayingServices } from 'relaying-services-sdk';
 
-import RIFToken from './contracts/RifToken.json';
-import IRelayHub from './contracts/IRelayHub.json';
-import ISmartWalletFactory from './contracts/ISmartWalletFactory.json';
-//import IForwarder from './contracts/IForwarder.json';
-//import HeavyTask from './contracts/HeavyTask.json';
-import DeployVerifier from './contracts/DeployVerifier.json';
-import RelayVerifier from './contracts/RelayVerifier.json';
 import TestToken from './contracts/TestToken.json';
-import TestRecipient from './contracts/TestRecipient.json';
 
+import Header from './components/Header';
 import SmartWallet from './components/SmartWallet';
 import Footer from './components/Footer';
 
@@ -46,31 +37,11 @@ function App() {
     const [provider, setProvider] = useState(null);
     const [rifTokenContract, setRifTokenContract] = useState();
     const [ritTokenDecimals, setRitTokenDecimals] = useState();
-    const [deployVerifierContract, setDeployVerifierContract] = useState();
-    const [relayVerifierContract, setRelayVerifierContract] = useState();
 
     const [smartWallets, setSmartWallets] = useState([]);
 
-    useEffect(() =>{
-        if(connected){
-            start();
-        }
-    }, [connected]);
 
-    async function start() {
-        const chainId = await web3.eth.getChainId();
-        if (chainId === Number(process.env.REACT_APP_ENVELOPING_CHAIN_ID)) {
-            initEventDecoder();
-            await initProvider();
-            const rifTokenContract = initContracts();
-            const ritTokenDecimals = await rifTokenContract.methods.decimals().call();
-            setRitTokenDecimals(ritTokenDecimals);
-        } else {
-            console.error(`Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_ENVELOPING_CHAIN_ID}`)
-        }
-    }
-
-    async function initProvider() {
+    const initProvider = useCallback( async () => {
         const config = {
             verbose: window.location.href.includes('verbose')
             , chainId: process.env.REACT_APP_ENVELOPING_CHAIN_ID
@@ -99,31 +70,32 @@ function App() {
         });
         await relayingServices.initialize(config, contractAddresses);
         setProvider(relayingServices);
-    }
+    }, [account]);
 
-    function initContracts() {
+    const initContracts = useCallback( () => {
         let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN)
         rifTokenContract.setProvider(web3.currentProvider)
         setRifTokenContract(rifTokenContract);
-
-        // Bootstrap the DeployVerifier contract
-        // The Enveloping RelayProvider is added to each contract that we want to interact with using Enveloping.
-        let deployVerifierContract = new web3.eth.Contract(DeployVerifier.abi, process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER)
-        deployVerifierContract.setProvider(web3.currentProvider)
-        setDeployVerifierContract(deployVerifierContract);
-
-        let relayVerifierContract = new web3.eth.Contract(RelayVerifier.abi, process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER);
-        relayVerifierContract.setProvider(web3.currentProvider);
-        setRelayVerifierContract(relayVerifierContract);
         return rifTokenContract;
-    }
+    }, []);
 
-    function initEventDecoder() {
-        abiDecoder.addABI(ISmartWalletFactory.abi)
-        abiDecoder.addABI(IRelayHub.abi)
-        abiDecoder.addABI(TestRecipient.abi)
-        abiDecoder.addABI(RIFToken.abi)
-    }
+    const start = useCallback( async () =>  {
+        const chainId = await web3.eth.getChainId();
+        if (chainId === Number(process.env.REACT_APP_ENVELOPING_CHAIN_ID)) {
+            await initProvider();
+            const rifTokenContract = initContracts();
+            const ritTokenDecimals = await rifTokenContract.methods.decimals().call();
+            setRitTokenDecimals(ritTokenDecimals);
+        } else {
+            console.error(`Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_ENVELOPING_CHAIN_ID}`)
+        }
+    }, [initProvider, initContracts]);
+
+    useEffect(() =>{
+        if(connected){
+            start();
+        }
+    }, [connected, start]);
 
     return (
         <div className="App">
@@ -141,6 +113,7 @@ function App() {
             />
 
             <Footer
+                provider={provider}
                 smartWallets={smartWallets}
                 setSmartWallets={setSmartWallets}
                 connected={connected}
@@ -151,8 +124,6 @@ function App() {
                 currentSmartWallet={currentSmartWallet}
                 provider={provider}
                 ritTokenDecimals={ritTokenDecimals}
-                deployVerifierContract={deployVerifierContract}
-                relayVerifierContract={relayVerifierContract}
                 setSmartWallets={setSmartWallets}
                 smartWallets={smartWallets}
             />
