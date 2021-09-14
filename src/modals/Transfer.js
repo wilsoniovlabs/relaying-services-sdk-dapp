@@ -31,7 +31,7 @@ function Transfer(props) {
         const amount = transfer.amount;
         const fees = transfer.fees === "" ? "0" : transfer.fees;
 
-        const encodedAbi = await Utils.getTokenContract().methods
+        const encodedAbi = (await Utils.getTokenContract()).methods
             .transfer(transfer.address, await Utils.toWei(amount)).encodeABI();
         
         const txDetials = await provider.relayTransaction(
