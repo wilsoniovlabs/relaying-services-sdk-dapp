@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react';
 import Utils from '../Utils';
 import './Header.css';
-//import { useState } from 'react';
-
-const ethereum = window.ethereum;
 
 function Header(props) {
   const {
     account
-    , setAccount
-    , setConnect
-    , connected
+    , connect
   } = props;
 
   //const [status, setStatus] = useState('red');
@@ -27,50 +22,6 @@ function Header(props) {
     })();
   }, [account])
 
-  async function connectToMetamask() {
-    let isConnected = false;
-    try {
-      await ethereum.request({ method: 'eth_requestAccounts' });
-      ethereum.on('accountsChanged', async (/*accounts*/) => {
-        await refreshAccount();
-      });
-      isConnected = true;
-    } catch (error) {
-      console.error(error);
-    }
-    finally {
-      setConnect(isConnected);
-      return isConnected
-    }
-  }
-
-  async function refreshAccount() {
-    const accounts = await Utils.getAccounts();
-
-    const account = accounts[0];
-    setAccount(account);
-  }
-
-  async function connect() {
-    try {
-      let isConnected = false;
-      if (!connected) {
-        isConnected = await connectToMetamask()
-      }
-
-      if (isConnected) {
-        await refreshAccount();
-      }
-      else {
-        console.warn("Unable to connect to Metamask");
-        setConnect(isConnected);
-      }
-
-    } catch (error) {
-      console.log(error);
-      console.warn('User denied account access');
-    }
-  }
   return (
     <header>
       <nav>
@@ -84,7 +35,7 @@ function Header(props) {
             <li><span>&nbsp;|&nbsp;</span></li>
             <li><span id="eoa-balance" className="eoa-balance" >{balance || 'Balance'} </span></li>
             <li>
-              <a className="waves-effect waves-light btn indigo accent-2" href="#!" onClick={connect}>
+              <a className="waves-effect waves-light btn indigo accent-2" href="#!" onClick={() =>{connect()}}>
                 Connect wallet
                 <i className="material-icons right">account_balance_wallet</i>
               </a>

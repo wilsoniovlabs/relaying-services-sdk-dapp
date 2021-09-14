@@ -13,7 +13,6 @@ function Deploy(props) {
     const {
         currentSmartWallet
         , provider
-        , ritTokenDecimals
         , setSmartWallets
         , smartWallets
     } = props;
@@ -37,7 +36,8 @@ function Deploy(props) {
         console.log("Cost in RBTC:", costInRBTC);
 
         const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
-
+        const tokenContract = await Utils.getTokenContract();
+        const ritTokenDecimals = await tokenContract.methods.decimals().call();
         const costInTrifFixed = costInTrif.toFixed(ritTokenDecimals);
         console.log("Cost in TRif: ", costInTrifFixed)
 
@@ -104,10 +104,7 @@ function Deploy(props) {
         deploy.tokenGas = deploy.tokenGas === "" ? "0" : deploy.tokenGas;
 
         let smartWallet = await relaySmartWalletDeployment(
-            currentSmartWallet.index,
-            deploy.fees,
-            deploy.tokenGas,
-            deploy.relayGas
+            deploy.fees
         );
         if (smartWallet.deployed) {
             //await this.refreshBalances()

@@ -1,20 +1,16 @@
 
-import Web3 from 'web3';
 import TestToken from './contracts/TestToken.json';
+import Web3 from 'web3';
 
 // Zero address
 export const TRIF_PRICE = 0.000005739;
-function init() {
-    if (window.ethereum) {
-        window.web3 = new Web3(window.ethereum)
-    } else if (window.web3) {
-        window.web3 = new Web3(window.web3.currentProvider)
-    } else {
-        throw new Error('No web3 detected')
-    }
+if (window.ethereum) {
+    window.web3 = new Web3(window.ethereum);
+} else if (window.web3) {
+    window.web3 = new Web3(window.web3.currentProvider);
+} else {
+    throw new Error('No web3 detected');
 }
-init();
-
 const web3 = window.web3;
 //const ethereum = window.ethereum;
 
@@ -24,6 +20,11 @@ class Utils {
         rifTokenContract.setProvider(web3.currentProvider);
         const balance = await rifTokenContract.methods.balanceOf(address).call();
         return balance;
+    }
+    static async getTokenContract( ) {
+        let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
+        rifTokenContract.setProvider(web3.currentProvider);
+        return rifTokenContract;
     }
 
     static async getBalance(address) {

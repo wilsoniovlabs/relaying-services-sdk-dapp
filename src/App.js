@@ -1,11 +1,9 @@
 /* eslint-disable import/first */
-import { useEffect, useState, useCallback } from 'react';
-import Web3 from 'web3';
+import { useState } from 'react';
 import './App.css';
+import Web3 from 'web3';
 
 import { DefaultRelayingServices } from 'relaying-services-sdk';
-
-import TestToken from './contracts/TestToken.json';
 
 import Header from './components/Header';
 import SmartWallet from './components/SmartWallet';
@@ -15,19 +13,18 @@ import Deploy from './modals/Deploy';
 //import Execute from './modals/Execute';
 import Receive from './modals/Receive';
 import Transfer from './modals/Transfer';
+import Utils from './Utils';
 
-function init() {
-    if (window.ethereum) {
-        window.web3 = new Web3(window.ethereum)
-    } else if (window.web3) {
-        window.web3 = new Web3(window.web3.currentProvider)
-    } else {
-        throw new Error('No web3 detected')
-    }
+if (window.ethereum) {
+    window.web3 = new Web3(window.ethereum);
+} else if (window.web3) {
+    window.web3 = new Web3(window.web3.currentProvider);
+} else {
+    throw new Error('No web3 detected');
 }
-init();
 
 const web3 = window.web3;
+const ethereum = window.ethereum;
 
 
 function App() {
@@ -35,17 +32,14 @@ function App() {
     const [account, setAccount] = useState('');
     const [currentSmartWallet, setCurrentSmartWallet] = useState(null);
     const [provider, setProvider] = useState(null);
-    const [rifTokenContract, setRifTokenContract] = useState();
-    const [ritTokenDecimals, setRitTokenDecimals] = useState();
 
     const [smartWallets, setSmartWallets] = useState([]);
 
-
-    const initProvider = useCallback( async () => {
+    async function initProvider() {
         const config = {
             verbose: window.location.href.includes('verbose')
             , chainId: process.env.REACT_APP_ENVELOPING_CHAIN_ID
-            ,gasPriceFactorPercent: process.env.REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT
+            , gasPriceFactorPercent: process.env.REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT
             , relayLookupWindowBlocks: process.env.REACT_APP_ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS
             , preferredRelays: [process.env.REACT_APP_ENVELOPING_PREFERRED_RELAYS]
             , relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB
@@ -62,7 +56,7 @@ function App() {
             , sampleRecipient: process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT
             , testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
         };
-
+        
         // Get an Enveloping RelayProvider instance and assign it to Web3 to use Enveloping transparently
         const relayingServices = new DefaultRelayingServices({
             web3Instance: web3,
@@ -70,40 +64,70 @@ function App() {
         });
         await relayingServices.initialize(config, contractAddresses);
         setProvider(relayingServices);
-    }, [account]);
+    };
 
-    const initContracts = useCallback( () => {
-        let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN)
-        rifTokenContract.setProvider(web3.currentProvider)
-        setRifTokenContract(rifTokenContract);
-        return rifTokenContract;
-    }, []);
-
-    const start = useCallback( async () =>  {
+    async function start() {
         const chainId = await web3.eth.getChainId();
         if (chainId === Number(process.env.REACT_APP_ENVELOPING_CHAIN_ID)) {
             await initProvider();
-            const rifTokenContract = initContracts();
-            const ritTokenDecimals = await rifTokenContract.methods.decimals().call();
-            setRitTokenDecimals(ritTokenDecimals);
         } else {
             console.error(`Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_ENVELOPING_CHAIN_ID}`)
         }
-    }, [initProvider, initContracts]);
+    };
 
-    useEffect(() =>{
-        if(connected){
-            start();
+    async function connectToMetamask() {
+        let isConnected = false;
+        try {
+            await ethereum.request({ method: 'eth_requestAccounts' });
+            ethereum.on('accountsChanged', async (/*accounts*/) => {
+                await refreshAccount();
+            });
+            isConnected = true;
+        } catch (error) {
+            console.error(error);
         }
-    }, [connected, start]);
+        finally {
+            setConnect(isConnected);
+            return isConnected
+        }
+    }
+
+    async function refreshAccount() {
+        const accounts = await Utils.getAccounts();
+        const account = accounts[0];
+        setAccount(account);
+    }
+
+    async function connect() {
+        try {
+            let isConnected = false;
+            if (!connected) {
+                isConnected = await connectToMetamask()
+            }
+
+            if (isConnected) {
+                await refreshAccount();
+                await start();
+            }
+            else {
+                console.warn("Unable to connect to Metamask");
+                setConnect(isConnected);
+            }
+
+        } catch (error) {
+            console.log(error);
+            console.warn('User denied account access');
+        }
+    }
 
     return (
         <div className="App">
             <Header
                 setAccount={setAccount}
                 account={account}
-                setConnect={setConnect}
+                connect={connect}
                 connected={connected}
+
             />
 
             <SmartWallet
@@ -112,28 +136,26 @@ function App() {
                 setCurrentSmartWallet={setCurrentSmartWallet}
             />
 
-            <Footer
+            {connected && (<Footer
                 provider={provider}
                 smartWallets={smartWallets}
                 setSmartWallets={setSmartWallets}
                 connected={connected}
                 account={account}
-            />
+            />)}
 
-            <Deploy 
+            <Deploy
                 currentSmartWallet={currentSmartWallet}
                 provider={provider}
-                ritTokenDecimals={ritTokenDecimals}
                 setSmartWallets={setSmartWallets}
                 smartWallets={smartWallets}
             />
-            <Receive 
+            <Receive
                 currentSmartWallet={currentSmartWallet}
             />
-            <Transfer 
+            <Transfer
                 provider={provider}
                 currentSmartWallet={currentSmartWallet}
-                rifTokenContract={rifTokenContract}
             />
             {/*<Execute />*/}
         </div>
