@@ -1,10 +1,9 @@
 # RIF Relaying Services SDK sample dApp
 
-This a basic sample dApp to showcase how users can submit transactions to the RSK blockchain paying a RelayServer for the transaction fees with tokens using RIF Relay SDK. You will need to connect to the dApp with Metamask but only for signing transactions with the account that controls your Smart Wallets.
+This a basic sample dApp to showcase how users can submit transactions to the RSK blockchain paying a Relay Server for the transaction fees with tokens using RIF Relay SDK. You will need to connect to the dApp with Metamask but only for signing transactions with the account that controls your Smart Wallets.
 
 See [RIF Relay](https://github.com/rsksmart/rif-relay) project.
 
-## Using the dApp
 
 ## Pre-Requisites
 
@@ -22,7 +21,7 @@ To setup the dApp do this:
 
 To run the sample dApp follow these steps:
 
-1. Edit the sample dApp config file located in `.env` and add the contract addresses from the deployment executed in step 2 from Running a RelayServer. By default the project imports `.env` on the `npm start`. Look for these lines and modify them accordingly:
+1. Edit the sample dApp config file located in `.env` and add the contract addresses from the deployment executed in step 2 from Running a Relay Server. By default the project imports `.env` on the `npm start`. Look for these lines and modify them accordingly:
 ```
 REACT_APP_CONTRACTS_RELAY_HUB=0xE0825f57Dd05Ef62FF731c27222A86E104CC4Cad
 REACT_APP_CONTRACTS_DEPLOY_VERIFIER=0x1eD614cd3443EFd9c70F04b6d777aed947A4b0c4
