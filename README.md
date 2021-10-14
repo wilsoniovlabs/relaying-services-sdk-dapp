@@ -4,7 +4,6 @@ This a basic sample dApp to showcase how users can submit transactions to the RS
 
 See https://github.com/rsksmart/rif-relay for the RIF Relay project.
 
-## Using the dApp
 
 ## Pre-Requisites
 
