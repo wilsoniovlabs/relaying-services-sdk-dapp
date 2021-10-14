@@ -2,7 +2,7 @@
 
 This a basic sample dApp to showcase how users can submit transactions to the RSK blockchain paying a RelayServer for the transaction fees with tokens using RIF Relay SDK. You will need to connect to the dApp with Metamask but only for signing transactions with the account that controls your Smart Wallets.
 
-See https://github.com/rsksmart/rif-relay for the RIF Relay project.
+See [RIF Relay](https://github.com/rsksmart/rif-relay) project.
 
 ## Using the dApp
 
@@ -10,7 +10,7 @@ See https://github.com/rsksmart/rif-relay for the RIF Relay project.
 
 * RSKj Node Running
 * [Enveloping Contracts](https://github.com/anarancio/rif-relay-contracts) deployed.
-* Current Token Allowed
+* [Current Token Allowed](https://github.com/anarancio/rif-relay-contracts#allowing-tokens)
 * [Enveloping Server](https://github.com/infuy/rif-relay-server) running.
 
 ## Running the sample dApp
