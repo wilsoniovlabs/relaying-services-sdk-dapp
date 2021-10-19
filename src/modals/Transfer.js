@@ -40,7 +40,7 @@ function Transfer(props) {
                 , data: encodedAbi
             }
             , {
-                tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+                tokenAddress: process.env.CONTRACTS_RIF_TOKEN
                 , ...currentSmartWallet
             }
             , fees
