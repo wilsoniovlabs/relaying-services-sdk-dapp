@@ -20,7 +20,7 @@ if (window.ethereum) {
 } else if (window.web3) {
     window.web3 = new Web3(window.web3.currentProvider);
 } else {
-    throw new Error('No web3 detected');
+    throw new Error('Error: MetaMask or web3 not detected');
 }
 
 const web3 = window.web3;
