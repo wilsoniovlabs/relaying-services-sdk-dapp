@@ -27,7 +27,7 @@ function Deploy(props) {
     async function handleEstimateDeploySmartWalletButtonClick() {
         const estimate = await provider.estimateMaxPossibleRelayGas(
             currentSmartWallet
-            , process.env.CONTRACTS_RELAY_WORKER
+            , process.env.REACT_APP_CONTRACTS_RELAY_WORKER
         );
 
         changeValue({ currentTarget: { value: estimate } })
@@ -82,11 +82,11 @@ function Deploy(props) {
     }
 
     async function relaySmartWalletDeployment(tokenAmount) {
-        const isAllowToken = await provider.isAllowedToken(process.env.CONTRACTS_RIF_TOKEN);
+        const isAllowToken = await provider.isAllowedToken(process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
         if (isAllowToken) {
             const smartWallet = await provider.deploySmartWallet(
                 currentSmartWallet
-                , process.env.CONTRACTS_RIF_TOKEN
+                , process.env.REACT_APP_CONTRACTS_RIF_TOKEN
                 , await Utils.toWei(tokenAmount + '')
             );
             

@@ -38,23 +38,23 @@ function App() {
     async function initProvider() {
         const config = {
             verbose: window.location.href.includes('verbose')
-            , chainId: process.env.ENVELOPING_CHAIN_ID
-            , gasPriceFactorPercent: process.env.ENVELOPING_GAS_PRICE_FACTOR_PERCENT
-            , relayLookupWindowBlocks: process.env.ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS
-            , preferredRelays: [process.env.ENVELOPING_PREFERRED_RELAYS]
-            , relayHubAddress: process.env.CONTRACTS_RELAY_HUB
-            , relayVerifierAddress: process.env.CONTRACTS_RELAY_VERIFIER
-            , deployVerifierAddress: process.env.CONTRACTS_DEPLOY_VERIFIER
-            , smartWalletFactoryAddress: process.env.CONTRACTS_SMART_WALLET_FACTORY
+            , chainId: process.env.REACT_APP_ENVELOPING_CHAIN_ID
+            , gasPriceFactorPercent: process.env.REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT
+            , relayLookupWindowBlocks: process.env.REACT_APP_ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS
+            , preferredRelays: [process.env.REACT_APP_ENVELOPING_PREFERRED_RELAYS]
+            , relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB
+            , relayVerifierAddress: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
+            , deployVerifierAddress: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
+            , smartWalletFactoryAddress: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
         };
         const contractAddresses = {
-            relayHub: process.env.CONTRACTS_RELAY_HUB
-            , smartWallet: process.env.CONTRACTS_SMART_WALLET
-            , smartWalletFactory: process.env.CONTRACTS_SMART_WALLET_FACTORY
-            , smartWalletDeployVerifier: process.env.CONTRACTS_DEPLOY_VERIFIER
-            , smartWalletRelayVerifier: process.env.CONTRACTS_RELAY_VERIFIER
-            , sampleRecipient: process.env.CONTRACTS_TEST_RECIPIENT
-            , testToken: process.env.CONTRACTS_RIF_TOKEN
+            relayHub: process.env.REACT_APP_CONTRACTS_RELAY_HUB
+            , smartWallet: process.env.REACT_APP_CONTRACTS_SMART_WALLET
+            , smartWalletFactory: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
+            , smartWalletDeployVerifier: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
+            , smartWalletRelayVerifier: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
+            , sampleRecipient: process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT
+            , testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
         };
         
         // Get an Enveloping RelayProvider instance and assign it to Web3 to use Enveloping transparently
@@ -68,10 +68,10 @@ function App() {
 
     async function start() {
         const chainId = await web3.eth.getChainId();
-        if (chainId === Number(process.env.ENVELOPING_CHAIN_ID)) {
+        if (chainId === Number(process.env.REACT_APP_ENVELOPING_CHAIN_ID)) {
             await initProvider();
         } else {
-            console.error(`Wrong network ID ${chainId}, it must be ${process.env.ENVELOPING_CHAIN_ID}`)
+            console.error(`Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_ENVELOPING_CHAIN_ID}`)
         }
     };
 

@@ -16,13 +16,13 @@ const web3 = window.web3;
 
 class Utils {
     static async tokenBalance(address) {
-        let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.CONTRACTS_RIF_TOKEN);
+        let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
         rifTokenContract.setProvider(web3.currentProvider);
         const balance = await rifTokenContract.methods.balanceOf(address).call();
         return balance;
     }
     static async getTokenContract( ) {
-        let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.CONTRACTS_RIF_TOKEN);
+        let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
         rifTokenContract.setProvider(web3.currentProvider);
         return rifTokenContract;
     }

@@ -47,7 +47,7 @@ function Footer(props) {
 
     useEffect(() => {
         (async () => {
-            const workerAddress = process.env.CONTRACTS_RELAY_WORKER;
+            const workerAddress = process.env.REACT_APP_CONTRACTS_RELAY_WORKER;
             const workerBalance = parseFloat(Utils.fromWei(await Utils.tokenBalance(workerAddress))).toFixed(4);
             setWorkerBalance(workerBalance);
         })();
