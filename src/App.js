@@ -13,6 +13,7 @@ import Deploy from './modals/Deploy';
 //import Execute from './modals/Execute';
 import Receive from './modals/Receive';
 import Transfer from './modals/Transfer';
+import Loading from './modals/Loading';
 import Utils from './Utils';
 
 if (window.ethereum) {
@@ -32,6 +33,7 @@ function App() {
     const [account, setAccount] = useState('');
     const [currentSmartWallet, setCurrentSmartWallet] = useState(null);
     const [provider, setProvider] = useState(null);
+    const [show, setShow] = useState(false);
 
     const [smartWallets, setSmartWallets] = useState([]);
 
@@ -104,6 +106,7 @@ function App() {
 
     async function connect() {
         try {
+            setShow(true);
             let isConnected = false;
             if (!connected) {
                 isConnected = await connectToMetamask()
@@ -118,14 +121,17 @@ function App() {
                 setConnect(isConnected);
             }
 
+            setShow(false);
         } catch (error) {
             console.log(error);
             console.warn('User denied account access');
+            setShow(false);
         }
     }
 
     return (
         <div className="App">
+            <Loading show={show}/>
             <Header
                 setAccount={setAccount}
                 account={account}
@@ -138,6 +144,7 @@ function App() {
                 connected={connected}
                 smartWallets={smartWallets}
                 setCurrentSmartWallet={setCurrentSmartWallet}
+                setShow={setShow}
             />
 
             {connected && (<Footer
@@ -146,6 +153,7 @@ function App() {
                 setSmartWallets={setSmartWallets}
                 connected={connected}
                 account={account}
+                setShow={setShow}
             />)}
 
             <Deploy
@@ -153,6 +161,7 @@ function App() {
                 provider={provider}
                 setSmartWallets={setSmartWallets}
                 smartWallets={smartWallets}
+                setShow={setShow}
             />
             <Receive
                 currentSmartWallet={currentSmartWallet}
@@ -160,6 +169,7 @@ function App() {
             <Transfer
                 provider={provider}
                 currentSmartWallet={currentSmartWallet}
+                setShow={setShow}
             />
             {/*<Execute />*/}
         </div>

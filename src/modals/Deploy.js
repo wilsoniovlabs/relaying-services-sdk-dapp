@@ -1,7 +1,6 @@
 import Utils, { TRIF_PRICE } from '../Utils';
 import './Deploy.css';
 import { useState } from 'react';
-import abiDecoder from 'abi-decoder';
 //import { useState } from 'react';
 
 const $ = window.$;
@@ -15,6 +14,7 @@ function Deploy(props) {
         , provider
         , setSmartWallets
         , smartWallets
+        , setShow
     } = props;
 
     const [deploy, setDeploy] = useState({
@@ -99,6 +99,7 @@ function Deploy(props) {
         deploy.fees = deploy.fees === "" ? "0" : deploy.fees;
         deploy.tokenGas = deploy.tokenGas === "" ? "0" : deploy.tokenGas;
 
+        setShow(true);
         let smartWallet = await relaySmartWalletDeployment(
             deploy.fees
         );
@@ -112,6 +113,8 @@ function Deploy(props) {
             var instance = M.Modal.getInstance($('#deploy-modal'));
             instance.close();
         }
+
+        setShow(false);
     }
 
     function changeValue(event, prop) {

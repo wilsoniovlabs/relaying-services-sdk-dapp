@@ -10,15 +10,18 @@ function Transfer(props) {
     const {
         currentSmartWallet
         , provider
+        , setShow
     } = props;
 
     const [transfer, setTransfer] = useState({});
     
     async function pasteRecipientAddress() {
+        setShow(true);
         const address = await navigator.clipboard.readText();
         if (Utils.checkAddress(address.toLowerCase())) {
             changeValue({ currentTarget: { value: address } }, 'address');
         }
+        setShow(false);
     }
 
     function changeValue(event, prop) {
@@ -28,6 +31,7 @@ function Transfer(props) {
     }
 
     async function handleTransferSmartWalletButtonClick() {
+        setShow(true);
         const amount = transfer.amount;
         const fees = transfer.fees === "" ? "0" : transfer.fees;
 
@@ -48,6 +52,7 @@ function Transfer(props) {
         console.log(txDetials);
         var instance = M.Modal.getInstance($('#transfer-modal'));
         instance.close();
+        setShow(false);
     }
 
     return (

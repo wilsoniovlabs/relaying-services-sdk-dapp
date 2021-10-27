@@ -7,10 +7,13 @@ function SmartWallet(props) {
         connected
         , smartWallets
         , setCurrentSmartWallet
+        , setShow
     } = props;
 
     async function copySmartWalletAddress(address) {
+        setShow(true);
         await navigator.clipboard.writeText(address);
+        setShow(false);
     }
     
     return (

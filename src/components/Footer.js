@@ -10,6 +10,7 @@ function Footer(props) {
         , connected
         , account
         , provider
+        , setShow
     } = props;
 
     const [workerBalance, setWorkerBalance] = useState('0');
@@ -31,6 +32,7 @@ function Footer(props) {
         (async () => {
             let smartWalletIndex = 0;
             let found = true;
+            setShow(true);
             while (found === true) {
                 let smartWallet = await provider.generateSmartWallet(smartWalletIndex + 1);
                 const balance = await Utils.tokenBalance(smartWallet.address);
@@ -42,8 +44,9 @@ function Footer(props) {
                     found = false;
                 }
             }
+            setShow(false);
         })();
-    }, [account, provider, setSmartWallets, setBalance]);
+    }, [account, provider, setSmartWallets, setBalance, setShow]);
 
     useEffect(() => {
         (async () => {
@@ -54,9 +57,12 @@ function Footer(props) {
     }, [setWorkerBalance]);
 
     async function create() {
+        setShow(true);
         let smartWallet = await provider.generateSmartWallet(smartWallets.length + 1);
         smartWallet = await setBalance(smartWallet);
         setSmartWallets([...smartWallets, smartWallet]);
+        
+        setShow(false);
     }
 
     return (
