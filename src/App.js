@@ -36,34 +36,38 @@ function App() {
     const [smartWallets, setSmartWallets] = useState([]);
 
     async function initProvider() {
-        const config = {
-            verbose: window.location.href.includes('verbose')
-            , chainId: process.env.REACT_APP_ENVELOPING_CHAIN_ID
-            , gasPriceFactorPercent: process.env.REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT
-            , relayLookupWindowBlocks: process.env.REACT_APP_ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS
-            , preferredRelays: [process.env.REACT_APP_ENVELOPING_PREFERRED_RELAYS]
-            , relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB
-            , relayVerifierAddress: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
-            , deployVerifierAddress: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
-            , smartWalletFactoryAddress: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
-        };
-        const contractAddresses = {
-            relayHub: process.env.REACT_APP_CONTRACTS_RELAY_HUB
-            , smartWallet: process.env.REACT_APP_CONTRACTS_SMART_WALLET
-            , smartWalletFactory: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
-            , smartWalletDeployVerifier: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
-            , smartWalletRelayVerifier: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
-            , sampleRecipient: process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT
-            , testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
-        };
-        
-        // Get an Enveloping RelayProvider instance and assign it to Web3 to use Enveloping transparently
-        const relayingServices = new DefaultRelayingServices({
-            web3Instance: web3,
-            account: account
-        });
-        await relayingServices.initialize(config, contractAddresses);
-        setProvider(relayingServices);
+        try {
+            const config = {
+                verbose: window.location.href.includes('verbose')
+                , chainId: process.env.REACT_APP_ENVELOPING_CHAIN_ID
+                , gasPriceFactorPercent: process.env.REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT
+                , relayLookupWindowBlocks: process.env.REACT_APP_ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS
+                , preferredRelays: [process.env.REACT_APP_ENVELOPING_PREFERRED_RELAYS]
+                , relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB
+                , relayVerifierAddress: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
+                , deployVerifierAddress: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
+                , smartWalletFactoryAddress: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
+            };
+            const contractAddresses = {
+                relayHub: process.env.REACT_APP_CONTRACTS_RELAY_HUB
+                , smartWallet: process.env.REACT_APP_CONTRACTS_SMART_WALLET
+                , smartWalletFactory: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
+                , smartWalletDeployVerifier: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
+                , smartWalletRelayVerifier: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
+                , sampleRecipient: process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT
+                , testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+            };
+
+            // Get an Enveloping RelayProvider instance and assign it to Web3 to use Enveloping transparently
+            const relayingServices = new DefaultRelayingServices({
+                web3Instance: web3,
+                account: account
+            });
+            await relayingServices.initialize(config, contractAddresses);
+            setProvider(relayingServices);
+        } catch (error) {
+            console.error(error)
+        }
     };
 
     async function start() {

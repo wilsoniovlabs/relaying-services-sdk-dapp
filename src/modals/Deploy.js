@@ -74,11 +74,7 @@ function Deploy(props) {
 
         console.log(`Your receipt is`);
         console.log(receipt);
-
-        const logs = abiDecoder.decodeLogs(receipt.logs);
-        const smartWalletCreationEvents = logs.find((e) => e != null && e.name === 'Deployed');
-
-        return !(smartWalletCreationEvents === null || smartWalletCreationEvents === undefined);
+        return receipt.status;
     }
 
     async function relaySmartWalletDeployment(tokenAmount) {
