@@ -7,10 +7,11 @@ See [RIF Relay](https://github.com/rsksmart/rif-relay) project.
 
 ## Pre-Requisites
 
-* RSKj Node Running
+* [NodeJS Version v12.18.3 or higher](https://yarnpkg.com/getting-started/install).
+* [RSKj Node Running](https://github.com/rsksmart/rskj).
 * [RIF Relay Contract Contracts](https://github.com/anarancio/rif-relay-contracts) deployed.
-* [Current Token Allowed](https://github.com/anarancio/rif-relay-contracts#allowing-tokens)
-* [RIF Relay Server](https://github.com/infuy/rif-relay-server) running.
+* [Current Token Allowed](https://github.com/anarancio/rif-relay-contracts#allowing-tokens).
+* [RIF Relay Server](https://github.com/infuy/rif-relay-server) running and register.
 
 ## Running the sample dApp
 
