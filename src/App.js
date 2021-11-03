@@ -56,7 +56,6 @@ function App() {
                 , smartWalletFactory: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
                 , smartWalletDeployVerifier: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
                 , smartWalletRelayVerifier: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
-                , sampleRecipient: process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT
                 , testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
             };
 
