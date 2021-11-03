@@ -8,9 +8,9 @@ See [RIF Relay](https://github.com/rsksmart/rif-relay) project.
 ## Pre-Requisites
 
 * RSKj Node Running
-* [Enveloping Contracts](https://github.com/anarancio/rif-relay-contracts) deployed.
+* [RIF Relay Contract Contracts](https://github.com/anarancio/rif-relay-contracts) deployed.
 * [Current Token Allowed](https://github.com/anarancio/rif-relay-contracts#allowing-tokens)
-* [Enveloping Server](https://github.com/infuy/rif-relay-server) running.
+* [RIF Relay Server](https://github.com/infuy/rif-relay-server) running.
 
 ## Running the sample dApp
 
@@ -32,10 +32,10 @@ REACT_APP_CONTRACTS_RIF_TOKEN=0x726ECC75d5D51356AA4d0a5B648790cC345985ED
 REACT_APP_CONTRACTS_TEST_RECIPIENT=0xCd5805d60Bbf9Afe69a394c2BDa10F6Dae2c39AF
 REACT_APP_CONTRACTS_RELAY_WORKER=0x3d67f029f778a088904f12d030933967d220faa3
 
-REACT_APP_ENVELOPING_CHAIN_ID=33
-REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT=0
-REACT_APP_ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS=1e5
-REACT_APP_ENVELOPING_PREFERRED_RELAYS=http://localhost:8090
+REACT_APP_RIF_RELAY_CHAIN_ID=33
+REACT_APP_RIF_RELAY_GAS_PRICE_FACTOR_PERCENT=0
+REACT_APP_RIF_RELAY_RELAY_LOOKUP_WINDOW_BLOCKS=1e5
+REACT_APP_RIF_RELAY_PREFERRED_RELAYS=http://localhost:8090
 ```
 
 2. Open a terminal in the sample dApp project root and execute

@@ -28,7 +28,7 @@ function Header(props) {
         <div className="nav-wrapper gradient">
           <div className="brand-logo left">
             <img className="responsive-img" alt="logo" src="images/rif_logo.png" onClick={props.refreshBalances} />
-            <span ><b>rif Enveloping</b></span>
+            <span ><b>RIF Relay</b></span>
           </div>
           <ul id="nav-mobile" className="right hide-on-med-and-down">
             <li><span id="eoa-address">{account || 'Address'} </span></li>
