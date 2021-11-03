@@ -41,10 +41,10 @@ function App() {
         try {
             const config = {
                 verbose: window.location.href.includes('verbose')
-                , chainId: process.env.REACT_APP_ENVELOPING_CHAIN_ID
-                , gasPriceFactorPercent: process.env.REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT
-                , relayLookupWindowBlocks: process.env.REACT_APP_ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS
-                , preferredRelays: [process.env.REACT_APP_ENVELOPING_PREFERRED_RELAYS]
+                , chainId: process.env.REACT_APP_RIF_RELAY_CHAIN_ID
+                , gasPriceFactorPercent: process.env.REACT_APP_RIF_RELAY_GAS_PRICE_FACTOR_PERCENT
+                , relayLookupWindowBlocks: process.env.REACT_APP_RIF_RELAY_RELAY_LOOKUP_WINDOW_BLOCKS
+                , preferredRelays: [process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS]
                 , relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB
                 , relayVerifierAddress: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
                 , deployVerifierAddress: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
@@ -60,7 +60,7 @@ function App() {
                 , testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
             };
 
-            // Get an Enveloping RelayProvider instance and assign it to Web3 to use Enveloping transparently
+            // Get an RIF Relay RelayProvider instance and assign it to Web3 to use RIF Relay transparently
             const relayingServices = new DefaultRelayingServices({
                 web3Instance: web3,
                 account: account
@@ -74,10 +74,10 @@ function App() {
 
     async function start() {
         const chainId = await web3.eth.getChainId();
-        if (chainId === Number(process.env.REACT_APP_ENVELOPING_CHAIN_ID)) {
+        if (chainId === Number(process.env.REACT_APP_RIF_RELAY_CHAIN_ID)) {
             await initProvider();
         } else {
-            console.error(`Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_ENVELOPING_CHAIN_ID}`)
+            console.error(`Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`)
         }
     };
 
