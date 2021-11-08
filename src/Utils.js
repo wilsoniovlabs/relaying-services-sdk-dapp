@@ -73,6 +73,10 @@ class Utils {
             return true;
         }
     }
+
+    static async sendTransaction(transactionDetails){
+        await web3.eth.sendTransaction(transactionDetails);
+    }
 }
 
 export default Utils;

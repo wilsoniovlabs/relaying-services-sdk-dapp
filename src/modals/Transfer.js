@@ -31,6 +31,13 @@ function Transfer(props) {
     }
 
     async function handleTransferSmartWalletButtonClick() {
+        if(transfer.check){
+            await transferSmartWalletButtonClick();
+        }else{
+            await sendRBTC()
+        }
+    }
+    async function transferSmartWalletButtonClick() {
         setShow(true);
         const amount = transfer.amount;
         const fees = transfer.fees === "" ? "0" : transfer.fees;
@@ -55,13 +62,22 @@ function Transfer(props) {
         setShow(false);
     }
 
+    async function sendRBTC(){
+        const amount = await Utils.toWei(transfer.amount,"ether");
+        await Utils.sendTransaction({
+            from: currentSmartWallet.address,
+            to:transfer.address,
+            value: amount
+        })
+    }
+
     return (
         <div id="transfer-modal" className="modal">
             <div className="modal-content">
                 <div className="row">
                     <form className="col s12 offset-s1">
                         <div className="row">
-                            <div className="input-field col s9">
+                            <div className="input-field col s5">
                                 <input placeholder="Address" type="text" className="validate" onChange={(event) => {
                                     changeValue(event, 'address')
                                 }} value={transfer.address} />
@@ -80,7 +96,7 @@ function Transfer(props) {
                             </div>
                         </div>
                         <div className="row">
-                            <div className="input-field col s8">
+                            <div className="input-field col s10">
                                 <input placeholder="0 tRIF" type="number" min="0" className="validate" onChange={(event) => {
                                     changeValue(event, 'fees')
                                 }} value={transfer.fees} />

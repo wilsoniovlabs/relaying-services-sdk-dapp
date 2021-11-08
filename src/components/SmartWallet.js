@@ -60,6 +60,13 @@ function SmartWallet(props) {
                                 <i className="material-icons">arrow_downward</i>
                             </a>
                         </div>
+                        <div class="col s1 left-align">
+                            <a class={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`} data-position="bottom" data-tooltip="Execute" href="#execute-modal" onClick={() => {
+                                setCurrentSmartWallet(smartWallet);
+                            }}>
+                                <i class="material-icons">play_circle_outline</i>
+                            </a>
+                        </div>
                     </div>
                 );
             })}

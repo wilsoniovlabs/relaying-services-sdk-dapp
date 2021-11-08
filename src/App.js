@@ -14,6 +14,7 @@ import Deploy from './modals/Deploy';
 import Receive from './modals/Receive';
 import Transfer from './modals/Transfer';
 import Loading from './modals/Loading';
+import Execute from './modals/Execute';
 import Utils from './Utils';
 
 if (window.ethereum) {
@@ -171,6 +172,11 @@ function App() {
                 setShow={setShow}
             />
             {/*<Execute />*/}
+            <Execute
+                provider={provider}
+                currentSmartWallet={currentSmartWallet}
+                setShow={setShow}
+            />
         </div>
     );
 }
