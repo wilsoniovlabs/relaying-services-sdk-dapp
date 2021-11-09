@@ -6,6 +6,8 @@ function Header(props) {
   const {
     account
     , connect
+    , setUpdateInfo
+    , connected
   } = props;
 
   //const [status, setStatus] = useState('red');
@@ -22,6 +24,9 @@ function Header(props) {
     })();
   }, [account])
 
+  async function refresh(){
+    setUpdateInfo(true)
+  }
   return (
     <header>
       <nav>
@@ -40,8 +45,8 @@ function Header(props) {
                 <i className="material-icons right">account_balance_wallet</i>
               </a>
             </li>
-            <a className="btn-floating btn-small waves-effect waves-light accent-2 tooltipped disabled" data-position="bottom" href="#!">
-              <i className="material-icons">lens</i>
+            <a className={`btn-floating btn-small waves-effect waves-light accent-2 ${!connected ? 'disabled' : ''}`}  onClick={() =>{refresh()}} data-position="bottom" href="#!">
+              <i className="material-icons">update</i>
             </a>
           </ul>
         </div>

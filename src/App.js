@@ -1,5 +1,5 @@
 /* eslint-disable import/first */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import Web3 from 'web3';
 
@@ -37,6 +37,7 @@ function App() {
     const [show, setShow] = useState(false);
 
     const [smartWallets, setSmartWallets] = useState([]);
+    const [updateInfo, setUpdateInfo] = useState(false);
 
     async function initProvider() {
         try {
@@ -71,6 +72,20 @@ function App() {
             console.error(error)
         }
     };
+
+    useEffect(() => {
+        if(!updateInfo){
+          return;
+        }
+        (async () => {
+            setConnect(false);
+            setSmartWallets([]);
+            setTimeout(() =>{
+                setConnect(true)
+                setUpdateInfo(false)
+            },100)
+        })();
+      }, [updateInfo]);
 
     async function start() {
         const chainId = await web3.eth.getChainId();
@@ -137,6 +152,7 @@ function App() {
                 account={account}
                 connect={connect}
                 connected={connected}
+                setUpdateInfo={setUpdateInfo}
 
             />
 
@@ -159,9 +175,8 @@ function App() {
             <Deploy
                 currentSmartWallet={currentSmartWallet}
                 provider={provider}
-                setSmartWallets={setSmartWallets}
-                smartWallets={smartWallets}
                 setShow={setShow}
+                setUpdateInfo={setUpdateInfo}
             />
             <Receive
                 currentSmartWallet={currentSmartWallet}
@@ -170,6 +185,8 @@ function App() {
                 provider={provider}
                 currentSmartWallet={currentSmartWallet}
                 setShow={setShow}
+                setUpdateInfo={setUpdateInfo}
+                account={account}
             />
             {/*<Execute />*/}
             <Execute

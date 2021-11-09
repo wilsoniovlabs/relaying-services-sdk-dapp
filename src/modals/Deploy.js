@@ -12,8 +12,7 @@ function Deploy(props) {
     const {
         currentSmartWallet
         , provider
-        , setSmartWallets
-        , smartWallets
+        , setUpdateInfo
         , setShow
     } = props;
 
@@ -25,29 +24,36 @@ function Deploy(props) {
     });
 
     async function handleEstimateDeploySmartWalletButtonClick() {
-        const estimate = await provider.estimateMaxPossibleRelayGas(
-            currentSmartWallet
-            , process.env.REACT_APP_CONTRACTS_RELAY_WORKER
-        );
+        setShow(true);
+        try {
+            const estimate = await provider.estimateMaxPossibleRelayGas(
+                currentSmartWallet
+                , process.env.REACT_APP_CONTRACTS_RELAY_WORKER
+            );
 
-        changeValue({ currentTarget: { value: estimate } })
+            changeValue({ currentTarget: { value: estimate } })
 
-        const costInRBTC = await Utils.fromWei(estimate.toString());
-        console.log("Cost in RBTC:", costInRBTC);
+            const costInRBTC = await Utils.fromWei(estimate.toString());
+            console.log("Cost in RBTC:", costInRBTC);
 
-        const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
-        const tokenContract = await Utils.getTokenContract();
-        const ritTokenDecimals = await tokenContract.methods.decimals().call();
-        const costInTrifFixed = costInTrif.toFixed(ritTokenDecimals);
-        console.log("Cost in TRif: ", costInTrifFixed)
+            const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
+            const tokenContract = await Utils.getTokenContract();
+            const ritTokenDecimals = await tokenContract.methods.decimals().call();
+            const costInTrifFixed = costInTrif.toFixed(ritTokenDecimals);
+            console.log("Cost in TRif: ", costInTrifFixed)
 
 
-        if (deploy.check === true) {
-            changeValue({ currentTarget: { value: costInRBTC } }, 'fees');
+            if (deploy.check === true) {
+                changeValue({ currentTarget: { value: costInRBTC } }, 'fees');
+            }
+            else {
+                changeValue({ currentTarget: { value: costInTrifFixed } }, 'fees');
+            }
+        } catch (error) {
+            alert(error.message);
+            console.error(error);
         }
-        else {
-            changeValue({ currentTarget: { value: costInTrifFixed } }, 'fees');
-        }
+        setShow(false);
 
     }
 
@@ -57,7 +63,7 @@ function Deploy(props) {
 
         while (receipt === null && times < 40) {
             times++
-            const sleep = new Promise(resolve => setTimeout(resolve, 30000))
+            const sleep = new Promise(resolve => setTimeout(resolve, 1000))
             await sleep
             receipt = await Utils.getTransactionReceipt(transactionHash)
         }
@@ -78,21 +84,29 @@ function Deploy(props) {
     }
 
     async function relaySmartWalletDeployment(tokenAmount) {
-        const isAllowToken = await provider.isAllowedToken(process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
-        if (isAllowToken) {
-            const smartWallet = await provider.deploySmartWallet(
-                currentSmartWallet
-                , process.env.REACT_APP_CONTRACTS_RIF_TOKEN
-                , await Utils.toWei(tokenAmount + '')
-            );
-            
-            if (!await checkSmartWalletDeployment(smartWallet.deployTransaction)) {
-                throw new Error('SmartWallet deployment failed');
+        try {
+            const isAllowToken = await provider.isAllowedToken(process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
+            if (isAllowToken) {
+                const fees = await Utils.toWei(tokenAmount + '');
+                const smartWallet = await provider.deploySmartWallet(
+                    currentSmartWallet
+                    , process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+                    , fees
+                );
+                const smartWalledIsDeployed = await checkSmartWalletDeployment(smartWallet.deployTransaction);
+                if (!smartWalledIsDeployed) {
+                    throw new Error('SmartWallet: deployment failed');
+                }
+                return smartWallet;
+            } else {
+                throw new Error('SmartWallet: was not created because Verifier does not accept the specified token for payment');
             }
-            return smartWallet;
-        } else {
-            throw new Error('SmartWallet was not created because Verifier does not accept the specified token for payment');
         }
+        catch (error) {
+            alert(error.message);
+            console.error(error);
+        }
+        return {};
     }
 
     async function handleDeploySmartWalletButtonClick() {
@@ -104,12 +118,7 @@ function Deploy(props) {
             deploy.fees
         );
         if (smartWallet.deployed) {
-            //await this.refreshBalances()
-            const smartWalletList = smartWallets.filter((sw) => {
-                return sw.index !== smartWallet.index;
-            });
-            setSmartWallets([smartWallet, ...smartWalletList]);
-
+            setUpdateInfo(true);
             var instance = M.Modal.getInstance($('#deploy-modal'));
             instance.close();
         }

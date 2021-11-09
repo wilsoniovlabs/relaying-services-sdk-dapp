@@ -218,7 +218,7 @@ function Execute(props) {
     }
 
     return (
-        <div id="execute-modal" className="modal large-modal" style={{ 'max-height': '75%' }} >
+        <div id="execute-modal" className="modal large-modal" style={{ 'maxHeight': '75%' }} >
             <div className="modal-content" style={{ 'paddingBottom': '0em' }}>
                 <div className="row">
                     <form className="col s12">
