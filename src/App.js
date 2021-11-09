@@ -176,6 +176,7 @@ function App() {
                 provider={provider}
                 currentSmartWallet={currentSmartWallet}
                 setShow={setShow}
+                account={account}
             />
         </div>
     );
