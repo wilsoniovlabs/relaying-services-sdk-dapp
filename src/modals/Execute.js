@@ -23,57 +23,69 @@ function Execute(props) {
         account,
         currentSmartWallet,
         provider
+        , setUpdateInfo
     } = props;
+    const [results, setResults] = useState('');
     const [execute, setExecute] = useState({
-        check: false
+        check: false,
+        show: false,
+        address: '',
+        value: '',
+        function: '',
+        fees: ''
     });
 
     async function handleExecuteSmartWalletButtonClick() {
-
         setShow(true);
-        const funcData = calculateAbiEncodedFunction();
-        const destinationContract = execute.address;
-        const swAddress = currentSmartWallet.address;
+        try {
+            const funcData = calculateAbiEncodedFunction();
+            const destinationContract = execute.address;
+            const swAddress = currentSmartWallet.address;
 
-        if (execute.check) {
-            await relayTransactionDirectExecution(destinationContract, swAddress, funcData);
-        }
-        else {
-            const fees = execute.fees === "" ? "0" : execute.fees
-            const transaction = await provider.send(destinationContract, swAddress, fees, funcData);
+            if (execute.check) {
+                await relayTransactionDirectExecution(destinationContract, swAddress, funcData);
+            }
+            else {
+                const fees = execute.fees === "" ? "0" : execute.fees
+                const transaction = await provider.relayTransaction(funcData, {
+                    tokenAddress: destinationContract,
+                    address: swAddress
+                } , fees);
 
-            console.log('data: ', transaction)
-            console.log(`Your TxHash is ${transaction.blockHash}`)
+                console.log('data: ', transaction)
+                console.log(`Your TxHash is ${transaction.blockHash}`)
 
-            const logs = abiDecoder.decodeLogs(transaction.logs)
+                const logs = abiDecoder.decodeLogs(transaction.logs)
 
-            console.log("Your logs are: ", logs)
+                console.log("Your logs are: ", logs)
 
-            const sampleRecipientEmitted = logs.find((e) => e != null && e.name === 'TransactionRelayed')
-            console.log(sampleRecipientEmitted)
-
-            //await this.refreshBalances()
-
-            var instance = M.Modal.getInstance($('#transfer-modal'));
-            instance.close();
-
+                const sampleRecipientEmitted = logs.find((e) => e != null && e.name === 'TransactionRelayed')
+                console.log(sampleRecipientEmitted)
+                if (execute.show) {
+                    setResults(transaction);
+                } else {
+                    var instance = M.Modal.getInstance($('#transfer-modal'));
+                    instance.close();
+                    setUpdateInfo(true);
+                }
+            }
+        } catch (error) {
+            alert(error.message);
+            console.error(error)
         }
         setShow(false);
     }
     async function relayTransactionDirectExecution(toAddress, swAddress, abiEncodedTx) {
-        setShow(true);
         const swContract = new web3.eth.Contract(IForwarder.abi, swAddress)
         swContract.setProvider(web3.currentProvider)
 
-        var instance = M.Modal.getInstance($('#execute-modal'));
         await swContract.methods
             .directExecute(toAddress, abiEncodedTx)
             .send({
                 from: account
             }, async (error, data) => {
                 if (error !== undefined && error !== null) {
-                    console.log(error);
-                    instance.close();
+                    throw error;
                 }
                 else {
                     const txHash = data
@@ -88,83 +100,80 @@ function Execute(props) {
                     const trxData = await web3.eth.getTransaction(txHash)
                     console.log("Your tx data is")
                     console.log(trxData)
-
-                    //await this.refreshBalances()
-                    instance.close();
                 }
-
-                setShow(false);
             })
 
     }
 
     async function handleEstimateSmartWalletButtonClick() {
-
         setShow(true);
-        const isUnitRBTC = execute.check;
+        try {
+            const isUnitRBTC = execute.check;
 
-        const funcData = calculateAbiEncodedFunction();
-        const destinationContract = execute.address;
-        const swAddress = currentSmartWallet.address;
+            const funcData = calculateAbiEncodedFunction();
+            const destinationContract = execute.address;
+            const swAddress = currentSmartWallet.address;
 
-        //for estimation we will use an eight of the user's token balance, it's just to estimate the gas cost
-        const tokenBalance = await Utils.tokenBalance(swAddress)
-        const userTokenBalance = toBN(tokenBalance)
+            //for estimation we will use an eight of the user's token balance, it's just to estimate the gas cost
+            const tokenBalance = await Utils.tokenBalance(swAddress)
+            const userTokenBalance = toBN(tokenBalance)
 
-        if (userTokenBalance.gt(toBN("0"))) {
+            if (userTokenBalance.gt(toBN("0"))) {
 
-            const eightOfBalance = await Utils.fromWei(userTokenBalance.divRound(toBN("8")));
-            console.log("Your Balance: ", await Utils.fromWei(userTokenBalance.toString()))
-            console.log("Estimating with: ", eightOfBalance.toString())
+                const eightOfBalance = await Utils.fromWei(userTokenBalance.divRound(toBN("8")));
+                console.log("Your Balance: ", await Utils.fromWei(userTokenBalance.toString()))
+                console.log("Estimating with: ", eightOfBalance.toString())
 
-            let result = 0
-            if (isUnitRBTC) {
-                result = await estimateDirectExecution(swAddress, destinationContract, funcData);
-                changeValue({ currentTarget: { value: result } }, 'fees');
-                console.log("Estimated direct SWCall cost: ", result);
+                let result = 0
+                if (isUnitRBTC) {
+                    result = await estimateDirectExecution(swAddress, destinationContract, funcData);
+                    changeValue({ currentTarget: { value: result } }, 'fees');
+                    console.log("Estimated direct SWCall cost: ", result);
+                }
+                else {
+                    const relayWorker = process.env.REACT_APP_CONTRACTS_RELAY_WORKER;
+                    const costInWei = await provider.estimateMaxPossibleRelayGasWithLinearFit(
+                        destinationContract,
+                        swAddress,
+                        '0',
+                        funcData,
+                        relayWorker);
+
+                    const costInRBTC = await Utils.fromWei(costInWei.toString());
+                    const tRifPriceInRBTC = parseFloat($('#trif-price').text()); // 1 tRIF = tRifPriceInRBTC RBTC
+                    const tRifPriceInWei = toBN(await Utils.toWei(tRifPriceInRBTC.toString())); // 1 tRIF = tRifPriceInWei wei
+
+                    console.log("Cost in RBTC (wei): ", costInWei.toString());
+                    console.log("Cost in RBTC:", costInRBTC);
+                    console.log("TRIf price in RBTC:", tRifPriceInRBTC.toString());
+                    console.log("TRIf price in Wei:", tRifPriceInWei.toString());
+                    const ritTokenDecimals = await Utils.ritTokenDecimals()
+                    console.log("TRIF Decimals: ", ritTokenDecimals);
+
+                    const costInTrif = costInRBTC / tRifPriceInRBTC
+                    console.log("Cost in TRIF (rbtc): ", costInTrif.toString());
+
+                    const costInTrifFixed = costInTrif.toFixed(ritTokenDecimals);
+                    console.log("Cost in TRIF Fixed (rbtc): ", costInTrifFixed.toString());
+
+                    const costInTrifAsWei = Utils.toWei(costInTrifFixed.toString(), 'ether');
+                    console.log("Cost in TRIF (wei): ", costInTrifAsWei.toString());
+
+
+                    console.log("RIF Token Decimals: ", ritTokenDecimals);
+
+                    changeValue({ currentTarget: { value: costInTrifFixed } }, 'fees');
+                    console.log("Cost in TRif: ", costInTrifFixed);
+                }
             }
             else {
-                const relayWorker = process.env.REACT_APP_CONTRACTS_RELAY_WORKER;
-                const costInWei = await provider.estimateMaxPossibleRelayGasWithLinearFit(
-                    destinationContract,
-                    swAddress,
-                    '0',
-                    funcData,
-                    relayWorker);
-
-                const costInRBTC = await Utils.fromWei(costInWei.toString());
-                const tRifPriceInRBTC = parseFloat($('#trif-price').text()); // 1 tRIF = tRifPriceInRBTC RBTC
-                const tRifPriceInWei = toBN(await Utils.toWei(tRifPriceInRBTC.toString())); // 1 tRIF = tRifPriceInWei wei
-
-                console.log("Cost in RBTC (wei): ", costInWei.toString());
-                console.log("Cost in RBTC:", costInRBTC);
-                console.log("TRIf price in RBTC:", tRifPriceInRBTC.toString());
-                console.log("TRIf price in Wei:", tRifPriceInWei.toString());
-                const ritTokenDecimals = await Utils.ritTokenDecimals()
-                console.log("TRIF Decimals: ", ritTokenDecimals);
-
-                const costInTrif = costInRBTC / tRifPriceInRBTC
-                console.log("Cost in TRIF (rbtc): ", costInTrif.toString());
-
-                const costInTrifFixed = costInTrif.toFixed(ritTokenDecimals);
-                console.log("Cost in TRIF Fixed (rbtc): ", costInTrifFixed.toString());
-
-                const costInTrifAsWei = Utils.toWei(costInTrifFixed.toString(), 'ether');
-                console.log("Cost in TRIF (wei): ", costInTrifAsWei.toString());
-
-
-                console.log("RIF Token Decimals: ", ritTokenDecimals);
-
-                changeValue({ currentTarget: { value: costInTrifFixed } }, 'fees');
-                console.log("Cost in TRif: ", costInTrifFixed)
+                throw new Error("You dont have any token balance")
             }
-
-            setShow(false);
+        } catch (error) {
+            alert(error.message);
+            console.error(error)
         }
-        else {
-            throw new Error("You dont have any token balance")
-        }
-
+        setShow(false);
     }
 
     function calculateAbiEncodedFunction() {
@@ -218,7 +227,7 @@ function Execute(props) {
     }
 
     return (
-        <div id="execute-modal" className="modal large-modal" style={{ 'maxHeight': '75%' }} >
+        <div id="execute-modal" className="modal large-modal" style={{ 'maxHeight': '95%' }} >
             <div className="modal-content" style={{ 'paddingBottom': '0em' }}>
                 <div className="row">
                     <form className="col s12">
@@ -244,7 +253,7 @@ function Execute(props) {
                                 <label>
                                     Show return data
                                     <input type="checkbox" id="show-return-execute" onChange={(event) => {
-                                        changeValue(event, 'check')
+                                        changeValue(event, 'show')
                                     }} value={execute.show} />
                                     <span className="lever"></span>
                                 </label>
@@ -276,9 +285,9 @@ function Execute(props) {
                                 </label>
                             </div>
                         </div>
-                        <div className="row hide" id="execute-result-row">
+                        <div className={`row ${execute.show? 'hide': ''}`} id="execute-result-row">
                             <div className="input-field col s12">
-                                <span id="execute-result" style={{ 'wordBreak': 'break-all', 'width': 'inherit' }}></span>
+                                <span id="execute-result" style={{ 'wordBreak': 'break-all', 'width': 'inherit' }}>{results}</span>
                             </div>
                         </div>
                     </form>

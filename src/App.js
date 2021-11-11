@@ -194,6 +194,7 @@ function App() {
                 currentSmartWallet={currentSmartWallet}
                 setShow={setShow}
                 account={account}
+                setUpdateInfo={setUpdateInfo}
             />
         </div>
     );
