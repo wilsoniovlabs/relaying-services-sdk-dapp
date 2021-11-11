@@ -47,7 +47,9 @@ function Execute(props) {
             }
             else {
                 const fees = execute.fees === "" ? "0" : execute.fees
-                const transaction = await provider.relayTransaction(funcData, {
+                const transaction = await provider.relayTransaction({
+                    data: funcData
+                }, {
                     tokenAddress: destinationContract,
                     address: swAddress
                 } , fees);
