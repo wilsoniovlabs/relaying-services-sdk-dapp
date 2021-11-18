@@ -1,7 +1,6 @@
 import Utils, { TRIF_PRICE } from '../Utils';
 import './Deploy.css';
 import { useState } from 'react';
-//import { useState } from 'react';
 
 const $ = window.$;
 const M = window.M;
@@ -13,7 +12,6 @@ function Deploy(props) {
         currentSmartWallet
         , provider
         , setUpdateInfo
-        , setShow
     } = props;
 
     const [deploy, setDeploy] = useState({
@@ -22,9 +20,10 @@ function Deploy(props) {
         tokenGas: 0,
         relayGas: 0
     });
+    const [loading, setLoading] = useState(false);
 
     async function handleEstimateDeploySmartWalletButtonClick() {
-        setShow(true);
+        setLoading(true);
         try {
             const estimate = await provider.estimateMaxPossibleRelayGas(
                 currentSmartWallet
@@ -53,8 +52,7 @@ function Deploy(props) {
             alert(error.message);
             console.error(error);
         }
-        setShow(false);
-
+        setLoading(false);
     }
 
     async function getReceipt(transactionHash) {
@@ -113,7 +111,7 @@ function Deploy(props) {
         deploy.fees = deploy.fees === "" ? "0" : deploy.fees;
         deploy.tokenGas = deploy.tokenGas === "" ? "0" : deploy.tokenGas;
 
-        setShow(true);
+        setLoading(true);
         let smartWallet = await relaySmartWalletDeployment(
             deploy.fees
         );
@@ -123,7 +121,7 @@ function Deploy(props) {
             instance.close();
         }
 
-        setShow(false);
+        setLoading(false);
     }
 
     function changeValue(event, prop) {
@@ -131,7 +129,7 @@ function Deploy(props) {
         obj[prop] = event.currentTarget.value;
         setDeploy(obj)
     }
-
+    
     return (
         <div id="deploy-modal" className="modal">
             <div className="modal-content">
@@ -159,8 +157,12 @@ function Deploy(props) {
                 </div>
             </div>
             <div className="modal-footer">
-                <a href="#!" id="deploy-smart-wallet-estimate" className="waves-effect waves-green btn-flat" onClick={handleEstimateDeploySmartWalletButtonClick} >Estimate</a>
-                <a onClick={handleDeploySmartWalletButtonClick} href="#!" className="waves-effect waves-green btn-flat">Deploy</a>
+                <a href="#!" id="deploy-smart-wallet-estimate" className={`waves-effect waves-green btn-flat ${ loading? 'disabled' : ''}`} onClick={handleEstimateDeploySmartWalletButtonClick} >
+                    Estimate <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/>
+                </a>
+                <a onClick={handleDeploySmartWalletButtonClick} href="#!" className={`waves-effect waves-green btn-flat ${ loading? 'disabled' : ''}`}>
+                    Deploy <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/>
+                </a>
                 <a href="#!" className="modal-close waves-effect waves-green btn-flat">Cancel</a>
             </div>
         </div>

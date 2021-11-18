@@ -19,7 +19,6 @@ const web3 = window.web3;
 
 function Execute(props) {
     const {
-        setShow,
         account,
         currentSmartWallet,
         provider
@@ -34,9 +33,10 @@ function Execute(props) {
         function: '',
         fees: ''
     });
+    const [loading, setLoading] = useState(false);
 
     async function handleExecuteSmartWalletButtonClick() {
-        setShow(true);
+        setLoading(true);
         try {
             const funcData = calculateAbiEncodedFunction();
             const destinationContract = execute.address;
@@ -75,7 +75,7 @@ function Execute(props) {
             alert(error.message);
             console.error(error)
         }
-        setShow(false);
+        setLoading(false);
     }
     async function relayTransactionDirectExecution(toAddress, swAddress, abiEncodedTx) {
         const swContract = new web3.eth.Contract(IForwarder.abi, swAddress)
@@ -108,7 +108,7 @@ function Execute(props) {
     }
 
     async function handleEstimateSmartWalletButtonClick() {
-        setShow(true);
+        setLoading(true);
         try {
             const isUnitRBTC = execute.check;
 
@@ -175,7 +175,7 @@ function Execute(props) {
             alert(error.message);
             console.error(error)
         }
-        setShow(false);
+        setLoading(false);
     }
 
     function calculateAbiEncodedFunction() {
@@ -210,12 +210,12 @@ function Execute(props) {
     }
 
     async function pasteRecipientAddress() {
-        setShow(true);
+        setLoading(true);
         const address = await navigator.clipboard.readText();
         if (Utils.checkAddress(address.toLowerCase())) {
             changeValue({ currentTarget: { value: address } }, 'address');
         }
-        setShow(false);
+        setLoading(false);
     }
 
     async function estimateDirectExecution(swAddress, toAddress, abiEncodedTx) {
@@ -296,12 +296,12 @@ function Execute(props) {
                 </div>
             </div>
             <div className="modal-footer">
-                <a href="#!" id="execute-smart-wallet" className="waves-effect waves-green btn-flat" onClick={() => {
+                <a href="#!" id="execute-smart-wallet" className={`waves-effect waves-green btn-flat  ${ loading? 'disabled' : ''}`} onClick={() => {
                     handleExecuteSmartWalletButtonClick()
-                }}>Execute</a>
-                <a href="#!" id="execute-smart-wallet-estimate" className="waves-effect waves-green btn-flat" onClick={() => {
+                }}>Execute <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/></a>
+                <a href="#!" id="execute-smart-wallet-estimate" className={`waves-effect waves-green btn-flat  ${ loading? 'disabled' : ''}`} onClick={() => {
                     handleEstimateSmartWalletButtonClick()
-                }}>Estimate</a>
+                }}>Estimate <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/></a>
                 <a href="#!" id="execute-smart-wallet-cancel" className="modal-close waves-effect waves-green btn-flat">Cancel</a>
             </div>
         </div>

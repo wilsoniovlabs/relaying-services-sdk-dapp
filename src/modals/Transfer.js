@@ -10,10 +10,11 @@ function Transfer(props) {
     const {
         currentSmartWallet
         , provider
-        , setShow
         , setUpdateInfo
         , account
     } = props;
+
+    const [loading, setLoading] = useState(false);
 
     const [transfer, setTransfer] = useState({
         check: false,
@@ -23,12 +24,12 @@ function Transfer(props) {
     });
 
     async function pasteRecipientAddress() {
-        setShow(true);
+        setLoading(true);
         const address = await navigator.clipboard.readText();
         if (Utils.checkAddress(address.toLowerCase())) {
             changeValue({ currentTarget: { value: address } }, 'address');
         }
-        setShow(false);
+        setLoading(false);
     }
 
     function changeValue(event, prop) {
@@ -45,7 +46,7 @@ function Transfer(props) {
         }
     }
     async function transferSmartWalletButtonClick() {
-        setShow(true);
+        setLoading(true);
         try {
             const amount = transfer.amount;
             const fees = transfer.fees === "" ? "0" : transfer.fees;
@@ -72,11 +73,11 @@ function Transfer(props) {
             alert(error.message);
             console.error(error);
         }
-        setShow(false);
+        setLoading(false);
     }
 
     async function sendRBTC() {
-        setShow(true);
+        setLoading(true);
         try {
             const amount = await Utils.toWei(transfer.amount, "ether");
             await Utils.sendTransaction({
@@ -91,7 +92,7 @@ function Transfer(props) {
             alert(error.message);
             console.error(error)
         }
-        setShow(false);
+        setLoading(false);
     }
 
     return (
@@ -117,7 +118,7 @@ function Transfer(props) {
                                 }} value={transfer.amount} />
                                 <label htmlFor="transfer-amount">Amount</label>
                             </div>
-                            <div className="switch col s4" style={{ 'paddingTop': '2.5em' }}>
+                            <div className="switch col s4 hide" style={{ 'paddingTop': '2.5em' }}>
                                 <label>
                                     tRIF
                                     <input type="checkbox" onChange={(event) => {
@@ -140,7 +141,9 @@ function Transfer(props) {
                 </div>
             </div>
             <div className="modal-footer">
-                <a href="#!" onClick={handleTransferSmartWalletButtonClick} className="waves-effect waves-green btn-flat">Transfer</a>
+                <a href="#!" onClick={handleTransferSmartWalletButtonClick} className={`waves-effect waves-green btn-flat ${ loading? 'disabled' : ''}`}>
+                    Transfer <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/>
+                </a>
                 <a href="#!" className="modal-close waves-effect waves-green btn-flat">Cancel</a>
             </div>
         </div>
