@@ -52,7 +52,7 @@ function Execute(props) {
                 }, {
                     tokenAddress: destinationContract,
                     address: swAddress
-                } , fees);
+                }, fees);
 
                 console.log('data: ', transaction)
                 console.log(`Your TxHash is ${transaction.blockHash}`)
@@ -66,8 +66,6 @@ function Execute(props) {
                 if (execute.show) {
                     setResults(transaction);
                 } else {
-                    var instance = M.Modal.getInstance($('#transfer-modal'));
-                    instance.close();
                     setUpdateInfo(true);
                 }
             }
@@ -228,12 +226,24 @@ function Execute(props) {
         return estimate
     }
 
+    function close() {
+        var instance = M.Modal.getInstance($('#execute-modal'));
+        instance.close();
+        setExecute({
+            check: false,
+            show: false,
+            address: '',
+            value: '',
+            function: '',
+            fees: ''
+        })
+    }
     return (
         <div id="execute-modal" className="modal large-modal" style={{ 'maxHeight': '95%' }} >
             <div className="modal-content" style={{ 'paddingBottom': '0em' }}>
                 <div className="row">
                     <form className="col s12">
-                        <div className="row">
+                        <div className="row mb-0">
                             <div className="input-field col s10">
                                 <input placeholder="Contract address" id="execute-contract-address" type="text" className="validate" onChange={(event) => {
                                     changeValue(event, 'address')
@@ -244,7 +254,7 @@ function Execute(props) {
                                 <a href="#!" id="paste-contract-address-button" className="btn waves-effect waves-light indigo accent-2" onClick={pasteRecipientAddress}><i className="material-icons center">content_paste</i></a>
                             </div>
                         </div>
-                        <div className="row">
+                        <div className="row mb-0">
                             <div className="input-field col s8">
                                 <input placeholder="e.g.  transfer(address,uint256)" id="contract-function" type="text" className="validate" onChange={(event) => {
                                     changeValue(event, 'function')
@@ -261,7 +271,7 @@ function Execute(props) {
                                 </label>
                             </div>
                         </div>
-                        <div className="row">
+                        <div className="row mb-0">
                             <div className="input-field col s8">
                                 <input placeholder="e.g. recipientAddr,amount" id="execute-param-values" type="text" className="validate" onChange={(event) => {
                                     changeValue(event, 'value')
@@ -269,7 +279,7 @@ function Execute(props) {
                                 <label htmlFor="execute-param-values">Contract Function Values</label>
                             </div>
                         </div>
-                        <div className="row">
+                        <div className="row mb-0">
                             <div className="input-field col s8">
                                 <input placeholder="0" id="execute-fees" type="number" min="0" className="validate tooltipped" data-tooltip="" onChange={(event) => {
                                     changeValue(event, 'fees')
@@ -287,7 +297,7 @@ function Execute(props) {
                                 </label>
                             </div>
                         </div>
-                        <div className={`row ${execute.show? 'hide': ''}`} id="execute-result-row">
+                        <div className={`row mb-0 ${execute.show ? 'hide' : ''}`} id="execute-result-row">
                             <div className="input-field col s12">
                                 <span id="execute-result" style={{ 'wordBreak': 'break-all', 'width': 'inherit' }}>{results}</span>
                             </div>
@@ -296,13 +306,13 @@ function Execute(props) {
                 </div>
             </div>
             <div className="modal-footer">
-                <a href="#!" id="execute-smart-wallet" className={`waves-effect waves-green btn-flat  ${ loading? 'disabled' : ''}`} onClick={() => {
+                <a href="#!" id="execute-smart-wallet" className={`waves-effect waves-green btn-flat  ${loading ? 'disabled' : ''}`} onClick={() => {
                     handleExecuteSmartWalletButtonClick()
-                }}>Execute <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/></a>
-                <a href="#!" id="execute-smart-wallet-estimate" className={`waves-effect waves-green btn-flat  ${ loading? 'disabled' : ''}`} onClick={() => {
+                }}>Execute <img alt="loading" className={`loading ${!loading ? 'hide' : ''}`} src="images/loading.gif" /></a>
+                <a href="#!" id="execute-smart-wallet-estimate" className={`waves-effect waves-green btn-flat  ${loading ? 'disabled' : ''}`} onClick={() => {
                     handleEstimateSmartWalletButtonClick()
-                }}>Estimate <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/></a>
-                <a href="#!" id="execute-smart-wallet-cancel" className="modal-close waves-effect waves-green btn-flat">Cancel</a>
+                }}>Estimate <img alt="loading" className={`loading ${!loading ? 'hide' : ''}`} src="images/loading.gif" /></a>
+                <a href="#!" id="execute-smart-wallet-cancel" className="waves-effect waves-green btn-flat" onClick={() =>{ close()}}>Cancel</a>
             </div>
         </div>
     );

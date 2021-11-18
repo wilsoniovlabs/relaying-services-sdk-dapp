@@ -13,7 +13,7 @@ function Deploy(props) {
         , provider
         , setUpdateInfo
     } = props;
-
+    
     const [deploy, setDeploy] = useState({
         fees: 0,
         check: false,
@@ -117,8 +117,7 @@ function Deploy(props) {
         );
         if (smartWallet.deployed) {
             setUpdateInfo(true);
-            var instance = M.Modal.getInstance($('#deploy-modal'));
-            instance.close();
+            close();
         }
 
         setLoading(false);
@@ -129,7 +128,16 @@ function Deploy(props) {
         obj[prop] = event.currentTarget.value;
         setDeploy(obj)
     }
-    
+    function close(){
+        var instance = M.Modal.getInstance($('#deploy-modal'));
+        instance.close();
+        setDeploy({
+            fees: 0,
+            check: false,
+            tokenGas: 0,
+            relayGas: 0
+        });
+    }
     return (
         <div id="deploy-modal" className="modal">
             <div className="modal-content">
@@ -142,7 +150,7 @@ function Deploy(props) {
                                 }} data-tooltip="" />
                                 <label htmlFor="deploy-fees" id="deploy-fees-label">Fees (tRIF)</label>
                             </div>
-                            <div className="switch col s4" style={{ 'paddingTop': '2.5em' }}>
+                            <div className="switch col s4 hide" style={{ 'paddingTop': '2.5em' }}>
                                 <label>
                                     tRIF
                                     <input type="checkbox" onChange={(event) => {
@@ -163,7 +171,9 @@ function Deploy(props) {
                 <a onClick={handleDeploySmartWalletButtonClick} href="#!" className={`waves-effect waves-green btn-flat ${ loading? 'disabled' : ''}`}>
                     Deploy <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/>
                 </a>
-                <a href="#!" className="modal-close waves-effect waves-green btn-flat">Cancel</a>
+                <a href="#!" className="waves-effect waves-green btn-flat" onClick={()=>{
+                    close();
+                }}>Cancel</a>
             </div>
         </div>
     );

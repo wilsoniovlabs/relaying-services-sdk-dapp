@@ -67,8 +67,7 @@ function Transfer(props) {
             );
             console.log(txDetials);
             setUpdateInfo(true);
-            var instance = M.Modal.getInstance($('#transfer-modal'));
-            instance.close();
+            close();
         } catch (error) {
             alert(error.message);
             console.error(error);
@@ -85,14 +84,24 @@ function Transfer(props) {
                 to: transfer.address,
                 value: amount
             });
-            var instance = M.Modal.getInstance($('#transfer-modal'));
-            instance.close();
+            close();
             setUpdateInfo(true);
         } catch (error) {
             alert(error.message);
             console.error(error)
         }
         setLoading(false);
+    }
+
+    function close(){
+        var instance = M.Modal.getInstance($('#transfer-modal'));
+        instance.close();
+        setTransfer({
+            check: false,
+            fees: 0,
+            amount: 0,
+            address: ''
+        });
     }
 
     return (
@@ -144,7 +153,9 @@ function Transfer(props) {
                 <a href="#!" onClick={handleTransferSmartWalletButtonClick} className={`waves-effect waves-green btn-flat ${ loading? 'disabled' : ''}`}>
                     Transfer <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/>
                 </a>
-                <a href="#!" className="modal-close waves-effect waves-green btn-flat">Cancel</a>
+                <a href="#!" className="waves-effect waves-green btn-flat" onClick={() =>{
+                    close();
+                }} >Cancel</a>
             </div>
         </div>
     );
