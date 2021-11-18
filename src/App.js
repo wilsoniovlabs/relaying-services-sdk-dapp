@@ -1,5 +1,5 @@
 /* eslint-disable import/first */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import Web3 from 'web3';
 
@@ -13,6 +13,8 @@ import Deploy from './modals/Deploy';
 //import Execute from './modals/Execute';
 import Receive from './modals/Receive';
 import Transfer from './modals/Transfer';
+import Loading from './modals/Loading';
+import Execute from './modals/Execute';
 import Utils from './Utils';
 
 if (window.ethereum) {
@@ -20,7 +22,7 @@ if (window.ethereum) {
 } else if (window.web3) {
     window.web3 = new Web3(window.web3.currentProvider);
 } else {
-    throw new Error('No web3 detected');
+    throw new Error('Error: MetaMask or web3 not detected');
 }
 
 const web3 = window.web3;
@@ -32,46 +34,65 @@ function App() {
     const [account, setAccount] = useState('');
     const [currentSmartWallet, setCurrentSmartWallet] = useState(null);
     const [provider, setProvider] = useState(null);
+    const [show, setShow] = useState(false);
 
     const [smartWallets, setSmartWallets] = useState([]);
+    const [updateInfo, setUpdateInfo] = useState(false);
 
     async function initProvider() {
-        const config = {
-            verbose: window.location.href.includes('verbose')
-            , chainId: process.env.REACT_APP_ENVELOPING_CHAIN_ID
-            , gasPriceFactorPercent: process.env.REACT_APP_ENVELOPING_GAS_PRICE_FACTOR_PERCENT
-            , relayLookupWindowBlocks: process.env.REACT_APP_ENVELOPING_RELAY_LOOKUP_WINDOW_BLOCKS
-            , preferredRelays: [process.env.REACT_APP_ENVELOPING_PREFERRED_RELAYS]
-            , relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB
-            , relayVerifierAddress: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
-            , deployVerifierAddress: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
-            , smartWalletFactoryAddress: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
-        };
-        const contractAddresses = {
-            relayHub: process.env.REACT_APP_CONTRACTS_RELAY_HUB
-            , smartWallet: process.env.REACT_APP_CONTRACTS_SMART_WALLET
-            , smartWalletFactory: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
-            , smartWalletDeployVerifier: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
-            , smartWalletRelayVerifier: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
-            , sampleRecipient: process.env.REACT_APP_CONTRACTS_TEST_RECIPIENT
-            , testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
-        };
-        
-        // Get an Enveloping RelayProvider instance and assign it to Web3 to use Enveloping transparently
-        const relayingServices = new DefaultRelayingServices({
-            web3Instance: web3,
-            account: account
-        });
-        await relayingServices.initialize(config, contractAddresses);
-        setProvider(relayingServices);
+        try {
+            const config = {
+                verbose: window.location.href.includes('verbose')
+                , chainId: process.env.REACT_APP_RIF_RELAY_CHAIN_ID
+                , gasPriceFactorPercent: process.env.REACT_APP_RIF_RELAY_GAS_PRICE_FACTOR_PERCENT
+                , relayLookupWindowBlocks: process.env.REACT_APP_RIF_RELAY_RELAY_LOOKUP_WINDOW_BLOCKS
+                , preferredRelays: [process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS]
+                , relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB
+                , relayVerifierAddress: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
+                , deployVerifierAddress: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
+                , smartWalletFactoryAddress: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
+            };
+            const contractAddresses = {
+                relayHub: process.env.REACT_APP_CONTRACTS_RELAY_HUB
+                , smartWallet: process.env.REACT_APP_CONTRACTS_SMART_WALLET
+                , smartWalletFactory: process.env.REACT_APP_CONTRACTS_SMART_WALLET_FACTORY
+                , smartWalletDeployVerifier: process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER
+                , smartWalletRelayVerifier: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
+                , testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+            };
+
+            // Get an RIF Relay RelayProvider instance and assign it to Web3 to use RIF Relay transparently
+            const relayingServices = new DefaultRelayingServices({
+                web3Instance: web3,
+                account: account
+            });
+            await relayingServices.initialize(config, contractAddresses);
+            setProvider(relayingServices);
+        } catch (error) {
+            console.error(error)
+        }
     };
+
+    useEffect(() => {
+        if(!updateInfo){
+          return;
+        }
+        (async () => {
+            setConnect(false);
+            setSmartWallets([]);
+            setTimeout(() =>{
+                setConnect(true)
+                setUpdateInfo(false)
+            },100)
+        })();
+      }, [updateInfo]);
 
     async function start() {
         const chainId = await web3.eth.getChainId();
-        if (chainId === Number(process.env.REACT_APP_ENVELOPING_CHAIN_ID)) {
+        if (chainId === Number(process.env.REACT_APP_RIF_RELAY_CHAIN_ID)) {
             await initProvider();
         } else {
-            console.error(`Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_ENVELOPING_CHAIN_ID}`)
+            console.error(`Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`)
         }
     };
 
@@ -100,6 +121,7 @@ function App() {
 
     async function connect() {
         try {
+            setShow(true);
             let isConnected = false;
             if (!connected) {
                 isConnected = await connectToMetamask()
@@ -114,19 +136,23 @@ function App() {
                 setConnect(isConnected);
             }
 
+            setShow(false);
         } catch (error) {
             console.log(error);
             console.warn('User denied account access');
+            setShow(false);
         }
     }
 
     return (
         <div className="App">
+            <Loading show={show}/>
             <Header
                 setAccount={setAccount}
                 account={account}
                 connect={connect}
                 connected={connected}
+                setUpdateInfo={setUpdateInfo}
 
             />
 
@@ -134,6 +160,7 @@ function App() {
                 connected={connected}
                 smartWallets={smartWallets}
                 setCurrentSmartWallet={setCurrentSmartWallet}
+                setShow={setShow}
             />
 
             {connected && (<Footer
@@ -142,13 +169,14 @@ function App() {
                 setSmartWallets={setSmartWallets}
                 connected={connected}
                 account={account}
+                setShow={setShow}
             />)}
 
             <Deploy
                 currentSmartWallet={currentSmartWallet}
                 provider={provider}
-                setSmartWallets={setSmartWallets}
-                smartWallets={smartWallets}
+                setShow={setShow}
+                setUpdateInfo={setUpdateInfo}
             />
             <Receive
                 currentSmartWallet={currentSmartWallet}
@@ -156,8 +184,18 @@ function App() {
             <Transfer
                 provider={provider}
                 currentSmartWallet={currentSmartWallet}
+                setShow={setShow}
+                setUpdateInfo={setUpdateInfo}
+                account={account}
             />
             {/*<Execute />*/}
+            <Execute
+                provider={provider}
+                currentSmartWallet={currentSmartWallet}
+                setShow={setShow}
+                account={account}
+                setUpdateInfo={setUpdateInfo}
+            />
         </div>
     );
 }

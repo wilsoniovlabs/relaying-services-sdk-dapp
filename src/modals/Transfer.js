@@ -10,15 +10,26 @@ function Transfer(props) {
     const {
         currentSmartWallet
         , provider
+        , setUpdateInfo
+        , account
     } = props;
 
-    const [transfer, setTransfer] = useState({});
-    
+    const [loading, setLoading] = useState(false);
+
+    const [transfer, setTransfer] = useState({
+        check: false,
+        fees: 0,
+        amount: 0,
+        address: ''
+    });
+
     async function pasteRecipientAddress() {
+        setLoading(true);
         const address = await navigator.clipboard.readText();
         if (Utils.checkAddress(address.toLowerCase())) {
             changeValue({ currentTarget: { value: address } }, 'address');
         }
+        setLoading(false);
     }
 
     function changeValue(event, prop) {
@@ -28,26 +39,69 @@ function Transfer(props) {
     }
 
     async function handleTransferSmartWalletButtonClick() {
-        const amount = transfer.amount;
-        const fees = transfer.fees === "" ? "0" : transfer.fees;
+        if (transfer.check) {
+            await sendRBTC();
+        } else {
+            await transferSmartWalletButtonClick();
+        }
+    }
+    async function transferSmartWalletButtonClick() {
+        setLoading(true);
+        try {
+            const amount = transfer.amount;
+            const fees = transfer.fees === "" ? "0" : transfer.fees;
 
-        const encodedAbi = (await Utils.getTokenContract()).methods
-            .transfer(transfer.address, await Utils.toWei(amount)).encodeABI();
-        
-        const txDetials = await provider.relayTransaction(
-            {
-                to: transfer.address
-                , data: encodedAbi
-            }
-            , {
-                tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
-                , ...currentSmartWallet
-            }
-            , fees
-        );
-        console.log(txDetials);
+            const encodedAbi = (await Utils.getTokenContract()).methods
+                .transfer(transfer.address, await Utils.toWei(amount)).encodeABI();
+
+            const txDetials = await provider.relayTransaction(
+                {
+                    to: transfer.address
+                    , data: encodedAbi
+                }
+                , {
+                    tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+                    , ...currentSmartWallet
+                }
+                , fees
+            );
+            console.log(txDetials);
+            setUpdateInfo(true);
+            close();
+        } catch (error) {
+            alert(error.message);
+            console.error(error);
+        }
+        setLoading(false);
+    }
+
+    async function sendRBTC() {
+        setLoading(true);
+        try {
+            const amount = await Utils.toWei(transfer.amount, "ether");
+            await Utils.sendTransaction({
+                from: account, //currentSmartWallet.address,
+                to: transfer.address,
+                value: amount
+            });
+            close();
+            setUpdateInfo(true);
+        } catch (error) {
+            alert(error.message);
+            console.error(error)
+        }
+        setLoading(false);
+    }
+
+    function close(){
         var instance = M.Modal.getInstance($('#transfer-modal'));
         instance.close();
+        setTransfer({
+            check: false,
+            fees: 0,
+            amount: 0,
+            address: ''
+        });
     }
 
     return (
@@ -56,7 +110,7 @@ function Transfer(props) {
                 <div className="row">
                     <form className="col s12 offset-s1">
                         <div className="row">
-                            <div className="input-field col s9">
+                            <div className="input-field col s5">
                                 <input placeholder="Address" type="text" className="validate" onChange={(event) => {
                                     changeValue(event, 'address')
                                 }} value={transfer.address} />
@@ -67,15 +121,25 @@ function Transfer(props) {
                             </div>
                         </div>
                         <div className="row">
-                            <div className="input-field col s10">
+                            <div className="input-field col s8">
                                 <input placeholder="0 tRIF" type="number" min="0" className="validate" onChange={(event) => {
                                     changeValue(event, 'amount')
                                 }} value={transfer.amount} />
                                 <label htmlFor="transfer-amount">Amount</label>
                             </div>
+                            <div className="switch col s4 hide" style={{ 'paddingTop': '2.5em' }}>
+                                <label>
+                                    tRIF
+                                    <input type="checkbox" onChange={(event) => {
+                                        changeValue(event, 'check')
+                                    }} value={transfer.check} />
+                                    <span className="lever"></span>
+                                    RBTC
+                                </label>
+                            </div>
                         </div>
                         <div className="row">
-                            <div className="input-field col s8">
+                            <div className="input-field col s10">
                                 <input placeholder="0 tRIF" type="number" min="0" className="validate" onChange={(event) => {
                                     changeValue(event, 'fees')
                                 }} value={transfer.fees} />
@@ -86,8 +150,12 @@ function Transfer(props) {
                 </div>
             </div>
             <div className="modal-footer">
-                <a href="#!" onClick={handleTransferSmartWalletButtonClick} className="waves-effect waves-green btn-flat">Transfer</a>
-                <a href="#!" className="modal-close waves-effect waves-green btn-flat">Cancel</a>
+                <a href="#!" onClick={handleTransferSmartWalletButtonClick} className={`waves-effect waves-green btn-flat ${ loading? 'disabled' : ''}`}>
+                    Transfer <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/>
+                </a>
+                <a href="#!" className="waves-effect waves-green btn-flat" onClick={() =>{
+                    close();
+                }} >Cancel</a>
             </div>
         </div>
     );

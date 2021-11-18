@@ -1,8 +1,6 @@
 import Utils, { TRIF_PRICE } from '../Utils';
 import './Deploy.css';
 import { useState } from 'react';
-import abiDecoder from 'abi-decoder';
-//import { useState } from 'react';
 
 const $ = window.$;
 const M = window.M;
@@ -13,42 +11,48 @@ function Deploy(props) {
     const {
         currentSmartWallet
         , provider
-        , setSmartWallets
-        , smartWallets
+        , setUpdateInfo
     } = props;
-
+    
     const [deploy, setDeploy] = useState({
         fees: 0,
         check: false,
         tokenGas: 0,
         relayGas: 0
     });
+    const [loading, setLoading] = useState(false);
 
     async function handleEstimateDeploySmartWalletButtonClick() {
-        const estimate = await provider.estimateMaxPossibleRelayGas(
-            currentSmartWallet
-            , process.env.REACT_APP_CONTRACTS_RELAY_WORKER
-        );
+        setLoading(true);
+        try {
+            const estimate = await provider.estimateMaxPossibleRelayGas(
+                currentSmartWallet
+                , process.env.REACT_APP_CONTRACTS_RELAY_WORKER
+            );
 
-        changeValue({ currentTarget: { value: estimate } })
+            changeValue({ currentTarget: { value: estimate } })
 
-        const costInRBTC = await Utils.fromWei(estimate.toString());
-        console.log("Cost in RBTC:", costInRBTC);
+            const costInRBTC = await Utils.fromWei(estimate.toString());
+            console.log("Cost in RBTC:", costInRBTC);
 
-        const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
-        const tokenContract = await Utils.getTokenContract();
-        const ritTokenDecimals = await tokenContract.methods.decimals().call();
-        const costInTrifFixed = costInTrif.toFixed(ritTokenDecimals);
-        console.log("Cost in TRif: ", costInTrifFixed)
+            const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
+            const tokenContract = await Utils.getTokenContract();
+            const ritTokenDecimals = await tokenContract.methods.decimals().call();
+            const costInTrifFixed = costInTrif.toFixed(ritTokenDecimals);
+            console.log("Cost in TRif: ", costInTrifFixed)
 
 
-        if (deploy.check === true) {
-            changeValue({ currentTarget: { value: costInRBTC } }, 'fees');
+            if (deploy.check === true) {
+                changeValue({ currentTarget: { value: costInRBTC } }, 'fees');
+            }
+            else {
+                changeValue({ currentTarget: { value: costInTrifFixed } }, 'fees');
+            }
+        } catch (error) {
+            alert(error.message);
+            console.error(error);
         }
-        else {
-            changeValue({ currentTarget: { value: costInTrifFixed } }, 'fees');
-        }
-
+        setLoading(false);
     }
 
     async function getReceipt(transactionHash) {
@@ -57,7 +61,7 @@ function Deploy(props) {
 
         while (receipt === null && times < 40) {
             times++
-            const sleep = new Promise(resolve => setTimeout(resolve, 30000))
+            const sleep = new Promise(resolve => setTimeout(resolve, 1000))
             await sleep
             receipt = await Utils.getTransactionReceipt(transactionHash)
         }
@@ -74,48 +78,49 @@ function Deploy(props) {
 
         console.log(`Your receipt is`);
         console.log(receipt);
-
-        const logs = abiDecoder.decodeLogs(receipt.logs);
-        const smartWalletCreationEvents = logs.find((e) => e != null && e.name === 'Deployed');
-
-        return !(smartWalletCreationEvents === null || smartWalletCreationEvents === undefined);
+        return receipt.status;
     }
 
     async function relaySmartWalletDeployment(tokenAmount) {
-        const isAllowToken = await provider.isAllowedToken(process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
-        if (isAllowToken) {
-            const smartWallet = await provider.deploySmartWallet(
-                currentSmartWallet
-                , process.env.REACT_APP_CONTRACTS_RIF_TOKEN
-                , await Utils.toWei(tokenAmount + '')
-            );
-            
-            if (!await checkSmartWalletDeployment(smartWallet.deployTransaction)) {
-                throw new Error('SmartWallet deployment failed');
+        try {
+            const isAllowToken = await provider.isAllowedToken(process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
+            if (isAllowToken) {
+                const fees = await Utils.toWei(tokenAmount + '');
+                const smartWallet = await provider.deploySmartWallet(
+                    currentSmartWallet
+                    , process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+                    , fees
+                );
+                const smartWalledIsDeployed = await checkSmartWalletDeployment(smartWallet.deployTransaction);
+                if (!smartWalledIsDeployed) {
+                    throw new Error('SmartWallet: deployment failed');
+                }
+                return smartWallet;
+            } else {
+                throw new Error('SmartWallet: was not created because Verifier does not accept the specified token for payment');
             }
-            return smartWallet;
-        } else {
-            throw new Error('SmartWallet was not created because Verifier does not accept the specified token for payment');
         }
+        catch (error) {
+            alert(error.message);
+            console.error(error);
+        }
+        return {};
     }
 
     async function handleDeploySmartWalletButtonClick() {
         deploy.fees = deploy.fees === "" ? "0" : deploy.fees;
         deploy.tokenGas = deploy.tokenGas === "" ? "0" : deploy.tokenGas;
 
+        setLoading(true);
         let smartWallet = await relaySmartWalletDeployment(
             deploy.fees
         );
         if (smartWallet.deployed) {
-            //await this.refreshBalances()
-            const smartWalletList = smartWallets.filter((sw) => {
-                return sw.index !== smartWallet.index;
-            });
-            setSmartWallets([smartWallet, ...smartWalletList]);
-
-            var instance = M.Modal.getInstance($('#deploy-modal'));
-            instance.close();
+            setUpdateInfo(true);
+            close();
         }
+
+        setLoading(false);
     }
 
     function changeValue(event, prop) {
@@ -123,7 +128,16 @@ function Deploy(props) {
         obj[prop] = event.currentTarget.value;
         setDeploy(obj)
     }
-
+    function close(){
+        var instance = M.Modal.getInstance($('#deploy-modal'));
+        instance.close();
+        setDeploy({
+            fees: 0,
+            check: false,
+            tokenGas: 0,
+            relayGas: 0
+        });
+    }
     return (
         <div id="deploy-modal" className="modal">
             <div className="modal-content">
@@ -136,7 +150,7 @@ function Deploy(props) {
                                 }} data-tooltip="" />
                                 <label htmlFor="deploy-fees" id="deploy-fees-label">Fees (tRIF)</label>
                             </div>
-                            <div className="switch col s4" style={{ 'paddingTop': '2.5em' }}>
+                            <div className="switch col s4 hide" style={{ 'paddingTop': '2.5em' }}>
                                 <label>
                                     tRIF
                                     <input type="checkbox" onChange={(event) => {
@@ -151,9 +165,15 @@ function Deploy(props) {
                 </div>
             </div>
             <div className="modal-footer">
-                <a href="#!" id="deploy-smart-wallet-estimate" className="waves-effect waves-green btn-flat" onClick={handleEstimateDeploySmartWalletButtonClick} >Estimate</a>
-                <a onClick={handleDeploySmartWalletButtonClick} href="#!" className="waves-effect waves-green btn-flat">Deploy</a>
-                <a href="#!" className="modal-close waves-effect waves-green btn-flat">Cancel</a>
+                <a href="#!" id="deploy-smart-wallet-estimate" className={`waves-effect waves-green btn-flat ${ loading? 'disabled' : ''}`} onClick={handleEstimateDeploySmartWalletButtonClick} >
+                    Estimate <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/>
+                </a>
+                <a onClick={handleDeploySmartWalletButtonClick} href="#!" className={`waves-effect waves-green btn-flat ${ loading? 'disabled' : ''}`}>
+                    Deploy <img alt="loading" className={`loading ${ !loading? 'hide' : ''}`} src="images/loading.gif"/>
+                </a>
+                <a href="#!" className="waves-effect waves-green btn-flat" onClick={()=>{
+                    close();
+                }}>Cancel</a>
             </div>
         </div>
     );

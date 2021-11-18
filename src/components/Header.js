@@ -6,6 +6,8 @@ function Header(props) {
   const {
     account
     , connect
+    , setUpdateInfo
+    , connected
   } = props;
 
   //const [status, setStatus] = useState('red');
@@ -22,13 +24,16 @@ function Header(props) {
     })();
   }, [account])
 
+  async function refresh(){
+    setUpdateInfo(true)
+  }
   return (
     <header>
       <nav>
         <div className="nav-wrapper gradient">
           <div className="brand-logo left">
             <img className="responsive-img" alt="logo" src="images/rif_logo.png" onClick={props.refreshBalances} />
-            <span ><b>rif Enveloping</b></span>
+            <span ><b>RIF Relay</b></span>
           </div>
           <ul id="nav-mobile" className="right hide-on-med-and-down">
             <li><span id="eoa-address">{account || 'Address'} </span></li>
@@ -40,8 +45,8 @@ function Header(props) {
                 <i className="material-icons right">account_balance_wallet</i>
               </a>
             </li>
-            <a className="btn-floating btn-small waves-effect waves-light accent-2 tooltipped disabled" data-position="bottom" href="#!">
-              <i className="material-icons">lens</i>
+            <a className={`btn-floating btn-small waves-effect waves-light accent-2 ${!connected ? 'disabled' : ''}`}  onClick={() =>{refresh()}} data-position="bottom" href="#!">
+              <i className="material-icons">update</i>
             </a>
           </ul>
         </div>

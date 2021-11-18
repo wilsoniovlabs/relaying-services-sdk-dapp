@@ -15,6 +15,12 @@ const web3 = window.web3;
 //const ethereum = window.ethereum;
 
 class Utils {
+    static async ritTokenDecimals() {
+        let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
+        rifTokenContract.setProvider(web3.currentProvider);
+        const balance = await rifTokenContract.methods.decimals().call();
+        return balance;
+    }
     static async tokenBalance(address) {
         let rifTokenContract = new web3.eth.Contract(TestToken.abi, process.env.REACT_APP_CONTRACTS_RIF_TOKEN);
         rifTokenContract.setProvider(web3.currentProvider);
@@ -72,6 +78,10 @@ class Utils {
         } else if (/^(0x)?[0-9a-f]{40}$/.test(address) || /^(0x)?[0-9A-F]{40}$/.test(address)) {
             return true;
         }
+    }
+
+    static async sendTransaction(transactionDetails){
+        await web3.eth.sendTransaction(transactionDetails);
     }
 }
 

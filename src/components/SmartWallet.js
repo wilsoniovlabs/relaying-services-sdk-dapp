@@ -2,17 +2,25 @@ import './SmartWallet.css';
 //import { useState } from 'react';
 
 window.M.AutoInit();
+const M = window.M;
 function SmartWallet(props) {
     const { 
         connected
         , smartWallets
         , setCurrentSmartWallet
+        , setShow
     } = props;
 
     async function copySmartWalletAddress(address) {
+        setShow(true);
         await navigator.clipboard.writeText(address);
+        setShow(false);
     }
-    
+    function openModal(modalId, smartWallet){
+        setCurrentSmartWallet(smartWallet);
+        const instance = M.Modal.init( document.getElementById(modalId), {dismissible: false});
+        instance.open();
+    }
     return (
         <div className="smart-wallets">
             <div id="no-smart-wallets" className="row grey">
@@ -27,9 +35,9 @@ function SmartWallet(props) {
                 return (
                     <div key={index} className={`smart-wallet row teal lighten-4`}>
                         <div className="col s1">
-                            <a className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? 'disabled' : ''}`} data-position="bottom" data-tooltip="Deploy" href="#deploy-modal" onClick={()=>{
-                                setCurrentSmartWallet(smartWallet);
-                                }}><i className="material-icons">file_upload</i></a>
+                            <a className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? 'disabled' : ''}`}  href="#!" data-position="bottom" data-tooltip="Deploy" onClick={()=>{
+                                openModal('deploy-modal', smartWallet);
+                            }}><i className="material-icons">file_upload</i></a>
                         </div>
                         <div className="col s2">
                             <h6 className="tooltipped summary-smart-wallet-address" data-position="bottom" data-tooltip="0x">{smartWallet.address}</h6>
@@ -44,17 +52,24 @@ function SmartWallet(props) {
                             <h6 >{smartWallet.rbtcBalance}</h6>
                         </div>
                         <div className="col s1 right-align">
-                            <a id="transfer-button-0" className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`} data-position="bottom" data-tooltip="Transfer" href="#transfer-modal" onClick={()=>{
-                                setCurrentSmartWallet(smartWallet);
+                            <a id="transfer-button-0"  href="#!" className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`} data-position="bottom" data-tooltip="Transfer" onClick={()=>{
+                                openModal('transfer-modal', smartWallet);
                             }}>
                                 <i className="material-icons">call_made</i>
                             </a>
                         </div>
                         <div className="col s1 center-align">
-                            <a id="receive-button-0" className="btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger" data-position="bottom" data-tooltip="Receive" href="#receive-modal" onClick={()=>{
-                                setCurrentSmartWallet(smartWallet);
+                            <a id="receive-button-0" href="#!" className="btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger" data-position="bottom" data-tooltip="Receive" onClick={()=>{
+                                openModal('receive-modal', smartWallet);
                             }}>
                                 <i className="material-icons">arrow_downward</i>
+                            </a>
+                        </div>
+                        <div className="col s1 left-align">
+                            <a className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployed? '' : 'disabled'}`}  href="#!" data-position="bottom" data-tooltip="Execute" onClick={() => {
+                                openModal('execute-modal', smartWallet);
+                            }}>
+                                <i className="material-icons">play_circle_outline</i>
                             </a>
                         </div>
                     </div>

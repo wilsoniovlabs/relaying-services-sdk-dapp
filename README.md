@@ -1,16 +1,17 @@
 # RIF Relaying Services SDK sample dApp
 
-This a basic sample dApp to showcase how users can submit transactions to the RSK blockchain paying a RelayServer for the transaction fees with tokens. You will need to connect to the dApp with Metamask but only for signing transactions with the account that controls your Smart Wallets.
+This a basic sample dApp to showcase how users can submit transactions to the RSK blockchain paying a Relay Server for the transaction fees with tokens using RIF Relay SDK. You will need to connect to the dApp with Metamask but only for signing transactions with the account that controls your Smart Wallets.
 
-See https://github.com/rsksmart/enveloping for the RIF Enveloping project.
+See [RIF Relay](https://github.com/rsksmart/rif-relay) project.
 
-## Using the dApp
 
 ## Pre-Requisites
 
-* RSKj Node Running
-* [Enveloping Contracts](https://github.com/anarancio/rif-relay-contracts) deployed.
-* [Enveloping Server](https://github.com/infuy/rif-relay-server) running.
+* [NodeJS Version v12.18.3 or higher](https://yarnpkg.com/getting-started/install).
+* [RSKj Node Running](https://github.com/rsksmart/rskj).
+* [RIF Relay Contract Contracts](https://github.com/anarancio/rif-relay-contracts) deployed.
+* [Current Token Allowed](https://github.com/anarancio/rif-relay-contracts#allowing-tokens).
+* [RIF Relay Server](https://github.com/infuy/rif-relay-server) running and register.
 
 ## Running the sample dApp
 
@@ -21,8 +22,21 @@ To setup the dApp do this:
 
 To run the sample dApp follow these steps:
 
-1. Edit the sample dApp config file located in `.env` and add the contract addresses from the deployment executed in step 2 from Running a RelayServer. By default the project imports `.env` on the `npm start`. Look for these lines and modify them accordingly:
+1. Edit the sample dApp config file located in `.env` and add the contract addresses. By default the project imports `.env` on the `npm start`. Look for these lines and modify them accordingly:
+```
+REACT_APP_CONTRACTS_RELAY_HUB=0xE0825f57Dd05Ef62FF731c27222A86E104CC4Cad
+REACT_APP_CONTRACTS_DEPLOY_VERIFIER=0x1eD614cd3443EFd9c70F04b6d777aed947A4b0c4
+REACT_APP_CONTRACTS_RELAY_VERIFIER=0x5159345aaB821172e795d56274D0f5FDFdC6aBD9
+REACT_APP_CONTRACTS_SMART_WALLET_FACTORY=0x03F23ae1917722d5A27a2Ea0Bcc98725a2a2a49a
+REACT_APP_CONTRACTS_SMART_WALLET=0x73ec81da0C72DD112e06c09A6ec03B5544d26F05
+REACT_APP_CONTRACTS_RIF_TOKEN=0x726ECC75d5D51356AA4d0a5B648790cC345985ED
+REACT_APP_CONTRACTS_RELAY_WORKER=0x3d67f029f778a088904f12d030933967d220faa3
 
+REACT_APP_RIF_RELAY_CHAIN_ID=33
+REACT_APP_RIF_RELAY_GAS_PRICE_FACTOR_PERCENT=0
+REACT_APP_RIF_RELAY_RELAY_LOOKUP_WINDOW_BLOCKS=1e5
+REACT_APP_RIF_RELAY_PREFERRED_RELAYS=http://localhost:8090
+```
 
 2. Open a terminal in the sample dApp project root and execute
 
@@ -33,12 +47,6 @@ npm start
 3. Ensure that MetaMask is configured to use the same network that you used to deploy the contracts (e.g. Regtest or Testnet).
 
 4. Open a browser and navigate to http://localhost:3000
-
-5. If you are running an RSKj node in Regtest you will need to register the Token used in the demo with the Relay and Deploy verifiers. To achieve this select in Metamask an account with funds, connect Metamask to the dApp, open the developer console in the browser and execute the following command:
-
-```javascript
-await App.acceptNewToken()
-```
 
 ## Troubleshooting
 ### Error On Transaction Nonce
