@@ -1,21 +1,21 @@
 # RIF Relaying Services SDK sample dApp
 
-This a basic sample dApp to showcase how users can submit transactions to the RSK blockchain paying a Relay Server for the transaction fees with tokens using RIF Relay SDK. You will need to connect to the dApp with Metamask but only for signing transactions with the account that controls your Smart Wallets.
+This is a sample dApp to showcase how users can submit relayed transactions to the RSK blockchain using RIF Relay SDK. You will need to connect to the dApp with Metamask but only for signing transactions with the account that controls your Smart Wallets.
 
 See [RIF Relay](https://github.com/rsksmart/rif-relay) project.
 
 
 ## Pre-Requisites
 
-* [NodeJS Version v12.18.3 or higher](https://yarnpkg.com/getting-started/install).
+* [NodeJS Version v12.18.3 or higher](https://nodejs.org/en/download/).
 * [RSKj Node Running](https://github.com/rsksmart/rskj).
 * [RIF Relay Contract Contracts](https://github.com/anarancio/rif-relay-contracts) deployed.
 * [Current Token Allowed](https://github.com/anarancio/rif-relay-contracts#allowing-tokens).
-* [RIF Relay Server](https://github.com/infuy/rif-relay-server) running and register.
+* [RIF Relay Server](https://github.com/infuy/rif-relay-server) running and registered.
 
 ## Running the sample dApp
 
-To setup the dApp do this:
+To setup the dApp:
 
 * Clone this repo 
 * Run `npm i`
@@ -34,27 +34,27 @@ REACT_APP_CONTRACTS_RELAY_WORKER=0x3d67f029f778a088904f12d030933967d220faa3
 
 REACT_APP_RIF_RELAY_CHAIN_ID=33
 REACT_APP_RIF_RELAY_GAS_PRICE_FACTOR_PERCENT=0
-REACT_APP_RIF_RELAY_RELAY_LOOKUP_WINDOW_BLOCKS=1e5
+REACT_APP_RIF_RELAY_LOOKUP_WINDOW_BLOCKS=1e5
 REACT_APP_RIF_RELAY_PREFERRED_RELAYS=http://localhost:8090
 ```
 
-2. Open a terminal in the sample dApp project root and execute
+2. Open a terminal in the sample dApp project root and run
 
 ```
 npm start
 ```
 
-3. Ensure that MetaMask is configured to use the same network that you used to deploy the contracts (e.g. Regtest or Testnet).
+3. Ensure that MetaMask is configured to use the same network where you deployed the contracts (e.g. Regtest or Testnet).
 
 4. Open a browser and navigate to http://localhost:3000
 
 ## Troubleshooting
 ### Error On Transaction Nonce
-It may happen to you when using the RSK Regtest enviroment that an alert pop up may show indicating that the Transaction nonce is wrong. This is due to a MetaMask problem in which it saves the nonce locally and when you reset the chain the nonce is changed.
+When using the RSK Regtest enviroment, it may happen that the transaction nonce is wrong. This is due to a MetaMask problem in which it saves the nonce locally and when you reset the chain the nonce is changed.
 
 Solution:
 1. Choose the account in which you have the problem
 2. Enter Metamask `Advanced Settings`
-3. Click on `Reset Account`. This will deleted all data from the account saved in metamask, and it will look it up again on the chain. Please note that it does not delete the account, only the info gathered from the current connected blockchain.
+3. Click on `Reset Account`. This will delete all data from the account saved in metamask, and it will look it up again on the chain. Please note that this procedure does not delete the account, but only the info gathered from the current connected blockchain.
 
 Read more about this on [this medium post](https://medium.com/singapore-blockchain-dapps/reset-metamask-nonce-766dd4c27ca8)

@@ -45,7 +45,7 @@ function App() {
                 verbose: window.location.href.includes('verbose')
                 , chainId: process.env.REACT_APP_RIF_RELAY_CHAIN_ID
                 , gasPriceFactorPercent: process.env.REACT_APP_RIF_RELAY_GAS_PRICE_FACTOR_PERCENT
-                , relayLookupWindowBlocks: process.env.REACT_APP_RIF_RELAY_RELAY_LOOKUP_WINDOW_BLOCKS
+                , relayLookupWindowBlocks: process.env.REACT_APP_RIF_RELAY_LOOKUP_WINDOW_BLOCKS
                 , preferredRelays: [process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS]
                 , relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB
                 , relayVerifierAddress: process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER
