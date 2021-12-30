@@ -39,6 +39,7 @@ function Transfer(props) {
     }
 
     async function handleTransferSmartWalletButtonClick() {
+        console.log("*** transfer *** ", transfer.check);
         if (transfer.check) {
             await sendRBTC();
         } else {
@@ -50,10 +51,17 @@ function Transfer(props) {
         try {
             const amount = transfer.amount;
             const fees = transfer.fees === "" ? "0" : transfer.fees;
+            console.log("*** fees ***", fees);
 
             const encodedAbi = (await Utils.getTokenContract()).methods
                 .transfer(transfer.address, await Utils.toWei(amount)).encodeABI();
 
+            console.log("*** pre-relay details ***");
+            console.log(
+                {to: transfer.address, data: encodedAbi},
+                {tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN, ...currentSmartWallet}
+                ,fees
+            );
             const txDetials = await provider.relayTransaction(
                 {
                     to: transfer.address
@@ -65,6 +73,7 @@ function Transfer(props) {
                 }
                 , fees
             );
+            console.log("*** details ***");
             console.log(txDetials);
             setUpdateInfo(true);
             close();
