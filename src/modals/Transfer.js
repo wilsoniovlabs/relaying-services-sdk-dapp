@@ -20,7 +20,8 @@ function Transfer(props) {
         check: false,
         fees: 0,
         amount: 0,
-        address: ''
+        address: '',
+        collector: ''
     });
 
     async function pasteRecipientAddress() {
@@ -50,6 +51,7 @@ function Transfer(props) {
         try {
             const amount = transfer.amount;
             const fees = transfer.fees === "" ? "0" : transfer.fees;
+            const collector = transfer.collector;
 
             const encodedAbi = (await Utils.getTokenContract()).methods
                 .transfer(transfer.address, await Utils.toWei(amount)).encodeABI();
@@ -64,6 +66,7 @@ function Transfer(props) {
                     , ...currentSmartWallet
                 }
                 , fees
+                , collector
             );
             console.log(txDetails);
             setUpdateInfo(true);
@@ -144,6 +147,14 @@ function Transfer(props) {
                                     changeValue(event, 'fees')
                                 }} value={transfer.fees} />
                                 <label htmlFor="transfer-fees">Fees</label>
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="input-field col s5">
+                                <input placeholder="Address" type="text" className="validate" onChange={(event) => {
+                                    changeValue(event, 'collector')
+                                }} value={transfer.collector} />
+                                <label htmlFor="transfer-collector">Collector contract</label>
                             </div>
                         </div>
                     </form>
