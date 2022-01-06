@@ -108,11 +108,10 @@ function Deploy(props) {
     }
 
     async function handleDeploySmartWalletButtonClick() {
-        // deploy.fees = deploy.fees === "" ? "0" : deploy.fees;
+        deploy.fees = deploy.fees === "" ? undefined : deploy.fees;
         deploy.tokenGas = deploy.tokenGas === "" ? "0" : deploy.tokenGas;
 
         setLoading(true);
-        console.log(deploy.fees);
         let smartWallet = await relaySmartWalletDeployment(
             deploy.fees
         );
