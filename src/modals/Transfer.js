@@ -20,7 +20,8 @@ function Transfer(props) {
         check: false,
         fees: 0,
         amount: 0,
-        address: ''
+        address: '',
+        collector: ''
     });
 
     async function pasteRecipientAddress() {
@@ -48,13 +49,14 @@ function Transfer(props) {
     async function transferSmartWalletButtonClick() {
         setLoading(true);
         try {
-            const amount = transfer.amount.toString(); // it raises an error if left untouched
+            const amount = transfer.amount.toString(); // it raises an error if the field is untouched
             const fees = transfer.fees === "" ? undefined : transfer.fees.toString();
+            const collector = transfer.collector;
 
             const encodedAbi = (await Utils.getTokenContract()).methods
                 .transfer(transfer.address, await Utils.toWei(amount)).encodeABI();
 
-            const txDetials = await provider.relayTransaction(
+            const txDetails = await provider.relayTransaction(
                 {
                     to: transfer.address
                     , data: encodedAbi
@@ -64,8 +66,9 @@ function Transfer(props) {
                     , ...currentSmartWallet
                 }
                 , fees
+                , collector
             );
-            console.log(txDetials);
+            console.log(txDetails);
             setUpdateInfo(true);
             close();
         } catch (error) {
@@ -144,6 +147,14 @@ function Transfer(props) {
                                     changeValue(event, 'fees')
                                 }} value={transfer.fees} />
                                 <label htmlFor="transfer-fees">Fees</label>
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="input-field col s5">
+                                <input placeholder="Address" type="text" className="validate" onChange={(event) => {
+                                    changeValue(event, 'collector')
+                                }} value={transfer.collector} />
+                                <label htmlFor="transfer-collector">Collector contract</label>
                             </div>
                         </div>
                     </form>
