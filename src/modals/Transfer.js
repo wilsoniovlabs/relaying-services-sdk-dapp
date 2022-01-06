@@ -48,8 +48,8 @@ function Transfer(props) {
     async function transferSmartWalletButtonClick() {
         setLoading(true);
         try {
-            const amount = transfer.amount;
-            const fees = transfer.fees === "" ? "0" : transfer.fees;
+            const amount = transfer.amount.toString(); // it raises an error if left untouched
+            const fees = transfer.fees === "" ? undefined : transfer.fees.toString();
 
             const encodedAbi = (await Utils.getTokenContract()).methods
                 .transfer(transfer.address, await Utils.toWei(amount)).encodeABI();
