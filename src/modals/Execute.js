@@ -46,7 +46,7 @@ function Execute(props) {
                 await relayTransactionDirectExecution(destinationContract, swAddress, funcData);
             }
             else {
-                const fees = execute.fees === "" ? "0" : execute.fees
+                const fees = execute.fees === "" ? undefined : execute.fees
                 const transaction = await provider.relayTransaction({
                     data: funcData
                 }, {
