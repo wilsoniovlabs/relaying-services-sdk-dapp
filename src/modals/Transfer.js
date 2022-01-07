@@ -49,8 +49,8 @@ function Transfer(props) {
     async function transferSmartWalletButtonClick() {
         setLoading(true);
         try {
-            const amount = transfer.amount;
-            const fees = transfer.fees === "" ? "0" : transfer.fees;
+            const amount = transfer.amount.toString(); // it raises an error if the field is untouched
+            const fees = transfer.fees === "" ? undefined : transfer.fees.toString();
             const collector = transfer.collector;
 
             const encodedAbi = (await Utils.getTokenContract()).methods
