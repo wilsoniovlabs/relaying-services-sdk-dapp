@@ -16,13 +16,15 @@ function Transfer(props) {
 
     const [loading, setLoading] = useState(false);
 
-    const [transfer, setTransfer] = useState({
+    const transferInitialState = {
         check: false,
         fees: 0,
         amount: 0,
         address: '',
         collector: ''
-    });
+    }
+
+    const [transfer, setTransfer] = useState(transferInitialState);
 
     async function pasteRecipientAddress() {
         setLoading(true);
@@ -100,10 +102,7 @@ function Transfer(props) {
         var instance = M.Modal.getInstance($('#transfer-modal'));
         instance.close();
         setTransfer({
-            check: false,
-            fees: 0,
-            amount: 0,
-            address: ''
+            ...transferInitialState
         });
     }
 
