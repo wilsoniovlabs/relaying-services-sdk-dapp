@@ -3,14 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@rsksmart/rif-relay-client": "https://github.com/infuy/rif-relay-client",
+    "@rsksmart/rif-relay-common": "https://github.com/infuy/rif-relay-common",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
+    "@types/node": "^17.0.19",
+    "@types/react": "^17.0.39",
+    "@types/react-dom": "^17.0.11",
     "abi-decoder": "^2.4.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
     "relaying-services-sdk": "github:infuy/relaying-services-sdk",
+    "typescript": "^4.5.5",
     "web-vitals": "^1.0.1",
     "web3": "^1.5.2",
     "web3-utils": "^1.5.2"
@@ -19,7 +25,12 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint --ext .ts --ext .tsx .",
+    "lint:fix": "eslint . --ext .ts --ext .tsx --fix",
+    "prettier": "npx prettier --check .",
+    "prettier:fix": "npx prettier --write --ignore-unknown .",
+    "prepare": "husky install"
   },
   "eslintConfig": {
     "extends": [
@@ -40,7 +51,20 @@
     ]
   },
   "devDependencies": {
-    "dotenv": "^10.0.0"
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.13.0",
+    "dotenv": "^10.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^16.1.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-react": "^7.29.3",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.3.5",
+    "prettier": "^2.5.1"
   },
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
   "repository": {
@@ -56,5 +80,9 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/wilsoniovlabs/relaying-services-sdk-dapp/issues"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "eslint --cache --fix",
+    "*.{js,css,md}": "prettier --write"
   }
 }
