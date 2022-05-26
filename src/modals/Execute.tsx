@@ -55,7 +55,8 @@ function Execute(props: ExecuteProps) {
 
     function calculateAbiEncodedFunction() {
         const contractFunction = execute.function.trim();
-        const functionSig = web3.eth.abi.encodeFunctionSignature(contractFunction);
+        const functionSig =
+            web3.eth.abi.encodeFunctionSignature(contractFunction);
 
         const paramsStart = contractFunction.indexOf('(', 0);
         const paramsEnd = contractFunction.indexOf(')', paramsStart);
@@ -91,30 +92,32 @@ function Execute(props: ExecuteProps) {
         swContract.setProvider(web3.currentProvider);
         const amount = execute.amount === '' ? '0' : execute.amount;
         const weiAmount = await Utils.toWei(amount);
-        await swContract.methods.directExecute(toAddress, weiAmount, abiEncodedTx).send(
-            {
-                from: account
-            },
-            // TODO: we may add the types
-            async (error: any, data: any) => {
-                if (error !== undefined && error !== null) {
-                    throw error;
-                } else {
-                    const txHash = data;
-                    console.log(`Your TxHash is ${txHash}`);
+        await swContract.methods
+            .directExecute(toAddress, weiAmount, abiEncodedTx)
+            .send(
+                {
+                    from: account
+                },
+                // TODO: we may add the types
+                async (error: any, data: any) => {
+                    if (error !== undefined && error !== null) {
+                        throw error;
+                    } else {
+                        const txHash = data;
+                        console.log(`Your TxHash is ${txHash}`);
 
-                    // checks to verify that the contract was executed properly
-                    const receipt = await Utils.getReceipt(txHash);
+                        // checks to verify that the contract was executed properly
+                        const receipt = await Utils.getReceipt(txHash);
 
-                    console.log(`Your receipt is`);
-                    console.log(receipt);
+                        console.log(`Your receipt is`);
+                        console.log(receipt);
 
-                    const trxData = await web3.eth.getTransaction(txHash);
-                    console.log('Your tx data is');
-                    console.log(trxData);
+                        const trxData = await web3.eth.getTransaction(txHash);
+                        console.log('Your tx data is');
+                        console.log(trxData);
+                    }
                 }
-            }
-        );
+            );
     }
 
     function close() {
@@ -145,8 +148,6 @@ function Execute(props: ExecuteProps) {
                 const funcData = calculateAbiEncodedFunction();
                 const destinationContract = execute.address;
                 const swAddress = currentSmartWallet.address;
-
-
 
                 if (execute.check) {
                     await relayTransactionDirectExecution(
@@ -484,9 +485,11 @@ function Execute(props: ExecuteProps) {
                             </div>
                         </div>
                         <div className='row mb-0'>
-                            <div className={`input-field col s8 ${
-                                execute.check ? '' : 'hide'
-                            }`}>
+                            <div
+                                className={`input-field col s8 ${
+                                    execute.check ? '' : 'hide'
+                                }`}
+                            >
                                 <input
                                     placeholder='0'
                                     id='execute-param-values'
