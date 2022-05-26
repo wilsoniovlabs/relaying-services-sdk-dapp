@@ -33,6 +33,7 @@ type ExecuteInfo = {
     address: string;
     value: string;
     function: string;
+    amount: string;
 };
 
 type ExecuteInfoKey = keyof ExecuteInfo;
@@ -46,15 +47,15 @@ function Execute(props: ExecuteProps) {
         address: '',
         value: '',
         function: '',
-        fees: ''
+        fees: '',
+        amount: ''
     });
     const [executeLoading, setExecuteLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
 
     function calculateAbiEncodedFunction() {
         const contractFunction = execute.function.trim();
-        const functionSig =
-            web3.eth.abi.encodeFunctionSignature(contractFunction);
+        const functionSig = web3.eth.abi.encodeFunctionSignature(contractFunction);
 
         const paramsStart = contractFunction.indexOf('(', 0);
         const paramsEnd = contractFunction.indexOf(')', paramsStart);
@@ -70,7 +71,6 @@ function Execute(props: ExecuteProps) {
 
             const paramsTypes = paramsStr.split(',');
             const paramsValues = execute.value.split(',');
-
             const encodedParamVals = web3.eth.abi.encodeParameters(
                 paramsTypes,
                 paramsValues
@@ -89,8 +89,9 @@ function Execute(props: ExecuteProps) {
     ) {
         const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
         swContract.setProvider(web3.currentProvider);
-
-        await swContract.methods.directExecute(toAddress, abiEncodedTx).send(
+        const amount = execute.amount === '' ? '0' : execute.amount;
+        const weiAmount = await Utils.toWei(amount);
+        await swContract.methods.directExecute(toAddress, weiAmount, abiEncodedTx).send(
             {
                 from: account
             },
@@ -125,7 +126,8 @@ function Execute(props: ExecuteProps) {
             address: '',
             value: '',
             function: '',
-            fees: ''
+            fees: '',
+            amount: ''
         });
     }
 
@@ -143,6 +145,8 @@ function Execute(props: ExecuteProps) {
                 const funcData = calculateAbiEncodedFunction();
                 const destinationContract = execute.address;
                 const swAddress = currentSmartWallet.address;
+
+
 
                 if (execute.check) {
                     await relayTransactionDirectExecution(
@@ -202,9 +206,10 @@ function Execute(props: ExecuteProps) {
     ) {
         const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
         swContract.setProvider(web3.currentProvider);
-
+        const amount = execute.amount === '' ? '0' : execute.amount;
+        const weiAmount = await Utils.toWei(amount);
         const estimate = await swContract.methods
-            .directExecute(toAddress, abiEncodedTx)
+            .directExecute(toAddress, weiAmount, abiEncodedTx)
             .estimateGas({ from: account });
         return estimate;
     }
@@ -475,6 +480,28 @@ function Execute(props: ExecuteProps) {
                                     />
                                     <span className='lever' />
                                     RBTC
+                                </label>
+                            </div>
+                        </div>
+                        <div className='row mb-0'>
+                            <div className={`input-field col s8 ${
+                                execute.check ? '' : 'hide'
+                            }`}>
+                                <input
+                                    placeholder='0'
+                                    id='execute-param-values'
+                                    type='text'
+                                    className='validate'
+                                    onChange={(event) => {
+                                        changeValue(
+                                            event.currentTarget.value,
+                                            'amount'
+                                        );
+                                    }}
+                                    value={execute.amount}
+                                />
+                                <label htmlFor='execute-param-values'>
+                                    Amount to be sent
                                 </label>
                             </div>
                         </div>
