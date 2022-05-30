@@ -460,7 +460,9 @@ function Execute(props: ExecuteProps) {
                                     htmlFor='execute-fees'
                                     id='execute-fees-label'
                                 >
-                                    {execute.check ? 'Amount to be sent' : 'Fees (tRIF)'}
+                                    {execute.check
+                                        ? 'Amount to be sent'
+                                        : 'Fees (tRIF)'}
                                 </label>
                             </div>
                             <div
