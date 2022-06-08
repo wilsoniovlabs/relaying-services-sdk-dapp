@@ -1,6 +1,6 @@
 import './Deploy.css';
 import { Dispatch, SetStateAction, useState } from 'react';
-import { RelayingServices, SmartWallet } from 'relaying-services-sdk';
+import { RelayGasEstimationOptions, RelayingServices, SmartWallet } from 'relaying-services-sdk';
 import Utils, { TRIF_PRICE } from '../Utils';
 
 const { $ } = window;
@@ -52,9 +52,17 @@ function Deploy(props: DeployProps) {
     async function handleEstimateDeploySmartWalletButtonClick() {
         setEstimateLoading(true);
         try {
+
+            const opts: RelayGasEstimationOptions = {
+                abiEncodedTx: '',
+                destinationContract: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
+                relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!,
+                smartWalletAddress: currentSmartWallet?.address!,
+                tokenFees: '1'
+            };
+            
             const estimate = await provider?.estimateMaxPossibleRelayGas(
-                currentSmartWallet!,
-                process.env.REACT_APP_CONTRACTS_RELAY_WORKER!
+                opts
             );
 
             if (estimate) {
@@ -124,8 +132,10 @@ function Deploy(props: DeployProps) {
                     const fees = await Utils.toWei(`${tokenAmount}`);
                     const smartWallet = await provider.deploySmartWallet(
                         currentSmartWallet!,
-                        process.env.REACT_APP_CONTRACTS_RIF_TOKEN,
-                        fees
+                        {
+                            tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN,
+                            tokenAmount: fees
+                        }
                     );
                     const smartWalledIsDeployed =
                         await checkSmartWalletDeployment(
@@ -167,7 +177,7 @@ function Deploy(props: DeployProps) {
 
         setLoading(true);
         const smartWallet = await relaySmartWalletDeployment(deploy.fees);
-        if (smartWallet?.deployed) {
+        if (smartWallet?.deployTransaction) {
             setUpdateInfo(true);
             close();
         }

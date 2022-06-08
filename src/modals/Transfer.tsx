@@ -1,9 +1,8 @@
 import { Dispatch, SetStateAction, useState } from 'react';
-import EnvelopingTransactionDetails from '@rsksmart/rif-relay-common/dist/types/EnvelopingTransactionDetails';
-import { RelayingServices } from 'relaying-services-sdk';
+import { RelayGasEstimationOptions, RelayingServices, RelayingTransactionOptions } from 'relaying-services-sdk';
 import { toBN } from 'web3-utils';
 import { SmartWalletWithBalance } from '../types';
-import Utils, { estimateMaxPossibleRelayGas, TRIF_PRICE } from '../Utils';
+import Utils, { TRIF_PRICE } from '../Utils';
 import './Transfer.css';
 
 const { M } = window;
@@ -104,22 +103,19 @@ function Transfer(props: TransferProps) {
                 )
                 .encodeABI();
 
-            const txDetails = await provider.relayTransaction(
-                {
+            const relayTrxOpts: RelayingTransactionOptions = {
+                smartWallet: currentSmartWallet,
+                unsignedTx: {
                     to: transfer.address,
                     data: encodedAbi
                 },
-                {
-                    tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN,
-                    address: currentSmartWallet.address,
-                    deployed: currentSmartWallet.deployed,
-                    index: currentSmartWallet.index
-                },
-                Number(fees),
-                {
+                tokenAmount: Number(fees),
+                transactionDetails: {
                     retries: 7
                 }
-            );
+            }
+
+            const txDetails = await provider.relayTransaction(relayTrxOpts)
             console.log(txDetails);
             setUpdateInfo(true);
             close();
@@ -145,25 +141,17 @@ function Transfer(props: TransferProps) {
                         await Utils.toWei(transfer.amount.toString() || '0')
                     )
                     .encodeABI();
-                const trxDetails: EnvelopingTransactionDetails = {
-                    from: account,
-                    to: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
-                    value: '0',
-                    relayHub: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
-                    callVerifier:
-                        process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER,
-                    callForwarder: currentSmartWallet.address,
-                    data: encodedTransferFunction,
-                    tokenContract: process.env.REACT_APP_CONTRACTS_RIF_TOKEN,
-                    // value set just for the estimation; in the original dapp the estimation is performed using an eight of the user's token balance,
-                    tokenAmount: window.web3.utils.toWei('1'),
-                    onlyPreferredRelays: true
-                };
-                const maxPossibleGasValue = await estimateMaxPossibleRelayGas(
-                    // @ts-ignore TODO: we shouldn't access to the relayProvider
-                    (provider as DefaultRelayingServices).relayProvider
-                        .relayClient,
-                    trxDetails
+
+                const opts: RelayGasEstimationOptions = {
+                    abiEncodedTx: encodedTransferFunction,
+                    smartWalletAddress: currentSmartWallet.address,
+                    tokenFees: '1',
+                    destinationContract: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
+                    relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!
+                }
+
+                const maxPossibleGasValue = await provider.estimateMaxPossibleRelayGas(
+                    opts
                 );
                 const gasPrice = toBN(
                     // @ts-ignore TODO: we shouldn't access to the relayProvider

@@ -5,7 +5,8 @@ import {
     useEffect,
     useState
 } from 'react';
-import { RelayingServices, SmartWallet } from 'relaying-services-sdk';
+import { RelayingServices } from 'relaying-services-sdk';
+import { SmartWalletAddress } from 'relaying-services-sdk/dist/interfaces';
 import { SmartWalletWithBalance } from '../types';
 import Utils, { TRIF_PRICE } from '../Utils';
 import './Footer.css';
@@ -32,19 +33,15 @@ function Footer(props: FooterProps) {
     const [workerBalance, setWorkerBalance] = useState('0');
 
     const setBalance = useCallback(
-        async (smartWallet: SmartWallet): Promise<SmartWalletWithBalance> => {
+        async (smartWallet: SmartWalletAddress): Promise<SmartWalletWithBalance> => {
             const balance = await Utils.tokenBalance(smartWallet.address);
             const rbtcBalance = await Utils.getBalance(smartWallet.address);
             const swWithBalance = {
                 ...smartWallet,
                 balance: `${Utils.fromWei(balance)} tRIF`,
                 rbtcBalance: `${Utils.fromWei(rbtcBalance)} RBTC`,
-                deployed:
-                    (await provider?.isSmartWalletDeployed(
-                        smartWallet.address
-                    )) || false
             };
-            return swWithBalance;
+            return swWithBalance as SmartWalletWithBalance;
         },
         [provider]
     );
@@ -59,15 +56,15 @@ function Footer(props: FooterProps) {
             setShow(true);
             while (found === true) {
                 // eslint-disable-next-line no-await-in-loop
-                const smartWallet = await provider.generateSmartWallet(
+                const smartWalletAddress = await provider.generateSmartWallet(
                     smartWalletIndex + 1
                 );
                 // eslint-disable-next-line no-await-in-loop
-                const balance = await Utils.tokenBalance(smartWallet.address);
-                if (balance > '0' || smartWallet.deployed) {
+                const balance = await Utils.tokenBalance(smartWalletAddress.address);
+                if (balance > '0') {
                     // eslint-disable-next-line no-await-in-loop
                     const smartWalletWithBalance = await setBalance(
-                        smartWallet
+                        smartWalletAddress
                     );
                     setSmartWallets((currentSmartWallet) => [
                         ...currentSmartWallet,
