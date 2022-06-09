@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { SmartWallet } from 'relaying-services-sdk';
+import { QRCodeSVG } from 'qrcode.react';
 import './Receive.css';
-
-const { $ } = window;
 
 type ReceiveProps = {
     currentSmartWallet?: SmartWallet;
@@ -12,13 +11,7 @@ function Receive(props: ReceiveProps) {
     const { currentSmartWallet } = props;
     useEffect(() => {
         if (currentSmartWallet) {
-            // TODO: Replace jquery-qrcode with [qrcode.react](https://www.npmjs.com/package/qrcode.react)
-            $('#qr-code').empty();
-            $('#qr-code').qrcode({
-                width: '256',
-                height: '256',
-                text: currentSmartWallet.address
-            });
+            <QRCodeSVG value={currentSmartWallet.address} size={256} />
         }
     }, [currentSmartWallet]);
 
