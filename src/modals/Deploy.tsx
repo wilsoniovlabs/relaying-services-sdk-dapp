@@ -139,7 +139,7 @@ function Deploy(props: DeployProps) {
                     );
                     const smartWalledIsDeployed =
                         await checkSmartWalletDeployment(
-                            smartWallet.deployTransaction!
+                            smartWallet.deployment?.deployTransaction!
                         );
                     if (!smartWalledIsDeployed) {
                         throw new Error('SmartWallet: deployment failed');
@@ -177,7 +177,7 @@ function Deploy(props: DeployProps) {
 
         setLoading(true);
         const smartWallet = await relaySmartWalletDeployment(deploy.fees);
-        if (smartWallet?.deployTransaction) {
+        if (smartWallet?.deployment!.deployTransaction) {
             setUpdateInfo(true);
             close();
         }
