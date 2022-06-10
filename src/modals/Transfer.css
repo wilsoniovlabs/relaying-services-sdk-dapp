@@ -5,3 +5,7 @@
     padding-top: 0.5em;
     padding-left: 0em;
 }
+
+.transfer-input .input-field {
+    width: 100%;
+}

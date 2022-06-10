@@ -1,22 +1,20 @@
-import './Deploy.css';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { RelayGasEstimationOptions, RelayingServices, SmartWallet } from 'relaying-services-sdk';
-import Utils, { TRIF_PRICE } from '../Utils';
-
-const { $ } = window;
-const { M } = window;
-setTimeout(() => {
-    M.AutoInit();
-}, 0);
+import { Modal, Col, Row, TextInput, Button } from 'react-materialize';
+import Utils, { TRIF_PRICE } from 'src/Utils';
+import { Modals } from 'src/types';
+import 'src/modals/Deploy.css';
 
 type DeployProps = {
     currentSmartWallet?: SmartWallet;
     provider?: RelayingServices;
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
+    modal: Modals;
+    setModal: Dispatch<SetStateAction<Modals>>;
 };
 
 type DeployInfo = {
-    fees: number | string;
+    fees: string;
     check: boolean;
     tokenGas: number | string;
     relayGas: number;
@@ -25,16 +23,19 @@ type DeployInfo = {
 type DeployInfoKey = keyof DeployInfo;
 
 function Deploy(props: DeployProps) {
-    const { currentSmartWallet, provider, setUpdateInfo } = props;
+    const { currentSmartWallet, provider, setUpdateInfo, modal, setModal } = props;
 
     const [deploy, setDeploy] = useState<DeployInfo>({
-        fees: 0,
+        fees: '0',
         check: false,
         tokenGas: 0,
         relayGas: 0
     });
+
     const [loading, setLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
+
+
 
     /*
      * It receives the value and the property to change and
@@ -42,14 +43,15 @@ function Deploy(props: DeployProps) {
      * of the current status but with the property specified updated
      * with the new value
      */
-    function changeValue<T>(value: T, prop: DeployInfoKey) {
-        const obj: DeployInfo = { ...deploy };
-        // @ts-ignore: TODO: change this to be type safe
-        obj[prop] = value;
-        setDeploy(obj);
+    const changeValue = <T,>(value: T, prop: DeployInfoKey) => {
+        if(prop === 'fees' && Number(value) < 0){
+            return;
+        }
+        setDeploy(prev => ({ ...prev, [prop]: value}));
     }
 
-    async function handleEstimateDeploySmartWalletButtonClick() {
+    const handleEstimateDeploySmartWalletButtonClick = async () => {
+        console.log('entro aca')
         setEstimateLoading(true);
         try {
 
@@ -60,10 +62,14 @@ function Deploy(props: DeployProps) {
                 smartWalletAddress: currentSmartWallet?.address!,
                 tokenFees: '1'
             };
+
+            console.log(opts);
             
             const estimate = await provider?.estimateMaxPossibleRelayGas(
                 opts
             );
+
+            console.log(estimate);
 
             if (estimate) {
                 const costInRBTC = await Utils.fromWei(estimate.toString());
@@ -93,7 +99,7 @@ function Deploy(props: DeployProps) {
         setEstimateLoading(false);
     }
 
-    async function getReceipt(transactionHash: string) {
+    const getReceipt = async (transactionHash: string) => {
         let receipt = await Utils.getTransactionReceipt(transactionHash);
         let times = 0;
 
@@ -161,17 +167,16 @@ function Deploy(props: DeployProps) {
     }
 
     function close() {
-        const instance = M.Modal.getInstance($('#deploy-modal'));
-        instance.close();
+        setModal(prev => ({ ...prev, deploy: false }));
         setDeploy({
-            fees: 0,
+            fees: '0',
             check: false,
             tokenGas: 0,
             relayGas: 0
         });
     }
 
-    async function handleDeploySmartWalletButtonClick() {
+    const handleDeploySmartWalletButtonClick = async () => {
         deploy.fees = deploy.fees === '' ? '0' : deploy.fees;
         deploy.tokenGas = deploy.tokenGas === '' ? '0' : deploy.tokenGas;
 
@@ -185,96 +190,68 @@ function Deploy(props: DeployProps) {
         setLoading(false);
     }
 
+    function returnLoading(load: boolean) {
+        return (<img
+            alt='loading'
+            className={`loading ${!load ? 'hide' : ''}`}
+            src='images/loading.gif'
+        />)
+    }
+
+    function returnActions() {
+        return [
+            <Button
+                flat
+                node="button"
+                waves="green"
+                onClick={handleDeploySmartWalletButtonClick}
+                disabled={loading}
+            >Deploy
+                {returnLoading(loading)}
+            </Button>,
+            <Button
+                flat
+                node="button"
+                waves="green"
+                onClick={handleEstimateDeploySmartWalletButtonClick}
+                disabled={estimateLoading}
+            >
+                Estimate
+                {returnLoading(estimateLoading)}
+            </Button>,
+            <Button flat modal="close" node="button" waves="green">Cancel</Button>
+        ];
+    }
+
     return (
-        <div id='deploy-modal' className='modal'>
-            <div className='modal-content'>
-                <div className='row'>
-                    <form className='col s12'>
-                        <div className='row'>
-                            <div className='input-field col s8'>
-                                <input
+        <Modal
+            open={modal.deploy}
+            options={{
+                onCloseEnd: () => close()
+            }}
+            actions={returnActions()}
+        >
+            <Row>
+                <Col s={12}>
+                    <form>
+                        <Row>
+                            <Col s={8} className="deploy-input">
+                                <TextInput
+                                    label='Fees (tRIF)'
                                     placeholder='0'
                                     value={deploy.fees}
                                     type='number'
-                                    min='0'
-                                    className='validate tooltipped'
+                                    validate
                                     onChange={(event) => {
                                         changeValue(event.target.value, 'fees');
-                                    }}
-                                    data-tooltip=''
+                                    }}  
                                 />
-                                <label
-                                    htmlFor='deploy-fees'
-                                    id='deploy-fees-label'
-                                >
-                                    Fees (tRIF)
-                                </label>
-                            </div>
-                            <div
-                                className='switch col s4 hide'
-                                style={{ paddingTop: '2.5em' }}
-                            >
-                                <label>
-                                    tRIF
-                                    <input
-                                        type='checkbox'
-                                        onChange={(event) => {
-                                            changeValue(
-                                                event.target.value,
-                                                'check'
-                                            );
-                                        }}
-                                        checked={deploy.check ?? undefined}
-                                    />
-                                    <span className='lever' />
-                                    RBTC
-                                </label>
-                            </div>
-                        </div>
+                            </Col>
+                        </Row>
                     </form>
-                </div>
-            </div>
-            <div className='modal-footer'>
-                <a
-                    href='#!'
-                    id='deploy-smart-wallet-estimate'
-                    className={`waves-effect waves-green btn-flat ${
-                        estimateLoading ? 'disabled' : ''
-                    }`}
-                    onClick={handleEstimateDeploySmartWalletButtonClick}
-                >
-                    Estimate{' '}
-                    <img
-                        alt='loading'
-                        className={`loading ${!estimateLoading ? 'hide' : ''}`}
-                        src='images/loading.gif'
-                    />
-                </a>
-                <a
-                    onClick={handleDeploySmartWalletButtonClick}
-                    href='#!'
-                    className={`waves-effect waves-green btn-flat ${
-                        loading ? 'disabled' : ''
-                    }`}
-                >
-                    Deploy{' '}
-                    <img
-                        alt='loading'
-                        className={`loading ${!loading ? 'hide' : ''}`}
-                        src='images/loading.gif'
-                    />
-                </a>
-                <a
-                    href='#!'
-                    className='waves-effect waves-green btn-flat'
-                    onClick={() => {
-                        close();
-                    }}
-                >
-                    Cancel
-                </a>
-            </div>
-        </div>
+                </Col>
+            </Row>
+        </Modal>
     );
 }
 

@@ -1,8 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import 'src/index.css';
+import App from 'src/App';
+import reportWebVitals from 'src/reportWebVitals';
+/* import 'materialize-css/dist/css/materialize.min.css';
+import 'materialize-css/dist/js/materialize.min.js'; */
 
 ReactDOM.render(
     <React.StrictMode>

@@ -2,14 +2,16 @@ import { Dispatch, SetStateAction, useState } from 'react';
 // @ts-ignore: TODO: Check if there is a ts library
 import abiDecoder from 'abi-decoder';
 import Web3 from 'web3';
-import { toBN } from 'web3-utils';
 import { RelayingServices, RelayGasEstimationOptions, RelayingTransactionOptions } from 'relaying-services-sdk';
-import IForwarder from '../contracts/IForwarder.json';
-import { SmartWalletWithBalance } from '../types';
-import Utils from '../Utils';
+import IForwarder from 'src/contracts/IForwarder.json';
+import { Modals, SmartWalletWithBalance } from 'src/types';
+import 'src/modals/Execute.css';
+import { Modal, /* Col, Row, TextInput, Button, Icon, Switch */ } from 'react-materialize';
+import Utils from 'src/Utils';
+import { toBN } from 'web3-utils';
 
-const { M } = window;
-const { $ } = window;
+
+
 if (window.ethereum) {
     window.web3 = new Web3(window.ethereum);
 } else if (window.web3) {
@@ -24,10 +26,12 @@ type ExecuteProps = {
     currentSmartWallet?: SmartWalletWithBalance;
     provider: RelayingServices;
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
+    modal: Modals;
+    setModal: Dispatch<SetStateAction<Modals>>;
 };
 
 type ExecuteInfo = {
-    fees: number | string;
+    fees: string;
     check: boolean;
     show: boolean;
     address: string;
@@ -38,7 +42,7 @@ type ExecuteInfo = {
 type ExecuteInfoKey = keyof ExecuteInfo;
 
 function Execute(props: ExecuteProps) {
-    const { account, currentSmartWallet, provider, setUpdateInfo } = props;
+    const { account, currentSmartWallet, provider, setUpdateInfo, modal, setModal } = props;
     const [results, setResults] = useState('');
     const [execute, setExecute] = useState<ExecuteInfo>({
         check: false,
@@ -117,8 +121,7 @@ function Execute(props: ExecuteProps) {
     }
 
     function close() {
-        const instance = M.Modal.getInstance($('#execute-modal'));
-        instance.close();
+        setModal(prev => ({ ...prev, execute: false }));
         setExecute({
             check: false,
             show: false,
@@ -130,10 +133,7 @@ function Execute(props: ExecuteProps) {
     }
 
     function changeValue<T>(value: T, prop: ExecuteInfoKey) {
-        const obj = { ...execute };
-        // @ts-ignore: TODO: change this to be type safe
-        obj[prop] = value;
-        setExecute(obj);
+        setExecute(prev => ({ ...prev, [prop]: value }));
     }
 
     async function handleExecuteSmartWalletButtonClick() {
@@ -259,7 +259,7 @@ function Execute(props: ExecuteProps) {
                             costInWei.toString()
                         );
                         const tRifPriceInRBTC = parseFloat(
-                            $('#trif-price').text()
+                            "5"
                         ); // 1 tRIF = tRifPriceInRBTC RBTC
                         const tRifPriceInWei = toBN(
                             await Utils.toWei(tRifPriceInRBTC.toString())
@@ -331,10 +331,8 @@ function Execute(props: ExecuteProps) {
     }
 
     return (
-        <div
-            id='execute-modal'
-            className='modal large-modal'
-            style={{ maxHeight: '95%' }}
+        <Modal
+            open={modal.execute}
         >
             <div className='modal-content' style={{ paddingBottom: '0em' }}>
                 <div className='row'>
@@ -546,7 +544,7 @@ function Execute(props: ExecuteProps) {
                     Cancel
                 </a>
             </div>
-        </div>
+        </Modal>
     );
 }
 

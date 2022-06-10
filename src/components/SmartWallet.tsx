@@ -1,43 +1,40 @@
 import { Dispatch, SetStateAction } from 'react';
-import { SmartWalletWithBalance } from '../types';
+import { Modals, SmartWalletWithBalance } from '../types';
 import './SmartWallet.css';
 
 // TODO: Replace it with react-materialize
-window.M.AutoInit();
-const { M } = window;
 
 type SmartWalletProps = {
     connected: boolean;
     smartWallets: SmartWalletWithBalance[];
-    setCurrentSmartWallet: Dispatch<
-        SetStateAction<SmartWalletWithBalance | undefined>
-    >;
+    setCurrentSmartWallet: Dispatch<SetStateAction<SmartWalletWithBalance | undefined>>;
     setShow: Dispatch<SetStateAction<boolean>>;
+    setModal: Dispatch<SetStateAction<Modals>>;
 };
 
+type ModalsKey = keyof Modals;
+
 function SmartWallet(props: SmartWalletProps) {
-    const { connected, smartWallets, setCurrentSmartWallet, setShow } = props;
+    const { connected, smartWallets, setCurrentSmartWallet, setShow, setModal } = props;
 
     async function copySmartWalletAddress(address: string) {
         setShow(true);
         await navigator.clipboard.writeText(address);
         setShow(false);
     }
-    function openModal(modalId: string, smartWallet: SmartWalletWithBalance) {
+
+    function openModal(smartWallet: SmartWalletWithBalance, modal: ModalsKey) {
         setCurrentSmartWallet(smartWallet);
-        const instance = M.Modal.init(document.getElementById(modalId), {
-            dismissible: false
-        });
-        instance.open();
+        setModal(prev =>({...prev, [modal]: true}));
     }
+
     return (
         <div className='smart-wallets'>
             <div id='no-smart-wallets' className='row grey'>
                 <div
                     id='no-wallets-message'
-                    className={`col s12 ${
-                        smartWallets.length <= 0 && connected ? '' : 'hide'
-                    }`}
+                    className={`col s12 ${smartWallets.length <= 0 && connected ? '' : 'hide'
+                        }`}
                 >
                     <h6 className='center-align'>
                         No Smart Wallets detected for selected account. Create a
@@ -61,14 +58,13 @@ function SmartWallet(props: SmartWalletProps) {
                 >
                     <div className='col s1'>
                         <a
-                            className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${
-                                smartWallet.deployment ? 'disabled' : ''
-                            }`}
+                            className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployment ? 'disabled' : ''
+                                }`}
                             href='#!'
                             data-position='bottom'
                             data-tooltip='Deploy'
                             onClick={() => {
-                                openModal('deploy-modal', smartWallet);
+                                openModal(smartWallet, 'deploy');
                             }}
                         >
                             <i className='material-icons'>file_upload</i>
@@ -106,13 +102,12 @@ function SmartWallet(props: SmartWalletProps) {
                         <a
                             id='transfer-button-0'
                             href='#!'
-                            className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${
-                                smartWallet.deployment ? '' : 'disabled'
-                            }`}
+                            className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployment ? '' : 'disabled'
+                                }`}
                             data-position='bottom'
                             data-tooltip='Transfer'
                             onClick={() => {
-                                openModal('transfer-modal', smartWallet);
+                                openModal(smartWallet, 'transfer');
                             }}
                         >
                             <i className='material-icons'>call_made</i>
@@ -126,7 +121,7 @@ function SmartWallet(props: SmartWalletProps) {
                             data-position='bottom'
                             data-tooltip='Receive'
                             onClick={() => {
-                                openModal('receive-modal', smartWallet);
+                                openModal(smartWallet, 'receive');
                             }}
                         >
                             <i className='material-icons'>arrow_downward</i>
@@ -134,14 +129,13 @@ function SmartWallet(props: SmartWalletProps) {
                     </div>
                     <div className='col s1 left-align'>
                         <a
-                            className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${
-                                smartWallet.deployment ? '' : 'disabled'
-                            }`}
+                            className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${smartWallet.deployment ? '' : 'disabled'
+                                }`}
                             href='#!'
                             data-position='bottom'
                             data-tooltip='Execute'
                             onClick={() => {
-                                openModal('execute-modal', smartWallet);
+                                openModal(smartWallet, 'execute');
                             }}
                         >
                             <i className='material-icons'>
