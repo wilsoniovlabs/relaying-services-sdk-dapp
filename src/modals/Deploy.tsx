@@ -140,7 +140,7 @@ function Deploy(props: DeployProps) {
                         {
                             tokenAddress:
                                 process.env.REACT_APP_CONTRACTS_RIF_TOKEN,
-                            tokenAmount: fees
+                            tokenAmount: Number(fees)
                         }
                     );
                     const smartWalledIsDeployed =

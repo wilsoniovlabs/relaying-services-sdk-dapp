@@ -1,38 +1,26 @@
-import Web3 from 'web3';
 import { EnvelopingTransactionDetails } from '@rsksmart/rif-relay-common';
+import { AbiItem } from 'web3-utils';
 import TestToken from './contracts/TestToken.json';
 
 export const TRIF_PRICE = 0.000005739;
 export const TRIF_TOKEN_DECIMALS = 18;
 
-if (window.ethereum) {
-    window.web3 = new Web3(window.ethereum);
-} else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider);
-} else if (window.rLogin) {
-    window.web3 = new Web3(window.rLogin);
-} else {
-    throw new Error('No web3 detected');
-}
-const { web3 } = window;
-
 class Utils {
     static async ritTokenDecimals() {
         const rifTokenContract = new web3.eth.Contract(
-            TestToken.abi,
+            TestToken.abi as AbiItem[],
             process.env.REACT_APP_CONTRACTS_RIF_TOKEN
         );
-        rifTokenContract.setProvider(web3.currentProvider);
+
         const balance = await rifTokenContract.methods.decimals().call();
         return balance;
     }
 
     static async tokenBalance(address: string) {
         const rifTokenContract = new web3.eth.Contract(
-            TestToken.abi,
+            TestToken.abi as AbiItem[],
             process.env.REACT_APP_CONTRACTS_RIF_TOKEN
         );
-        rifTokenContract.setProvider(web3.currentProvider);
         const balance = await rifTokenContract.methods
             .balanceOf(address)
             .call();
@@ -41,10 +29,9 @@ class Utils {
 
     static async getTokenContract() {
         const rifTokenContract = new web3.eth.Contract(
-            TestToken.abi,
+            TestToken.abi as AbiItem[],
             process.env.REACT_APP_CONTRACTS_RIF_TOKEN
         );
-        rifTokenContract.setProvider(web3.currentProvider);
         return rifTokenContract;
     }
 

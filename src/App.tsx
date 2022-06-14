@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import 'src/App.css';
-import Web3 from 'web3';
 
 import {
     DefaultRelayingServices,
@@ -24,17 +23,6 @@ import rLogin from 'src/rLogin';
 function getEnvParamAsInt(value: string | undefined): number | undefined {
     return value ? parseInt(value, 10) : undefined;
 }
-
-if (window.ethereum) {
-    window.web3 = new Web3(window.ethereum);
-} else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider);
-} else if (window.rLogin) {
-    window.web3 = new Web3(window.rLogin);
-} else {
-    throw new Error('No web3 detected');
-}
-const { web3 } = window;
 
 function App() {
     const [modal, setModal] = useState<Modals>({
@@ -130,24 +118,30 @@ function App() {
     };
 
     const refreshAccount = async () => {
-        setSmartWallets([]);
         const accounts = await Utils.getAccounts();
         const currentAccount = accounts[0];
         setAccount(currentAccount);
     };
 
+    const reload = async () => {
+        setSmartWallets([]);
+        await initProvider();
+        await refreshAccount();
+    };
+
     const connectToRLogin = async () => {
         let isConnected = false;
         try {
-            const chain: number = await web3.eth.getChainId();
+            const chain: number = await window.web3.eth.getChainId();
             if (chain.toString() === process.env.REACT_APP_RIF_RELAY_CHAIN_ID) {
                 const connect = await rLogin.connect();
-                window.rLogin = connect.provider;
-                window.rLogin.on('accountsChanged', async (/* accounts */) => {
-                    await refreshAccount();
+                const login = connect.provider;
+
+                login.on('accountsChanged', async (/* accounts */) => {
+                    await reload();
                 });
 
-                window.rLogin.on('networkChanged', async (newChain: number) => {
+                login.on('chainChanged', async (newChain: number) => {
                     setChainId(newChain);
                 });
                 setChainId(chain);
@@ -199,10 +193,7 @@ function App() {
             }
 
             if (isConnected) {
-                setShow(true);
-                await initProvider();
-                await refreshAccount();
-                setShow(false);
+                await reload();
             } else {
                 console.warn('Unable to connect to Metamask');
                 setConnect(isConnected);

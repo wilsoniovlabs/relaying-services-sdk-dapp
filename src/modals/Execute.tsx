@@ -1,7 +1,6 @@
 import { Dispatch, SetStateAction, useState } from 'react';
 // @ts-ignore: TODO: Check if there is a ts library
 import abiDecoder from 'abi-decoder';
-import Web3 from 'web3';
 import {
     RelayingServices,
     RelayGasEstimationOptions,
@@ -20,16 +19,7 @@ import {
     Switch
 } from 'react-materialize';
 import Utils from 'src/Utils';
-import { toBN } from 'web3-utils';
-
-if (window.ethereum) {
-    window.web3 = new Web3(window.ethereum);
-} else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider);
-} else {
-    throw new Error('Error: MetaMask or web3 not detected');
-}
-const { web3 } = window;
+import { AbiItem, toBN } from 'web3-utils';
 
 type ExecuteProps = {
     account?: string;
@@ -107,8 +97,10 @@ function Execute(props: ExecuteProps) {
         swAddress: string,
         abiEncodedTx: string
     ) => {
-        const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
-        swContract.setProvider(web3.currentProvider);
+        const swContract = new web3.eth.Contract(
+            IForwarder.abi as AbiItem[],
+            swAddress
+        );
         const fees = execute.fees === '' ? '0' : execute.fees;
         const weiAmount = await Utils.toWei(fees.toString());
         const transaction = await swContract.methods
@@ -220,8 +212,10 @@ function Execute(props: ExecuteProps) {
         toAddress: string,
         abiEncodedTx: string
     ) => {
-        const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
-        swContract.setProvider(web3.currentProvider);
+        const swContract = new web3.eth.Contract(
+            IForwarder.abi as AbiItem[],
+            swAddress
+        );
         const fees = execute.fees === '' ? '0' : execute.fees;
         const weiAmount = await Utils.toWei(fees.toString());
         const estimate = await swContract.methods
@@ -304,7 +298,7 @@ function Execute(props: ExecuteProps) {
                         const ritTokenDecimals = await Utils.ritTokenDecimals();
                         console.log('TRIF Decimals: ', ritTokenDecimals);
 
-                        const costInTrif = costInRBTC / tRifPriceInRBTC;
+                        const costInTrif = Number(costInRBTC) / tRifPriceInRBTC;
                         console.log(
                             'Cost in TRIF (rbtc): ',
                             costInTrif.toString()
