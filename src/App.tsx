@@ -139,7 +139,6 @@ function App() {
         let isConnected = false;
         try {
             const chain: number = await web3.eth.getChainId();
-            setChainId(chain);
             if (chain.toString() === process.env.REACT_APP_RIF_RELAY_CHAIN_ID) {
                 await ethereum.request({ method: 'eth_requestAccounts' });
                 ethereum.on('accountsChanged', async (/* accounts */) => {
@@ -149,6 +148,7 @@ function App() {
                 ethereum.on('networkChanged', async (newChain: number) => {
                     setChainId(newChain);
                 });
+                setChainId(chain);
                 isConnected = true;
             } else {
                 alert(
