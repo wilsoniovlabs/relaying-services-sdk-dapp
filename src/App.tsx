@@ -36,16 +36,26 @@ const { web3 } = window;
 const { ethereum } = window;
 
 function App() {
-
-    const [modal, setModal] = useState<Modals>({ deploy: false, execute: false, receive: false, transfer: false });
+    const [modal, setModal] = useState<Modals>({
+        deploy: false,
+        execute: false,
+        receive: false,
+        transfer: false
+    });
     const [connected, setConnect] = useState(false);
     const [chainId, setChainId] = useState(0);
     const [account, setAccount] = useState<string | undefined>(undefined);
-    const [currentSmartWallet, setCurrentSmartWallet] = useState<SmartWalletWithBalance | undefined>(undefined);
-    const [provider, setProvider] = useState<RelayingServices | undefined>(undefined);
+    const [currentSmartWallet, setCurrentSmartWallet] = useState<
+        SmartWalletWithBalance | undefined
+    >(undefined);
+    const [provider, setProvider] = useState<RelayingServices | undefined>(
+        undefined
+    );
     const [show, setShow] = useState(false);
 
-    const [smartWallets, setSmartWallets] = useState<SmartWalletWithBalance[]>([]);
+    const [smartWallets, setSmartWallets] = useState<SmartWalletWithBalance[]>(
+        []
+    );
     const [updateInfo, setUpdateInfo] = useState(false);
 
     async function initProvider() {
@@ -63,8 +73,8 @@ function App() {
                 preferredRelays: process.env
                     .REACT_APP_RIF_RELAY_PREFERRED_RELAYS
                     ? process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS.split(
-                        ','
-                    )
+                          ','
+                      )
                     : undefined,
                 relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
                 relayVerifierAddress:
@@ -118,7 +128,6 @@ function App() {
         })();
     }, [updateInfo]);
 
-
     async function refreshAccount() {
         setSmartWallets([]);
         const accounts = await Utils.getAccounts();
@@ -139,10 +148,12 @@ function App() {
 
                 ethereum.on('networkChanged', async (newChain: number) => {
                     setChainId(newChain);
-                })
+                });
                 isConnected = true;
             } else {
-                alert(`Wrong network ID ${chain}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`);
+                alert(
+                    `Wrong network ID ${chain}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`
+                );
             }
         } catch (error) {
             console.error(error);

@@ -1,5 +1,9 @@
 import { Dispatch, SetStateAction, useState } from 'react';
-import { RelayGasEstimationOptions, RelayingServices, SmartWallet } from 'relaying-services-sdk';
+import {
+    RelayGasEstimationOptions,
+    RelayingServices,
+    SmartWallet
+} from 'relaying-services-sdk';
 import { Modal, Col, Row, TextInput, Button } from 'react-materialize';
 import Utils, { TRIF_PRICE } from 'src/Utils';
 import { Modals } from 'src/types';
@@ -23,7 +27,8 @@ type DeployInfo = {
 type DeployInfoKey = keyof DeployInfo;
 
 function Deploy(props: DeployProps) {
-    const { currentSmartWallet, provider, setUpdateInfo, modal, setModal } = props;
+    const { currentSmartWallet, provider, setUpdateInfo, modal, setModal } =
+        props;
 
     const [deploy, setDeploy] = useState<DeployInfo>({
         fees: '0',
@@ -45,13 +50,12 @@ function Deploy(props: DeployProps) {
         if (prop === 'fees' && Number(value) < 0) {
             return;
         }
-        setDeploy(prev => ({ ...prev, [prop]: value }));
-    }
+        setDeploy((prev) => ({ ...prev, [prop]: value }));
+    };
 
     const handleEstimateDeploySmartWalletButtonClick = async () => {
         setEstimateLoading(true);
         try {
-
             const opts: RelayGasEstimationOptions = {
                 abiEncodedTx: '',
                 destinationContract: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
@@ -62,9 +66,7 @@ function Deploy(props: DeployProps) {
 
             console.log(opts);
 
-            const estimate = await provider?.estimateMaxPossibleRelayGas(
-                opts
-            );
+            const estimate = await provider?.estimateMaxPossibleRelayGas(opts);
 
             console.log(estimate);
 
@@ -94,7 +96,7 @@ function Deploy(props: DeployProps) {
             console.error(error);
         }
         setEstimateLoading(false);
-    }
+    };
 
     const getReceipt = async (transactionHash: string) => {
         let receipt = await Utils.getTransactionReceipt(transactionHash);
@@ -111,7 +113,7 @@ function Deploy(props: DeployProps) {
         }
 
         return receipt;
-    }
+    };
 
     const checkSmartWalletDeployment = async (txHash: string) => {
         const receipt = await getReceipt(txHash);
@@ -123,7 +125,7 @@ function Deploy(props: DeployProps) {
         console.log(`Your receipt is`);
         console.log(receipt);
         return receipt.status;
-    }
+    };
 
     const relaySmartWalletDeployment = async (tokenAmount: string | number) => {
         try {
@@ -136,7 +138,8 @@ function Deploy(props: DeployProps) {
                     const smartWallet = await provider.deploySmartWallet(
                         currentSmartWallet!,
                         {
-                            tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN,
+                            tokenAddress:
+                                process.env.REACT_APP_CONTRACTS_RIF_TOKEN,
                             tokenAmount: fees
                         }
                     );
@@ -161,17 +164,17 @@ function Deploy(props: DeployProps) {
             console.error(error);
         }
         return undefined;
-    }
+    };
 
     const close = () => {
-        setModal(prev => ({ ...prev, deploy: false }));
+        setModal((prev) => ({ ...prev, deploy: false }));
         setDeploy({
             fees: '0',
             check: false,
             tokenGas: 0,
             relayGas: 0
         });
-    }
+    };
 
     const handleDeploySmartWalletButtonClick = async () => {
         deploy.fees = deploy.fees === '' ? '0' : deploy.fees;
@@ -185,38 +188,41 @@ function Deploy(props: DeployProps) {
         }
 
         setDeployLoading(false);
-    }
+    };
 
-    const returnLoading = (loading: boolean) =>
-    (<img
-        alt='loading'
-        className={`loading ${!loading ? 'hide' : ''}`}
-        src='images/loading.gif'
-    />)
-
+    const returnLoading = (loading: boolean) => (
+        <img
+            alt='loading'
+            className={`loading ${!loading ? 'hide' : ''}`}
+            src='images/loading.gif'
+        />
+    );
 
     function returnActions() {
         return [
             <Button
                 flat
-                node="button"
-                waves="green"
+                node='button'
+                waves='green'
                 onClick={handleDeploySmartWalletButtonClick}
                 disabled={deployLoading}
-            >Deploy
+            >
+                Deploy
                 {returnLoading(deployLoading)}
             </Button>,
             <Button
                 flat
-                node="button"
-                waves="green"
+                node='button'
+                waves='green'
                 onClick={handleEstimateDeploySmartWalletButtonClick}
                 disabled={estimateLoading}
             >
                 Estimate
                 {returnLoading(estimateLoading)}
             </Button>,
-            <Button flat modal="close" node="button" waves="green">Cancel</Button>
+            <Button flat modal='close' node='button' waves='green'>
+                Cancel
+            </Button>
         ];
     }
 
@@ -230,7 +236,7 @@ function Deploy(props: DeployProps) {
         >
             <Row>
                 <form>
-                    <Col s={8} className="deploy-input">
+                    <Col s={8} className='deploy-input'>
                         <TextInput
                             label='Fees (tRIF)'
                             placeholder='0'

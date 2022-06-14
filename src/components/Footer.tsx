@@ -1,9 +1,4 @@
-import {
-    Dispatch,
-    SetStateAction,
-    useEffect,
-    useState
-} from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { RelayingServices, SmartWallet } from 'relaying-services-sdk';
 import { SmartWalletWithBalance } from 'src/types';
 import Utils, { TRIF_PRICE } from 'src/Utils';
@@ -31,7 +26,10 @@ function Footer(props: FooterProps) {
 
     const [workerBalance, setWorkerBalance] = useState('0');
 
-    const setBalance = async (smartWallet: SmartWallet, deployed: boolean): Promise<SmartWalletWithBalance> => {
+    const setBalance = async (
+        smartWallet: SmartWallet,
+        deployed: boolean
+    ): Promise<SmartWalletWithBalance> => {
         const balance = await Utils.tokenBalance(smartWallet.address);
         const rbtcBalance = await Utils.getBalance(smartWallet.address);
         const swWithBalance = {
@@ -41,7 +39,7 @@ function Footer(props: FooterProps) {
             deployed
         };
         return swWithBalance;
-    }
+    };
 
     useEffect(() => {
         if (!account || !provider) {
@@ -52,9 +50,13 @@ function Footer(props: FooterProps) {
             let found: boolean = true;
             while (found) {
                 // eslint-disable-next-line no-await-in-loop
-                const smartWalletAddress = await provider.generateSmartWallet(index + 1);
+                const smartWalletAddress = await provider.generateSmartWallet(
+                    index + 1
+                );
                 // eslint-disable-next-line no-await-in-loop
-                const deployed = await provider.isSmartWalletDeployed(smartWalletAddress.address);
+                const deployed = await provider.isSmartWalletDeployed(
+                    smartWalletAddress.address
+                );
                 if (deployed) {
                     // eslint-disable-next-line no-await-in-loop
                     const smartWalletWithBalance = await setBalance(
@@ -66,7 +68,7 @@ function Footer(props: FooterProps) {
                         smartWalletWithBalance
                     ]);
                     index += 1;
-                }else{
+                } else {
                     found = false;
                 }
             }
@@ -86,12 +88,14 @@ function Footer(props: FooterProps) {
     const create = async () => {
         if (provider) {
             setShow(true);
-            const smartWallet = await provider?.generateSmartWallet(smartWallets.length + 1);
+            const smartWallet = await provider?.generateSmartWallet(
+                smartWallets.length + 1
+            );
             const smartWalletWithBalance = await setBalance(smartWallet, false);
             setSmartWallets([...smartWallets, smartWalletWithBalance]);
             setShow(false);
         }
-    }
+    };
 
     return (
         <Row className='space-row'>
@@ -103,30 +107,21 @@ function Footer(props: FooterProps) {
                     disabled={!connected}
                 >
                     New Smart Wallet
-                    <Icon right>
-                        add_circle_outline
-                    </Icon>
+                    <Icon right>add_circle_outline</Icon>
                 </Button>
             </Col>
             <Col s={6}>
                 <Row>
                     <Col s={6}>
                         <h6>
-                            tRIF price:
-                            {' '}
-                            <span id='trif-price'>{TRIF_PRICE}</span>
-                            {' '}
-                            RBTC
+                            tRIF price:{' '}
+                            <span id='trif-price'>{TRIF_PRICE}</span> RBTC
                         </h6>
                     </Col>
                     <Col s={6}>
                         <h6>
-                            Worker balance:
-                            {' '}
-                            <span id='worker-balance'>
-                                {workerBalance}
-                            </span>
-                            {' '}
+                            Worker balance:{' '}
+                            <span id='worker-balance'>{workerBalance}</span>{' '}
                             tRIF
                         </h6>
                     </Col>

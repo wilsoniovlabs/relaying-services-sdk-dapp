@@ -30,10 +30,17 @@ function Header(props: HeaderProps) {
 
     const refresh = async () => {
         setUpdateInfo(true);
-    }
+    };
     return (
         <header>
-            <nav className={ chainId.toString() ===  process.env.REACT_APP_RIF_RELAY_CHAIN_ID ? 'connected-network' : ''}>
+            <nav
+                className={
+                    chainId.toString() ===
+                    process.env.REACT_APP_RIF_RELAY_CHAIN_ID
+                        ? 'connected-network'
+                        : ''
+                }
+            >
                 <Row>
                     <Col s={6}>
                         <Row className='left'>

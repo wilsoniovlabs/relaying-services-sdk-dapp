@@ -8,7 +8,9 @@ import { Col, Row, Button, Icon } from 'react-materialize';
 type SmartWalletProps = {
     connected: boolean;
     smartWallets: SmartWalletWithBalance[];
-    setCurrentSmartWallet: Dispatch<SetStateAction<SmartWalletWithBalance | undefined>>;
+    setCurrentSmartWallet: Dispatch<
+        SetStateAction<SmartWalletWithBalance | undefined>
+    >;
     setShow: Dispatch<SetStateAction<boolean>>;
     setModal: Dispatch<SetStateAction<Modals>>;
 };
@@ -16,7 +18,13 @@ type SmartWalletProps = {
 type ModalsKey = keyof Modals;
 
 function SmartWallet(props: SmartWalletProps) {
-    const { connected, smartWallets, setCurrentSmartWallet, setShow, setModal } = props;
+    const {
+        connected,
+        smartWallets,
+        setCurrentSmartWallet,
+        setShow,
+        setModal
+    } = props;
     async function copySmartWalletAddress(address: string) {
         setShow(true);
         await navigator.clipboard.writeText(address);
@@ -25,36 +33,32 @@ function SmartWallet(props: SmartWalletProps) {
 
     function openModal(smartWallet: SmartWalletWithBalance, modal: ModalsKey) {
         setCurrentSmartWallet(smartWallet);
-        setModal(prev => ({ ...prev, [modal]: true }));
+        setModal((prev) => ({ ...prev, [modal]: true }));
     }
 
     return (
         <div className='smart-wallets'>
-            <Row className={`grey ${smartWallets.length <= 0 && connected ? '' : 'hide'}`}>
-                <Col
-                    s={12}
-                >
+            <Row
+                className={`grey ${
+                    smartWallets.length <= 0 && connected ? '' : 'hide'
+                }`}
+            >
+                <Col s={12}>
                     <h6 className='center-align'>
                         No Smart Wallets detected for selected account. Create a
                         new Smart Wallet by clicking the New Smart Wallet
                         button.
                     </h6>
                 </Col>
-                <Col
-                    s={12}
-                    className={`${connected ? 'hide' : ''}`}
-                >
+                <Col s={12} className={`${connected ? 'hide' : ''}`}>
                     <h6 className='center-align'>
                         Wallet not connected, please connect.
                     </h6>
                 </Col>
             </Row>
             {smartWallets.map((smartWallet: SmartWalletWithBalance) => (
-                <Row
-                    key={smartWallet.index}
-                    className="space-row"
-                >
-                    <Row className="teal lighten-4">
+                <Row key={smartWallet.index} className='space-row'>
+                    <Row className='teal lighten-4'>
                         <Col s={1}>
                             <Button
                                 waves='light'
@@ -66,9 +70,7 @@ function SmartWallet(props: SmartWalletProps) {
                                     openModal(smartWallet, 'deploy');
                                 }}
                             >
-                                <Icon center >
-                                    file_upload
-                                </Icon>
+                                <Icon center>file_upload</Icon>
                             </Button>
                         </Col>
                         <Col s={3}>
@@ -85,11 +87,8 @@ function SmartWallet(props: SmartWalletProps) {
                                 onClick={() => {
                                     copySmartWalletAddress(smartWallet.address);
                                 }}
-
                             >
-                                <Icon center >
-                                    content_copy
-                                </Icon>
+                                <Icon center>content_copy</Icon>
                             </Button>
                         </Col>
                         <Col s={2}>
@@ -108,11 +107,8 @@ function SmartWallet(props: SmartWalletProps) {
                                 onClick={() => {
                                     openModal(smartWallet, 'transfer');
                                 }}
-
                             >
-                                <Icon center >
-                                    call_made
-                                </Icon>
+                                <Icon center>call_made</Icon>
                             </Button>
                         </Col>
                         <Col s={1}>
@@ -124,11 +120,8 @@ function SmartWallet(props: SmartWalletProps) {
                                 onClick={() => {
                                     openModal(smartWallet, 'receive');
                                 }}
-
                             >
-                                <Icon center >
-                                    arrow_downward
-                                </Icon>
+                                <Icon center>arrow_downward</Icon>
                             </Button>
                         </Col>
                         <Col s={1}>
@@ -141,11 +134,8 @@ function SmartWallet(props: SmartWalletProps) {
                                 onClick={() => {
                                     openModal(smartWallet, 'execute');
                                 }}
-
                             >
-                                <Icon center >
-                                    play_circle_outline
-                                </Icon>
+                                <Icon center>play_circle_outline</Icon>
                             </Button>
                         </Col>
                     </Row>

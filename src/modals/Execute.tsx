@@ -2,15 +2,25 @@ import { Dispatch, SetStateAction, useState } from 'react';
 // @ts-ignore: TODO: Check if there is a ts library
 import abiDecoder from 'abi-decoder';
 import Web3 from 'web3';
-import { RelayingServices, RelayGasEstimationOptions, RelayingTransactionOptions } from 'relaying-services-sdk';
+import {
+    RelayingServices,
+    RelayGasEstimationOptions,
+    RelayingTransactionOptions
+} from 'relaying-services-sdk';
 import IForwarder from 'src/contracts/IForwarder.json';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import 'src/modals/Execute.css';
-import { Modal, Col, Row, TextInput, Button, Icon, Switch } from 'react-materialize';
+import {
+    Modal,
+    Col,
+    Row,
+    TextInput,
+    Button,
+    Icon,
+    Switch
+} from 'react-materialize';
 import Utils from 'src/Utils';
 import { toBN } from 'web3-utils';
-
-
 
 if (window.ethereum) {
     window.web3 = new Web3(window.ethereum);
@@ -42,7 +52,14 @@ type ExecuteInfo = {
 type ExecuteInfoKey = keyof ExecuteInfo;
 
 function Execute(props: ExecuteProps) {
-    const { account, currentSmartWallet, provider, setUpdateInfo, modal, setModal } = props;
+    const {
+        account,
+        currentSmartWallet,
+        provider,
+        setUpdateInfo,
+        modal,
+        setModal
+    } = props;
     const [results, setResults] = useState('');
     const [execute, setExecute] = useState<ExecuteInfo>({
         check: false,
@@ -83,7 +100,7 @@ function Execute(props: ExecuteProps) {
             );
         }
         return funcData;
-    }
+    };
 
     const relayTransactionDirectExecution = async (
         toAddress: string,
@@ -123,10 +140,10 @@ function Execute(props: ExecuteProps) {
                     }
                 }
             );
-    }
+    };
 
     const close = () => {
-        setModal(prev => ({ ...prev, execute: false }));
+        setModal((prev) => ({ ...prev, execute: false }));
         setExecute({
             check: false,
             show: false,
@@ -135,11 +152,11 @@ function Execute(props: ExecuteProps) {
             function: '',
             fees: ''
         });
-    }
+    };
 
     const changeValue = <T,>(value: T, prop: ExecuteInfoKey) => {
-        setExecute(prev => ({ ...prev, [prop]: value }));
-    }
+        setExecute((prev) => ({ ...prev, [prop]: value }));
+    };
 
     const handleExecuteSmartWalletButtonClick = async () => {
         if (currentSmartWallet) {
@@ -163,7 +180,7 @@ function Execute(props: ExecuteProps) {
                         },
                         smartWallet: currentSmartWallet,
                         tokenAmount: Number(fees)
-                    }
+                    };
                     const transaction = await provider.relayTransaction(
                         relayTransactionOpts
                     );
@@ -196,7 +213,7 @@ function Execute(props: ExecuteProps) {
             }
             setExecuteLoading(false);
         }
-    }
+    };
 
     const estimateDirectExecution = async (
         swAddress: string,
@@ -211,7 +228,7 @@ function Execute(props: ExecuteProps) {
             .directExecute(toAddress, weiAmount, abiEncodedTx)
             .estimateGas({ from: account });
         return estimate;
-    }
+    };
 
     const handleEstimateSmartWalletButtonClick = async () => {
         if (currentSmartWallet) {
@@ -256,17 +273,17 @@ function Execute(props: ExecuteProps) {
                             smartWalletAddress: swAddress,
                             tokenFees: '0',
                             abiEncodedTx: funcData
-                        }
+                        };
 
                         const costInWei =
-                            await provider.estimateMaxPossibleRelayGasWithLinearFit(gasEstimationOpts);
+                            await provider.estimateMaxPossibleRelayGasWithLinearFit(
+                                gasEstimationOpts
+                            );
 
                         const costInRBTC = await Utils.fromWei(
                             costInWei.toString()
                         );
-                        const tRifPriceInRBTC = parseFloat(
-                            "5"
-                        ); // 1 tRIF = tRifPriceInRBTC RBTC
+                        const tRifPriceInRBTC = parseFloat('5'); // 1 tRIF = tRifPriceInRBTC RBTC
                         const tRifPriceInWei = toBN(
                             await Utils.toWei(tRifPriceInRBTC.toString())
                         ); // 1 tRIF = tRifPriceInWei wei
@@ -325,7 +342,7 @@ function Execute(props: ExecuteProps) {
             }
             setEstimateLoading(false);
         }
-    }
+    };
 
     const pasteRecipientAddress = async () => {
         setExecuteLoading(true);
@@ -334,22 +351,21 @@ function Execute(props: ExecuteProps) {
             changeValue(address, 'address');
         }
         setExecuteLoading(false);
-    }
+    };
 
-    const returnLoading = (loading: boolean) =>
-    (<img
-        alt='loading'
-        className={`loading ${!loading ? 'hide' : ''}`}
-        src='images/loading.gif'
-    />)
+    const returnLoading = (loading: boolean) => (
+        <img
+            alt='loading'
+            className={`loading ${!loading ? 'hide' : ''}`}
+            src='images/loading.gif'
+        />
+    );
 
-
-    const returnActions = () =>
-    ([
+    const returnActions = () => [
         <Button
             flat
-            node="button"
-            waves="green"
+            node='button'
+            waves='green'
             onClick={handleExecuteSmartWalletButtonClick}
             disabled={executeLoading}
         >
@@ -358,15 +374,18 @@ function Execute(props: ExecuteProps) {
         </Button>,
         <Button
             flat
-            node="button"
-            waves="green"
+            node='button'
+            waves='green'
             onClick={handleEstimateSmartWalletButtonClick}
             disabled={estimateLoading}
-        >Estimate
+        >
+            Estimate
             {returnLoading(estimateLoading)}
         </Button>,
-        <Button flat modal="close" node="button" waves="green">Cancel</Button>
-    ])
+        <Button flat modal='close' node='button' waves='green'>
+            Cancel
+        </Button>
+    ];
 
     return (
         <Modal
@@ -399,9 +418,7 @@ function Execute(props: ExecuteProps) {
                             className='indigo accent-2'
                             tooltip='Paste'
                         >
-                            <Icon center >
-                                content_paste
-                            </Icon>
+                            <Icon center>content_paste</Icon>
                         </Button>
                     </Col>
                     <Col s={8} className='execute-input'>
@@ -439,25 +456,23 @@ function Execute(props: ExecuteProps) {
                             value={execute.value}
                             validate
                             onChange={(event) => {
-                                changeValue(
-                                    event.currentTarget.value,
-                                    'value'
-                                );
+                                changeValue(event.currentTarget.value, 'value');
                             }}
                         />
                     </Col>
                     <Col s={8} className='execute-input'>
                         <TextInput
-                            label={execute.check ? 'Amount to be sent' : 'Fees (tRIF)'}
+                            label={
+                                execute.check
+                                    ? 'Amount to be sent'
+                                    : 'Fees (tRIF)'
+                            }
                             placeholder='0'
                             value={execute.fees}
                             type='text'
                             validate
                             onChange={(event) => {
-                                changeValue(
-                                    event.currentTarget.value,
-                                    'fees'
-                                );
+                                changeValue(event.currentTarget.value, 'fees');
                             }}
                         />
                     </Col>

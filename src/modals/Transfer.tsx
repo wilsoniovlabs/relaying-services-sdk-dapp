@@ -1,11 +1,22 @@
 import { Dispatch, SetStateAction, useState } from 'react';
-import { RelayGasEstimationOptions, RelayingServices, RelayingTransactionOptions } from 'relaying-services-sdk';
+import {
+    RelayGasEstimationOptions,
+    RelayingServices,
+    RelayingTransactionOptions
+} from 'relaying-services-sdk';
 import { toBN } from 'web3-utils';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import Utils, { TRIF_PRICE } from 'src/Utils';
 import 'src/modals/Transfer.css';
-import { Modal, Col, Row, TextInput, Button, Icon, Switch } from 'react-materialize';
-
+import {
+    Modal,
+    Col,
+    Row,
+    TextInput,
+    Button,
+    Icon,
+    Switch
+} from 'react-materialize';
 
 type TransferProps = {
     currentSmartWallet: SmartWalletWithBalance;
@@ -26,7 +37,14 @@ type TransferInfo = {
 type TransferInfoKey = keyof TransferInfo;
 
 function Transfer(props: TransferProps) {
-    const { currentSmartWallet, provider, setUpdateInfo, account, modal, setModal } = props;
+    const {
+        currentSmartWallet,
+        provider,
+        setUpdateInfo,
+        account,
+        modal,
+        setModal
+    } = props;
 
     const [transferLoading, setTransferLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
@@ -39,7 +57,7 @@ function Transfer(props: TransferProps) {
     });
 
     const close = () => {
-        setModal(prev => ({ ...prev, transfer: false }));
+        setModal((prev) => ({ ...prev, transfer: false }));
         setTransfer({
             check: false,
             fees: '',
@@ -48,14 +66,14 @@ function Transfer(props: TransferProps) {
         });
         setEstimateLoading(false);
         setTransferLoading(false);
-    }
+    };
 
     const changeValue = <T,>(value: T, prop: TransferInfoKey) => {
         if ((prop === 'fees' || prop === 'amount') && Number(value) < 0) {
             return;
         }
-        setTransfer(prev => ({ ...prev, [prop]: value }));
-    }
+        setTransfer((prev) => ({ ...prev, [prop]: value }));
+    };
 
     const sendRBTC = async () => {
         if (account) {
@@ -79,7 +97,7 @@ function Transfer(props: TransferProps) {
             }
             setTransferLoading(false);
         }
-    }
+    };
 
     const pasteRecipientAddress = async () => {
         setTransferLoading(true);
@@ -88,7 +106,7 @@ function Transfer(props: TransferProps) {
             changeValue(address, 'address');
         }
         setTransferLoading(false);
-    }
+    };
 
     const transferSmartWalletButtonClick = async () => {
         setTransferLoading(true);
@@ -113,9 +131,9 @@ function Transfer(props: TransferProps) {
                 transactionDetails: {
                     retries: 7
                 }
-            }
+            };
 
-            const txDetails = await provider.relayTransaction(relayTrxOpts)
+            const txDetails = await provider.relayTransaction(relayTrxOpts);
             console.log(txDetails);
             setUpdateInfo(true);
             close();
@@ -127,7 +145,7 @@ function Transfer(props: TransferProps) {
             console.error(error);
         }
         setTransferLoading(false);
-    }
+    };
 
     const handleEstimateTransferButtonClick = async () => {
         if (account) {
@@ -146,13 +164,13 @@ function Transfer(props: TransferProps) {
                     abiEncodedTx: encodedTransferFunction,
                     smartWalletAddress: currentSmartWallet.address,
                     tokenFees: '1',
-                    destinationContract: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
+                    destinationContract:
+                        process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
                     relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!
-                }
+                };
 
-                const maxPossibleGasValue = await provider.estimateMaxPossibleRelayGas(
-                    opts
-                );
+                const maxPossibleGasValue =
+                    await provider.estimateMaxPossibleRelayGas(opts);
                 const gasPrice = toBN(
                     // @ts-ignore TODO: we shouldn't access to the relayProvider
                     // eslint-disable-next-line no-underscore-dangle
@@ -191,7 +209,7 @@ function Transfer(props: TransferProps) {
             }
             setEstimateLoading(false);
         }
-    }
+    };
 
     const handleTransferSmartWalletButtonClick = async () => {
         if (transfer.check) {
@@ -199,22 +217,21 @@ function Transfer(props: TransferProps) {
         } else {
             await transferSmartWalletButtonClick();
         }
-    }
+    };
 
-    const returnLoading = (loading: boolean) =>
-    (<img
-        alt='loading'
-        className={`loading ${!loading ? 'hide' : ''}`}
-        src='images/loading.gif'
-    />)
+    const returnLoading = (loading: boolean) => (
+        <img
+            alt='loading'
+            className={`loading ${!loading ? 'hide' : ''}`}
+            src='images/loading.gif'
+        />
+    );
 
-
-    const returnActions = () =>
-    ([
+    const returnActions = () => [
         <Button
             flat
-            node="button"
-            waves="green"
+            node='button'
+            waves='green'
             onClick={handleTransferSmartWalletButtonClick}
             disabled={transferLoading}
         >
@@ -223,15 +240,18 @@ function Transfer(props: TransferProps) {
         </Button>,
         <Button
             flat
-            node="button"
-            waves="green"
+            node='button'
+            waves='green'
             onClick={handleEstimateTransferButtonClick}
             disabled={estimateLoading}
-        >Estimate
+        >
+            Estimate
             {returnLoading(estimateLoading)}
         </Button>,
-        <Button flat modal="close" node="button" waves="green">Cancel</Button>
-    ])
+        <Button flat modal='close' node='button' waves='green'>
+            Cancel
+        </Button>
+    ];
 
     return (
         <Modal
@@ -264,9 +284,7 @@ function Transfer(props: TransferProps) {
                             className='indigo accent-2'
                             tooltip='Paste'
                         >
-                            <Icon center >
-                                content_paste
-                            </Icon>
+                            <Icon center>content_paste</Icon>
                         </Button>
                     </Col>
                     <Col s={8} className='transfer-input'>
@@ -305,10 +323,7 @@ function Transfer(props: TransferProps) {
                             type='number'
                             validate
                             onChange={(event) => {
-                                changeValue(
-                                    event.currentTarget.value,
-                                    'fees'
-                                );
+                                changeValue(event.currentTarget.value, 'fees');
                             }}
                         />
                     </Col>
