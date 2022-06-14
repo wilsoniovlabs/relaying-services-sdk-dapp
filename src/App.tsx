@@ -19,6 +19,15 @@ import Execute from 'src/modals/Execute';
 import Utils from 'src/Utils';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import rLogin from 'src/rLogin';
+import Web3 from 'web3';
+
+if (window.ethereum) {
+    window.web3 = new Web3(window.ethereum);
+} else if (window.web3) {
+    window.web3 = new Web3(window.web3.currentProvider);
+} else {
+    throw new Error('Error: MetaMask or web3 not detected');
+}
 
 function getEnvParamAsInt(value: string | undefined): number | undefined {
     return value ? parseInt(value, 10) : undefined;
@@ -132,7 +141,7 @@ function App() {
     const connectToRLogin = async () => {
         let isConnected = false;
         try {
-            const chain: number = await window.web3.eth.getChainId();
+            const chain: number = await web3.eth.getChainId();
             if (chain.toString() === process.env.REACT_APP_RIF_RELAY_CHAIN_ID) {
                 const connect = await rLogin.connect();
                 const login = connect.provider;
