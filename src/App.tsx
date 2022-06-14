@@ -19,18 +19,17 @@ import Loading from 'src/modals/Loading';
 import Execute from 'src/modals/Execute';
 import Utils from 'src/Utils';
 import { Modals, SmartWalletWithBalance } from 'src/types';
-import  rLogin from 'src/rLogin';
+import rLogin from 'src/rLogin';
 
 function getEnvParamAsInt(value: string | undefined): number | undefined {
     return value ? parseInt(value, 10) : undefined;
 }
 
-
 if (window.ethereum) {
     window.web3 = new Web3(window.ethereum);
 } else if (window.web3) {
     window.web3 = new Web3(window.web3.currentProvider);
-} else if(window.rLogin){
+} else if (window.rLogin) {
     window.web3 = new Web3(window.rLogin);
 } else {
     throw new Error('No web3 detected');
@@ -89,8 +88,8 @@ function App() {
                 preferredRelays: process.env
                     .REACT_APP_RIF_RELAY_PREFERRED_RELAYS
                     ? process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS.split(
-                        ','
-                    )
+                          ','
+                      )
                     : undefined,
                 relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
                 relayVerifierAddress:
@@ -128,14 +127,14 @@ function App() {
         } catch (error) {
             console.error(error);
         }
-    }
+    };
 
     const refreshAccount = async () => {
         setSmartWallets([]);
         const accounts = await Utils.getAccounts();
         const currentAccount = accounts[0];
         setAccount(currentAccount);
-    }
+    };
 
     const connectToRLogin = async () => {
         let isConnected = false;
@@ -163,9 +162,9 @@ function App() {
         }
         setConnect(isConnected);
         return isConnected;
-    }
+    };
 
-   /*  const connectToMetamask = async () => {
+    /*  const connectToMetamask = async () => {
         let isConnected = false;
         try {
             const chain: number = await web3.eth.getChainId();
@@ -194,7 +193,6 @@ function App() {
 
     const connect = async () => {
         try {
-            
             let isConnected = false;
             if (!connected) {
                 isConnected = await connectToRLogin();
@@ -214,7 +212,7 @@ function App() {
             console.warn('User denied account access');
             setShow(false);
         }
-    }
+    };
 
     return (
         <div className='App'>
