@@ -4,10 +4,13 @@ import TestToken from './contracts/TestToken.json';
 
 export const TRIF_PRICE = 0.000005739;
 export const TRIF_TOKEN_DECIMALS = 18;
+
 if (window.ethereum) {
     window.web3 = new Web3(window.ethereum);
 } else if (window.web3) {
     window.web3 = new Web3(window.web3.currentProvider);
+} else if(window.rLogin){
+    window.web3 = new Web3(window.rLogin);
 } else {
     throw new Error('No web3 detected');
 }

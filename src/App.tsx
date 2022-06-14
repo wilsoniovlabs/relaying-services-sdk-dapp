@@ -19,21 +19,23 @@ import Loading from 'src/modals/Loading';
 import Execute from 'src/modals/Execute';
 import Utils from 'src/Utils';
 import { Modals, SmartWalletWithBalance } from 'src/types';
-
-if (window.ethereum) {
-    window.web3 = new Web3(window.ethereum);
-} else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider);
-} else {
-    throw new Error('Error: MetaMask or web3 not detected');
-}
+import  rLogin from 'src/rLogin';
 
 function getEnvParamAsInt(value: string | undefined): number | undefined {
     return value ? parseInt(value, 10) : undefined;
 }
 
+
+if (window.ethereum) {
+    window.web3 = new Web3(window.ethereum);
+} else if (window.web3) {
+    window.web3 = new Web3(window.web3.currentProvider);
+} else if(window.rLogin){
+    window.web3 = new Web3(window.rLogin);
+} else {
+    throw new Error('No web3 detected');
+}
 const { web3 } = window;
-const { ethereum } = window;
 
 function App() {
     const [modal, setModal] = useState<Modals>({
@@ -58,7 +60,21 @@ function App() {
     );
     const [updateInfo, setUpdateInfo] = useState(false);
 
-    async function initProvider() {
+    useEffect(() => {
+        if (!updateInfo) {
+            return;
+        }
+        (async () => {
+            setConnect(false);
+            setSmartWallets([]);
+            setTimeout(() => {
+                setConnect(true);
+                setUpdateInfo(false);
+            }, 100);
+        })();
+    }, [updateInfo]);
+
+    const initProvider = async () => {
         try {
             const config: Partial<EnvelopingConfig> = {
                 chainId: getEnvParamAsInt(
@@ -73,8 +89,8 @@ function App() {
                 preferredRelays: process.env
                     .REACT_APP_RIF_RELAY_PREFERRED_RELAYS
                     ? process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS.split(
-                          ','
-                      )
+                        ','
+                    )
                     : undefined,
                 relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
                 relayVerifierAddress:
@@ -114,41 +130,28 @@ function App() {
         }
     }
 
-    useEffect(() => {
-        if (!updateInfo) {
-            return;
-        }
-        (async () => {
-            setConnect(false);
-            setSmartWallets([]);
-            setTimeout(() => {
-                setConnect(true);
-                setUpdateInfo(false);
-            }, 100);
-        })();
-    }, [updateInfo]);
-
-    async function refreshAccount() {
+    const refreshAccount = async () => {
         setSmartWallets([]);
         const accounts = await Utils.getAccounts();
         const currentAccount = accounts[0];
         setAccount(currentAccount);
     }
 
-    async function connectToMetamask() {
+    const connectToRLogin = async () => {
         let isConnected = false;
         try {
             const chain: number = await web3.eth.getChainId();
-            setChainId(chain);
             if (chain.toString() === process.env.REACT_APP_RIF_RELAY_CHAIN_ID) {
-                await ethereum.request({ method: 'eth_requestAccounts' });
-                ethereum.on('accountsChanged', async (/* accounts */) => {
+                const connect = await rLogin.connect();
+                window.rLogin = connect.provider;
+                window.rLogin.on('accountsChanged', async (/* accounts */) => {
                     await refreshAccount();
                 });
 
-                ethereum.on('networkChanged', async (newChain: number) => {
+                window.rLogin.on('networkChanged', async (newChain: number) => {
                     setChainId(newChain);
                 });
+                setChainId(chain);
                 isConnected = true;
             } else {
                 alert(
@@ -162,23 +165,50 @@ function App() {
         return isConnected;
     }
 
-    async function connect() {
+   /*  const connectToMetamask = async () => {
+        let isConnected = false;
         try {
-            setShow(true);
+            const chain: number = await web3.eth.getChainId();
+            if (chain.toString() === process.env.REACT_APP_RIF_RELAY_CHAIN_ID) {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                window.ethereum.on('accountsChanged', async () => {
+                    await refreshAccount();
+                });
+
+                window.ethereum.on('networkChanged', async (newChain: number) => {
+                    setChainId(newChain);
+                });
+                setChainId(chain);
+                isConnected = true;
+            } else {
+                alert(
+                    `Wrong network ID ${chain}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`
+                );
+            }
+        } catch (error) {
+            console.error(error);
+        }
+        setConnect(isConnected);
+        return isConnected;
+    } */
+
+    const connect = async () => {
+        try {
+            
             let isConnected = false;
             if (!connected) {
-                isConnected = await connectToMetamask();
+                isConnected = await connectToRLogin();
             }
 
             if (isConnected) {
+                setShow(true);
                 await initProvider();
                 await refreshAccount();
+                setShow(false);
             } else {
                 console.warn('Unable to connect to Metamask');
                 setConnect(isConnected);
             }
-
-            setShow(false);
         } catch (error) {
             console.log(error);
             console.warn('User denied account access');
