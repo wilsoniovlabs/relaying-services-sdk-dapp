@@ -28,7 +28,7 @@ type TransferInfoKey = keyof TransferInfo;
 function Transfer(props: TransferProps) {
     const { currentSmartWallet, provider, setUpdateInfo, account, modal, setModal } = props;
 
-    const [loading, setLoading] = useState(false);
+    const [transferLoading, setTransferLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
 
     const [transfer, setTransfer] = useState<TransferInfo>({
@@ -47,7 +47,7 @@ function Transfer(props: TransferProps) {
             address: ''
         });
         setEstimateLoading(false);
-        setLoading(false);
+        setTransferLoading(false);
     }
 
     const changeValue = <T,>(value: T, prop: TransferInfoKey) => {
@@ -59,7 +59,7 @@ function Transfer(props: TransferProps) {
 
     const sendRBTC = async () => {
         if (account) {
-            setLoading(true);
+            setTransferLoading(true);
             try {
                 const amount = await Utils.toWei(transfer.amount.toString());
                 await Utils.sendTransaction({
@@ -77,21 +77,21 @@ function Transfer(props: TransferProps) {
                 }
                 console.error(error);
             }
-            setLoading(false);
+            setTransferLoading(false);
         }
     }
 
     const pasteRecipientAddress = async () => {
-        setLoading(true);
+        setTransferLoading(true);
         const address = await navigator.clipboard.readText();
         if (Utils.checkAddress(address.toLowerCase())) {
             changeValue(address, 'address');
         }
-        setLoading(false);
+        setTransferLoading(false);
     }
 
     const transferSmartWalletButtonClick = async () => {
-        setLoading(true);
+        setTransferLoading(true);
         try {
             const { amount } = transfer;
             const fees = transfer.fees === '' ? '0' : transfer.fees;
@@ -126,7 +126,7 @@ function Transfer(props: TransferProps) {
             }
             console.error(error);
         }
-        setLoading(false);
+        setTransferLoading(false);
     }
 
     const handleEstimateTransferButtonClick = async () => {
@@ -201,37 +201,37 @@ function Transfer(props: TransferProps) {
         }
     }
 
-    const returnLoading = (load: boolean) => 
-            (<img
-                alt='loading'
-                className={`loading ${!load ? 'hide' : ''}`}
-                src='images/loading.gif'
-            />)
-    
+    const returnLoading = (loading: boolean) =>
+    (<img
+        alt='loading'
+        className={`loading ${!loading ? 'hide' : ''}`}
+        src='images/loading.gif'
+    />)
 
-    const returnActions = () => 
-        ([
-            <Button
-                flat
-                node="button"
-                waves="green"
-                onClick={handleTransferSmartWalletButtonClick}
-                disabled={estimateLoading}
-            >
-                Transfer
-                {returnLoading(estimateLoading)}
-            </Button>,
-            <Button
-                flat
-                node="button"
-                waves="green"
-                onClick={handleEstimateTransferButtonClick}
-                disabled={loading}
-            >Estimate
-                {returnLoading(loading)}
-            </Button>,
-            <Button flat modal="close" node="button" waves="green">Cancel</Button>
-        ])
+
+    const returnActions = () =>
+    ([
+        <Button
+            flat
+            node="button"
+            waves="green"
+            onClick={handleTransferSmartWalletButtonClick}
+            disabled={transferLoading}
+        >
+            Transfer
+            {returnLoading(transferLoading)}
+        </Button>,
+        <Button
+            flat
+            node="button"
+            waves="green"
+            onClick={handleEstimateTransferButtonClick}
+            disabled={estimateLoading}
+        >Estimate
+            {returnLoading(estimateLoading)}
+        </Button>,
+        <Button flat modal="close" node="button" waves="green">Cancel</Button>
+    ])
 
     return (
         <Modal
@@ -242,81 +242,77 @@ function Transfer(props: TransferProps) {
             actions={returnActions()}
         >
             <Row>
-                <Col s={12}>
-                    <form>
-                        <Row>
-                            <Col s={8} className='transfer-input'>
-                                <TextInput
-                                    label='Transfer to'
-                                    placeholder='Address'
-                                    value={transfer.address}
-                                    validate
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'address'
-                                        );
-                                    }}
-                                />
-                            </Col>
-                            <Col s={1}>
-                                <Button
-                                    onClick={pasteRecipientAddress}
-                                    waves='light'
-                                    className='indigo accent-2'
-                                    tooltip='Paste'
-                                >
-                                    <Icon center >
-                                        content_paste
-                                    </Icon>
-                                </Button>
-                            </Col>
-                            <Col s={8} className='transfer-input'>
-                                <TextInput
-                                    label='Amount'
-                                    placeholder='0 tRif'
-                                    value={transfer.amount}
-                                    type='number'
-                                    validate
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'amount'
-                                        );
-                                    }}
-                                />
-                            </Col>
-                            <Col s={4}>
-                                <Switch
-                                    offLabel='tRif'
-                                    onLabel='RBTC'
-                                    checked={transfer.check}
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.checked,
-                                            'check'
-                                        );
-                                    }}
-                                />
-                            </Col>
-                            <Col s={10} className='transfer-input'>
-                                <TextInput
-                                    label='Fees'
-                                    placeholder='0 tRif'
-                                    value={transfer.fees}
-                                    type='number'
-                                    validate
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'fees'
-                                        );
-                                    }}
-                                />
-                            </Col>
-                        </Row>
-                    </form>
-                </Col>
+                <form>
+                    <Col s={8} className='transfer-input'>
+                        <TextInput
+                            label='Transfer to'
+                            placeholder='Address'
+                            value={transfer.address}
+                            validate
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.value,
+                                    'address'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={1}>
+                        <Button
+                            onClick={pasteRecipientAddress}
+                            waves='light'
+                            className='indigo accent-2'
+                            tooltip='Paste'
+                        >
+                            <Icon center >
+                                content_paste
+                            </Icon>
+                        </Button>
+                    </Col>
+                    <Col s={8} className='transfer-input'>
+                        <TextInput
+                            label='Amount'
+                            placeholder='0 tRif'
+                            value={transfer.amount}
+                            type='number'
+                            validate
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.value,
+                                    'amount'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={4}>
+                        <Switch
+                            offLabel='tRif'
+                            onLabel='RBTC'
+                            checked={transfer.check}
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.checked,
+                                    'check'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={10} className='transfer-input'>
+                        <TextInput
+                            label='Fees'
+                            placeholder='0 tRif'
+                            value={transfer.fees}
+                            type='number'
+                            validate
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.value,
+                                    'fees'
+                                );
+                            }}
+                        />
+                    </Col>
+                </form>
             </Row>
         </Modal>
     );

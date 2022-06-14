@@ -29,6 +29,8 @@ function Receive(props: ReceiveProps) {
                                 ?
                                 <span>
                                     <QRCodeSVG value={currentSmartWallet.address} size={256} />
+                                    <br/>
+                                    <br/>
                                     {currentSmartWallet.address}
                                 </span>
                                 : ''

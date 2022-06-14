@@ -1,14 +1,14 @@
 import {
     Dispatch,
     SetStateAction,
-    useCallback,
     useEffect,
     useState
 } from 'react';
 import { RelayingServices, SmartWallet } from 'relaying-services-sdk';
-import { SmartWalletWithBalance } from '../types';
-import Utils, { TRIF_PRICE } from '../Utils';
-import './Footer.css';
+import { SmartWalletWithBalance } from 'src/types';
+import Utils, { TRIF_PRICE } from 'src/Utils';
+import 'src/components/Footer.css';
+import { Col, Row, Button, Icon } from 'react-materialize';
 
 type FooterProps = {
     smartWallets: SmartWalletWithBalance[];
@@ -31,52 +31,47 @@ function Footer(props: FooterProps) {
 
     const [workerBalance, setWorkerBalance] = useState('0');
 
-    const setBalance = useCallback(
-        async (smartWallet: SmartWallet): Promise<SmartWalletWithBalance> => {
-            const balance = await Utils.tokenBalance(smartWallet.address);
-            const rbtcBalance = await Utils.getBalance(smartWallet.address);
-            const swWithBalance = {
-                ...smartWallet,
-                balance: `${Utils.fromWei(balance)} tRIF`,
-                rbtcBalance: `${Utils.fromWei(rbtcBalance)} RBTC`,  
-            };
-            return swWithBalance;
-        },
-        [provider]
-    );
+    const setBalance = async (smartWallet: SmartWallet, deployed: boolean): Promise<SmartWalletWithBalance> => {
+        const balance = await Utils.tokenBalance(smartWallet.address);
+        const rbtcBalance = await Utils.getBalance(smartWallet.address);
+        const swWithBalance = {
+            ...smartWallet,
+            balance: `${Utils.fromWei(balance)} tRIF`,
+            rbtcBalance: `${Utils.fromWei(rbtcBalance)} RBTC`,
+            deployed
+        };
+        return swWithBalance;
+    }
 
     useEffect(() => {
         if (!account || !provider) {
             return;
         }
         (async () => {
-            let smartWalletIndex = 0;
-            let found = true;
-            setShow(true);
-            while (found === true) {
+            let index: number = 0;
+            let found: boolean = true;
+            while (found) {
                 // eslint-disable-next-line no-await-in-loop
-                const smartWalletAddress = await provider.generateSmartWallet(
-                    smartWalletIndex + 1
-                );
+                const smartWalletAddress = await provider.generateSmartWallet(index + 1);
                 // eslint-disable-next-line no-await-in-loop
-                const balance = await Utils.tokenBalance(smartWalletAddress.address);
-                if (balance > '0') {
+                const deployed = await provider.isSmartWalletDeployed(smartWalletAddress.address);
+                if (deployed) {
                     // eslint-disable-next-line no-await-in-loop
                     const smartWalletWithBalance = await setBalance(
-                        smartWalletAddress
+                        smartWalletAddress,
+                        deployed
                     );
                     setSmartWallets((currentSmartWallet) => [
                         ...currentSmartWallet,
                         smartWalletWithBalance
                     ]);
-                    smartWalletIndex += 1;
-                } else {
+                    index += 1;
+                }else{
                     found = false;
                 }
             }
-            setShow(false);
         })();
-    }, [account, provider, setSmartWallets, setBalance, setShow]);
+    }, [account]);
 
     useEffect(() => {
         (async () => {
@@ -88,50 +83,56 @@ function Footer(props: FooterProps) {
         })();
     }, [setWorkerBalance]);
 
-    async function create() {
+    const create = async () => {
         if (provider) {
             setShow(true);
-            const smartWallet = await provider?.generateSmartWallet(
-                smartWallets.length + 1
-            );
-            const smartWalletWithBalance = await setBalance(smartWallet);
+            const smartWallet = await provider?.generateSmartWallet(smartWallets.length + 1);
+            const smartWalletWithBalance = await setBalance(smartWallet, false);
             setSmartWallets([...smartWallets, smartWalletWithBalance]);
             setShow(false);
         }
     }
 
     return (
-        <div className='row footer-controls'>
-            <div className='col s12'>
-                <div className='row'>
-                    <div className='col s6'>
-                        <a
-                            href='#!'
-                            className={`waves-effect waves-light btn indigo accent-2 ${
-                                !connected ? 'disabled' : ''
-                            } create`}
-                            onClick={create}
-                        >
-                            <i className='material-icons right'>
-                                add_circle_outline
-                            </i>
-                            New Smart Wallet
-                        </a>
-                    </div>
-                    <div className='col s6'>
-                        <h6 className='right-align'>
+        <Row className='space-row'>
+            <Col s={6}>
+                <Button
+                    waves='light'
+                    className='indigo accent-2'
+                    onClick={create}
+                    disabled={!connected}
+                >
+                    New Smart Wallet
+                    <Icon right>
+                        add_circle_outline
+                    </Icon>
+                </Button>
+            </Col>
+            <Col s={6}>
+                <Row>
+                    <Col s={6}>
+                        <h6>
                             tRIF price:
+                            {' '}
                             <span id='trif-price'>{TRIF_PRICE}</span>
-                            RBTC - Worker balance:
+                            {' '}
+                            RBTC
+                        </h6>
+                    </Col>
+                    <Col s={6}>
+                        <h6>
+                            Worker balance:
+                            {' '}
                             <span id='worker-balance'>
                                 {workerBalance}
-                            </span>{' '}
+                            </span>
+                            {' '}
                             tRIF
                         </h6>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </Col>
+                </Row>
+            </Col>
+        </Row>
     );
 }
 

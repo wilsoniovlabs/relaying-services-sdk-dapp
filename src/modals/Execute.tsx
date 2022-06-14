@@ -6,7 +6,7 @@ import { RelayingServices, RelayGasEstimationOptions, RelayingTransactionOptions
 import IForwarder from 'src/contracts/IForwarder.json';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import 'src/modals/Execute.css';
-import { Modal, /* Col, Row, TextInput, Button, Icon, Switch */ } from 'react-materialize';
+import { Modal, Col, Row, TextInput, Button, Icon, Switch } from 'react-materialize';
 import Utils from 'src/Utils';
 import { toBN } from 'web3-utils';
 
@@ -55,7 +55,7 @@ function Execute(props: ExecuteProps) {
     const [executeLoading, setExecuteLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
 
-    function calculateAbiEncodedFunction() {
+    const calculateAbiEncodedFunction = () => {
         const contractFunction = execute.function.trim();
         const functionSig =
             web3.eth.abi.encodeFunctionSignature(contractFunction);
@@ -85,11 +85,11 @@ function Execute(props: ExecuteProps) {
         return funcData;
     }
 
-    async function relayTransactionDirectExecution(
+    const relayTransactionDirectExecution = async (
         toAddress: string,
         swAddress: string,
         abiEncodedTx: string
-    ) {
+    ) => {
         const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
         swContract.setProvider(web3.currentProvider);
         const fees = execute.fees === '' ? '0' : execute.fees;
@@ -125,7 +125,7 @@ function Execute(props: ExecuteProps) {
             );
     }
 
-    function close() {
+    const close = () => {
         setModal(prev => ({ ...prev, execute: false }));
         setExecute({
             check: false,
@@ -137,11 +137,11 @@ function Execute(props: ExecuteProps) {
         });
     }
 
-    function changeValue<T>(value: T, prop: ExecuteInfoKey) {
+    const changeValue = <T,>(value: T, prop: ExecuteInfoKey) => {
         setExecute(prev => ({ ...prev, [prop]: value }));
     }
 
-    async function handleExecuteSmartWalletButtonClick() {
+    const handleExecuteSmartWalletButtonClick = async () => {
         if (currentSmartWallet) {
             setExecuteLoading(true);
             try {
@@ -198,11 +198,11 @@ function Execute(props: ExecuteProps) {
         }
     }
 
-    async function estimateDirectExecution(
+    const estimateDirectExecution = async (
         swAddress: string,
         toAddress: string,
         abiEncodedTx: string
-    ) {
+    ) => {
         const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
         swContract.setProvider(web3.currentProvider);
         const fees = execute.fees === '' ? '0' : execute.fees;
@@ -213,7 +213,7 @@ function Execute(props: ExecuteProps) {
         return estimate;
     }
 
-    async function handleEstimateSmartWalletButtonClick() {
+    const handleEstimateSmartWalletButtonClick = async () => {
         if (currentSmartWallet) {
             setEstimateLoading(true);
             try {
@@ -327,7 +327,7 @@ function Execute(props: ExecuteProps) {
         }
     }
 
-    async function pasteRecipientAddress() {
+    const pasteRecipientAddress = async () => {
         setExecuteLoading(true);
         const address = await navigator.clipboard.readText();
         if (Utils.checkAddress(address.toLowerCase())) {
@@ -336,222 +336,156 @@ function Execute(props: ExecuteProps) {
         setExecuteLoading(false);
     }
 
+    const returnLoading = (loading: boolean) =>
+    (<img
+        alt='loading'
+        className={`loading ${!loading ? 'hide' : ''}`}
+        src='images/loading.gif'
+    />)
+
+
+    const returnActions = () =>
+    ([
+        <Button
+            flat
+            node="button"
+            waves="green"
+            onClick={handleExecuteSmartWalletButtonClick}
+            disabled={executeLoading}
+        >
+            Execute
+            {returnLoading(executeLoading)}
+        </Button>,
+        <Button
+            flat
+            node="button"
+            waves="green"
+            onClick={handleEstimateSmartWalletButtonClick}
+            disabled={estimateLoading}
+        >Estimate
+            {returnLoading(estimateLoading)}
+        </Button>,
+        <Button flat modal="close" node="button" waves="green">Cancel</Button>
+    ])
+
     return (
         <Modal
             open={modal.execute}
+            options={{
+                onCloseEnd: () => close()
+            }}
+            actions={returnActions()}
         >
-            <div className='modal-content' style={{ paddingBottom: '0em' }}>
-                <div className='row'>
-                    <form className='col s12'>
-                        <div className='row mb-0'>
-                            <div className='input-field col s10'>
-                                <input
-                                    placeholder='Contract address'
-                                    id='execute-contract-address'
-                                    type='text'
-                                    className='validate'
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'address'
-                                        );
-                                    }}
-                                    value={execute.address}
-                                />
-                                <label htmlFor='execute-contract-address'>
-                                    Contract
-                                </label>
-                            </div>
-                            <div
-                                className='input-field col s1'
-                                style={{ paddingTop: '0.5em' }}
-                            >
-                                <a
-                                    href='#!'
-                                    id='paste-contract-address-button'
-                                    className='btn waves-effect waves-light indigo accent-2'
-                                    onClick={pasteRecipientAddress}
-                                >
-                                    <i className='material-icons center'>
-                                        content_paste
-                                    </i>
-                                </a>
-                            </div>
-                        </div>
-                        <div className='row mb-0'>
-                            <div className='input-field col s8'>
-                                <input
-                                    placeholder='e.g.  transfer(address,uint256)'
-                                    id='contract-function'
-                                    type='text'
-                                    className='validate'
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'function'
-                                        );
-                                    }}
-                                    value={execute.function}
-                                />
-                                <label htmlFor='contract-function'>
-                                    Contract Function
-                                </label>
-                            </div>
-                            <div
-                                className='switch col s4'
-                                style={{ paddingTop: '2.0em' }}
-                            >
-                                <label>
-                                    Show return data
-                                    <input
-                                        type='checkbox'
-                                        id='show-return-execute'
-                                        onChange={(event) => {
-                                            changeValue(
-                                                event.currentTarget.checked,
-                                                'show'
-                                            );
-                                        }}
-                                        checked={execute.show ?? undefined}
-                                    />
-                                    <span className='lever' />
-                                </label>
-                            </div>
-                        </div>
-                        <div className='row mb-0'>
-                            <div className='input-field col s8'>
-                                <input
-                                    placeholder='e.g. recipientAddr,amount'
-                                    id='execute-param-values'
-                                    type='text'
-                                    className='validate'
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'value'
-                                        );
-                                    }}
-                                    value={execute.value}
-                                />
-                                <label htmlFor='execute-param-values'>
-                                    Contract Function Values
-                                </label>
-                            </div>
-                        </div>
-                        <div className='row mb-0'>
-                            <div className='input-field col s8'>
-                                <input
-                                    placeholder='0'
-                                    id='execute-fees'
-                                    type='number'
-                                    min='0'
-                                    className='validate tooltipped'
-                                    data-tooltip=''
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'fees'
-                                        );
-                                    }}
-                                    value={execute.fees}
-                                />
-                                <label
-                                    htmlFor='execute-fees'
-                                    id='execute-fees-label'
-                                >
-                                    {execute.check
-                                        ? 'Amount to be sent'
-                                        : 'Fees (tRIF)'}
-                                </label>
-                            </div>
-                            <div
-                                className='switch col s4'
-                                style={{ paddingTop: '2.5em' }}
-                            >
-                                <label>
-                                    tRIF
-                                    <input
-                                        type='checkbox'
-                                        onChange={(event) => {
-                                            changeValue(
-                                                event.currentTarget.checked,
-                                                'check'
-                                            );
-                                        }}
-                                        checked={execute.check ?? undefined}
-                                    />
-                                    <span className='lever' />
-                                    RBTC
-                                </label>
-                            </div>
-                        </div>
-                        <div
-                            className={`row mb-0 ${
-                                execute.show && results ? '' : 'hide'
-                            }`}
-                            id='execute-result-row'
+            <Row>
+                <form>
+                    <Col s={10} className='execute-input'>
+                        <TextInput
+                            label='Contract'
+                            placeholder='Contract address'
+                            value={execute.address}
+                            validate
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.value,
+                                    'address'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={1}>
+                        <Button
+                            onClick={pasteRecipientAddress}
+                            waves='light'
+                            className='indigo accent-2'
+                            tooltip='Paste'
                         >
-                            <div className='input-field col s12'>
-                                <span
-                                    id='execute-result'
-                                    style={{
-                                        wordBreak: 'break-all',
-                                        width: 'inherit'
-                                    }}
-                                >
-                                    {results}
-                                </span>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div className='modal-footer'>
-                <a
-                    href='#!'
-                    id='execute-smart-wallet'
-                    className={`waves-effect waves-green btn-flat  ${
-                        executeLoading ? 'disabled' : ''
-                    }`}
-                    onClick={() => {
-                        handleExecuteSmartWalletButtonClick();
-                    }}
-                >
-                    Execute{' '}
-                    <img
-                        alt='loading'
-                        className={`loading ${!executeLoading ? 'hide' : ''}`}
-                        src='images/loading.gif'
-                    />
-                </a>
-                <a
-                    href='#!'
-                    id='execute-smart-wallet-estimate'
-                    className={`waves-effect waves-green btn-flat  ${
-                        estimateLoading ? 'disabled' : ''
-                    }`}
-                    onClick={() => {
-                        handleEstimateSmartWalletButtonClick();
-                    }}
-                >
-                    Estimate{' '}
-                    <img
-                        alt='loading'
-                        className={`loading ${!estimateLoading ? 'hide' : ''}`}
-                        src='images/loading.gif'
-                    />
-                </a>
-                <a
-                    href='#!'
-                    id='execute-smart-wallet-cancel'
-                    className='waves-effect waves-green btn-flat'
-                    onClick={() => {
-                        close();
-                    }}
-                >
-                    Cancel
-                </a>
-            </div>
+                            <Icon center >
+                                content_paste
+                            </Icon>
+                        </Button>
+                    </Col>
+                    <Col s={8} className='execute-input'>
+                        <TextInput
+                            label='Contract function'
+                            placeholder='e.g.  transfer(address,uint256)'
+                            value={execute.function}
+                            type='text'
+                            validate
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.value,
+                                    'function'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={4}>
+                        <Switch
+                            offLabel='Show return data'
+                            onLabel=''
+                            checked={execute.show}
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.checked,
+                                    'show'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={8} className='execute-input'>
+                        <TextInput
+                            label='Contrac function values'
+                            placeholder='e.g. recipientAddr,amount'
+                            value={execute.value}
+                            validate
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.value,
+                                    'value'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={8} className='execute-input'>
+                        <TextInput
+                            label={execute.check ? 'Amount to be sent' : 'Fees (tRIF)'}
+                            placeholder='0'
+                            value={execute.fees}
+                            type='text'
+                            validate
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.value,
+                                    'fees'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={4}>
+                        <Switch
+                            offLabel='tRif'
+                            onLabel='RBTC'
+                            checked={execute.check}
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.checked,
+                                    'check'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={12}>
+                        <span
+                            style={{
+                                wordBreak: 'break-all',
+                                width: 'inherit'
+                            }}
+                        >
+                            {results}
+                        </span>
+                    </Col>
+                </form>
+            </Row>
         </Modal>
     );
 }

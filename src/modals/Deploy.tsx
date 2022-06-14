@@ -32,10 +32,8 @@ function Deploy(props: DeployProps) {
         relayGas: 0
     });
 
-    const [loading, setLoading] = useState(false);
+    const [deployLoading, setDeployLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
-
-
 
     /*
      * It receives the value and the property to change and
@@ -44,14 +42,13 @@ function Deploy(props: DeployProps) {
      * with the new value
      */
     const changeValue = <T,>(value: T, prop: DeployInfoKey) => {
-        if(prop === 'fees' && Number(value) < 0){
+        if (prop === 'fees' && Number(value) < 0) {
             return;
         }
-        setDeploy(prev => ({ ...prev, [prop]: value}));
+        setDeploy(prev => ({ ...prev, [prop]: value }));
     }
 
     const handleEstimateDeploySmartWalletButtonClick = async () => {
-        console.log('entro aca')
         setEstimateLoading(true);
         try {
 
@@ -64,7 +61,7 @@ function Deploy(props: DeployProps) {
             };
 
             console.log(opts);
-            
+
             const estimate = await provider?.estimateMaxPossibleRelayGas(
                 opts
             );
@@ -116,7 +113,7 @@ function Deploy(props: DeployProps) {
         return receipt;
     }
 
-    async function checkSmartWalletDeployment(txHash: string) {
+    const checkSmartWalletDeployment = async (txHash: string) => {
         const receipt = await getReceipt(txHash);
 
         if (receipt === null) {
@@ -128,7 +125,7 @@ function Deploy(props: DeployProps) {
         return receipt.status;
     }
 
-    async function relaySmartWalletDeployment(tokenAmount: string | number) {
+    const relaySmartWalletDeployment = async (tokenAmount: string | number) => {
         try {
             if (provider) {
                 const isTokenAllowed = await provider.isAllowedToken(
@@ -166,7 +163,7 @@ function Deploy(props: DeployProps) {
         return undefined;
     }
 
-    function close() {
+    const close = () => {
         setModal(prev => ({ ...prev, deploy: false }));
         setDeploy({
             fees: '0',
@@ -180,23 +177,23 @@ function Deploy(props: DeployProps) {
         deploy.fees = deploy.fees === '' ? '0' : deploy.fees;
         deploy.tokenGas = deploy.tokenGas === '' ? '0' : deploy.tokenGas;
 
-        setLoading(true);
+        setDeployLoading(true);
         const smartWallet = await relaySmartWalletDeployment(deploy.fees);
         if (smartWallet?.deployment!.deployTransaction) {
             setUpdateInfo(true);
             close();
         }
 
-        setLoading(false);
+        setDeployLoading(false);
     }
 
-    function returnLoading(load: boolean) {
-        return (<img
-            alt='loading'
-            className={`loading ${!load ? 'hide' : ''}`}
-            src='images/loading.gif'
-        />)
-    }
+    const returnLoading = (loading: boolean) =>
+    (<img
+        alt='loading'
+        className={`loading ${!loading ? 'hide' : ''}`}
+        src='images/loading.gif'
+    />)
+
 
     function returnActions() {
         return [
@@ -205,9 +202,9 @@ function Deploy(props: DeployProps) {
                 node="button"
                 waves="green"
                 onClick={handleDeploySmartWalletButtonClick}
-                disabled={loading}
+                disabled={deployLoading}
             >Deploy
-                {returnLoading(loading)}
+                {returnLoading(deployLoading)}
             </Button>,
             <Button
                 flat
@@ -232,24 +229,20 @@ function Deploy(props: DeployProps) {
             actions={returnActions()}
         >
             <Row>
-                <Col s={12}>
-                    <form>
-                        <Row>
-                            <Col s={8} className="deploy-input">
-                                <TextInput
-                                    label='Fees (tRIF)'
-                                    placeholder='0'
-                                    value={deploy.fees}
-                                    type='number'
-                                    validate
-                                    onChange={(event) => {
-                                        changeValue(event.target.value, 'fees');
-                                    }}  
-                                />
-                            </Col>
-                        </Row>
-                    </form>
-                </Col>
+                <form>
+                    <Col s={8} className="deploy-input">
+                        <TextInput
+                            label='Fees (tRIF)'
+                            placeholder='0'
+                            value={deploy.fees}
+                            type='number'
+                            validate
+                            onChange={(event) => {
+                                changeValue(event.target.value, 'fees');
+                            }}
+                        />
+                    </Col>
+                </form>
             </Row>
         </Modal>
     );

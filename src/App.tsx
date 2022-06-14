@@ -39,6 +39,7 @@ function App() {
 
     const [modal, setModal] = useState<Modals>({ deploy: false, execute: false, receive: false, transfer: false });
     const [connected, setConnect] = useState(false);
+    const [chainId, setChainId] = useState(0);
     const [account, setAccount] = useState<string | undefined>(undefined);
     const [currentSmartWallet, setCurrentSmartWallet] = useState<SmartWalletWithBalance | undefined>(undefined);
     const [provider, setProvider] = useState<RelayingServices | undefined>(undefined);
@@ -117,18 +118,9 @@ function App() {
         })();
     }, [updateInfo]);
 
-    async function start() {
-        const chainId = await web3.eth.getChainId();
-        if (chainId === Number(process.env.REACT_APP_RIF_RELAY_CHAIN_ID)) {
-            await initProvider();
-        } else {
-            console.error(
-                `Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`
-            );
-        }
-    }
 
     async function refreshAccount() {
+        setSmartWallets([]);
         const accounts = await Utils.getAccounts();
         const currentAccount = accounts[0];
         setAccount(currentAccount);
@@ -137,11 +129,21 @@ function App() {
     async function connectToMetamask() {
         let isConnected = false;
         try {
-            await ethereum.request({ method: 'eth_requestAccounts' });
-            ethereum.on('accountsChanged', async (/* accounts */) => {
-                await refreshAccount();
-            });
-            isConnected = true;
+            const chain: number = await web3.eth.getChainId();
+            setChainId(chain);
+            if (chain.toString() === process.env.REACT_APP_RIF_RELAY_CHAIN_ID) {
+                await ethereum.request({ method: 'eth_requestAccounts' });
+                ethereum.on('accountsChanged', async (/* accounts */) => {
+                    await refreshAccount();
+                });
+
+                ethereum.on('networkChanged', async (newChain: number) => {
+                    setChainId(newChain);
+                })
+                isConnected = true;
+            } else {
+                alert(`Wrong network ID ${chain}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`);
+            }
         } catch (error) {
             console.error(error);
         }
@@ -158,8 +160,8 @@ function App() {
             }
 
             if (isConnected) {
+                await initProvider();
                 await refreshAccount();
-                await start();
             } else {
                 console.warn('Unable to connect to Metamask');
                 setConnect(isConnected);
@@ -181,6 +183,7 @@ function App() {
                 // eslint-disable-next-line react/jsx-no-bind
                 connect={connect}
                 connected={connected}
+                chainId={chainId}
                 setUpdateInfo={setUpdateInfo}
             />
 
