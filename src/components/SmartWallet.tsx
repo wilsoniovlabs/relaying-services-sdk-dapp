@@ -62,7 +62,7 @@ function SmartWallet(props: SmartWalletProps) {
                     <div className='col s1'>
                         <a
                             className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${
-                                smartWallet.deployment ? 'disabled' : ''
+                                smartWallet.deployed ? 'disabled' : ''
                             }`}
                             href='#!'
                             data-position='bottom'
@@ -107,7 +107,7 @@ function SmartWallet(props: SmartWalletProps) {
                             id='transfer-button-0'
                             href='#!'
                             className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${
-                                smartWallet.deployment ? '' : 'disabled'
+                                smartWallet.deployed ? '' : 'disabled'
                             }`}
                             data-position='bottom'
                             data-tooltip='Transfer'
@@ -135,7 +135,7 @@ function SmartWallet(props: SmartWalletProps) {
                     <div className='col s1 left-align'>
                         <a
                             className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${
-                                smartWallet.deployment ? '' : 'disabled'
+                                smartWallet.deployed ? '' : 'disabled'
                             }`}
                             href='#!'
                             data-position='bottom'

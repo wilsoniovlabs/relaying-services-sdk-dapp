@@ -39,6 +39,10 @@ function Footer(props: FooterProps) {
                 ...smartWallet,
                 balance: `${Utils.fromWei(balance)} tRIF`,
                 rbtcBalance: `${Utils.fromWei(rbtcBalance)} RBTC`,  
+                deployed:
+                    (await provider?.isSmartWalletDeployed(
+                        smartWallet.address
+                    )) || false
             };
             return swWithBalance;
         },
@@ -55,15 +59,15 @@ function Footer(props: FooterProps) {
             setShow(true);
             while (found === true) {
                 // eslint-disable-next-line no-await-in-loop
-                const smartWalletAddress = await provider.generateSmartWallet(
+                const smartWallet = await provider.generateSmartWallet(
                     smartWalletIndex + 1
                 );
                 // eslint-disable-next-line no-await-in-loop
-                const balance = await Utils.tokenBalance(smartWalletAddress.address);
-                if (balance > '0') {
+                const balance = await Utils.tokenBalance(smartWallet.address);
+                if (balance > '0' || smartWallet.deployed) {
                     // eslint-disable-next-line no-await-in-loop
                     const smartWalletWithBalance = await setBalance(
-                        smartWalletAddress
+                        smartWallet
                     );
                     setSmartWallets((currentSmartWallet) => [
                         ...currentSmartWallet,
