@@ -182,7 +182,7 @@ function Deploy(props: DeployProps) {
 
         setDeployLoading(true);
         const smartWallet = await relaySmartWalletDeployment(deploy.fees);
-        if (smartWallet?.deployment!.deployTransaction) {
+        if (smartWallet?.deployment) {
             setUpdateInfo(true);
             close();
         }

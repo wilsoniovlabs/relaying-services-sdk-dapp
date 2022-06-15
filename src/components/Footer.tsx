@@ -27,16 +27,14 @@ function Footer(props: FooterProps) {
     const [workerBalance, setWorkerBalance] = useState('0');
 
     const setBalance = async (
-        smartWallet: SmartWallet,
-        deployed: boolean
+        smartWallet: SmartWallet
     ): Promise<SmartWalletWithBalance> => {
         const balance = await Utils.tokenBalance(smartWallet.address);
         const rbtcBalance = await Utils.getBalance(smartWallet.address);
         const swWithBalance = {
             ...smartWallet,
             balance: `${Utils.fromWei(balance)} tRIF`,
-            rbtcBalance: `${Utils.fromWei(rbtcBalance)} RBTC`,
-            deployed
+            rbtcBalance: `${Utils.fromWei(rbtcBalance)} RBTC`
         };
         return swWithBalance;
     };
@@ -60,8 +58,7 @@ function Footer(props: FooterProps) {
                 if (deployed) {
                     // eslint-disable-next-line no-await-in-loop
                     const smartWalletWithBalance = await setBalance(
-                        smartWalletAddress,
-                        deployed
+                        smartWalletAddress
                     );
                     setSmartWallets((currentSmartWallet) => [
                         ...currentSmartWallet,
@@ -91,7 +88,8 @@ function Footer(props: FooterProps) {
             const smartWallet = await provider?.generateSmartWallet(
                 smartWallets.length + 1
             );
-            const smartWalletWithBalance = await setBalance(smartWallet, false);
+
+            const smartWalletWithBalance = await setBalance(smartWallet);
             setSmartWallets([...smartWallets, smartWalletWithBalance]);
             setShow(false);
         }
