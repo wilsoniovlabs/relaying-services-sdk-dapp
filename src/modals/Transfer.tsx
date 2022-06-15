@@ -102,7 +102,9 @@ function Transfer(props: TransferProps) {
     const pasteRecipientAddress = async () => {
         setTransferLoading(true);
         const address = await navigator.clipboard.readText();
+        console.log(address);
         if (Utils.checkAddress(address.toLowerCase())) {
+            console.log('entro aca');
             changeValue(address, 'address');
         }
         setTransferLoading(false);
@@ -127,6 +129,7 @@ function Transfer(props: TransferProps) {
                     to: transfer.address,
                     data: encodedAbi
                 },
+                tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
                 tokenAmount: Number(fees),
                 transactionDetails: {
                     retries: 7
@@ -163,6 +166,7 @@ function Transfer(props: TransferProps) {
                 const opts: RelayGasEstimationOptions = {
                     abiEncodedTx: encodedTransferFunction,
                     smartWalletAddress: currentSmartWallet.address,
+                    callForwarder: currentSmartWallet.address,
                     tokenFees: '1',
                     destinationContract:
                         process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
@@ -290,7 +294,9 @@ function Transfer(props: TransferProps) {
                     <Col s={8} className='transfer-input'>
                         <TextInput
                             label='Amount'
-                            placeholder='0 tRif'
+                            placeholder={`0  ${
+                                transfer.check ? 'RBTC' : 'tRif'
+                            }`}
                             value={transfer.amount}
                             type='number'
                             validate

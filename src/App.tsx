@@ -119,7 +119,9 @@ function App() {
             // Get an RIF Relay RelayProvider instance and assign it to Web3 to use RIF Relay transparently
             console.log(process.env);
             const relayingServices = new DefaultRelayingServices(web3);
-            await relayingServices.initialize(config, contractAddresses, { loglevel: 1 });
+            await relayingServices.initialize(config, contractAddresses, {
+                loglevel: 1
+            });
             setProvider(relayingServices);
         } catch (error) {
             console.error(error);
@@ -133,9 +135,11 @@ function App() {
     };
 
     const reload = async () => {
+        setShow(true);
         setSmartWallets([]);
         await initProvider();
         await refreshAccount();
+        setShow(false);
     };
 
     const connectToRLogin = async () => {

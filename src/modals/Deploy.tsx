@@ -57,17 +57,16 @@ function Deploy(props: DeployProps) {
         setEstimateLoading(true);
         try {
             const opts: RelayGasEstimationOptions = {
-                abiEncodedTx: '',
-                destinationContract: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
+                abiEncodedTx: '0x',
                 relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!,
                 smartWalletAddress: currentSmartWallet?.address!,
-                tokenFees: '1'
+                tokenFees: '1',
+                isSmartWalletDeploy: true
             };
 
             console.log(opts);
 
             const estimate = await provider?.estimateMaxPossibleRelayGas(opts);
-
             console.log(estimate);
 
             if (estimate) {

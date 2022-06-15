@@ -136,6 +136,7 @@ function Execute(props: ExecuteProps) {
 
     const close = () => {
         setModal((prev) => ({ ...prev, execute: false }));
+        setResults('');
         setExecute({
             check: false,
             show: false,
@@ -171,7 +172,8 @@ function Execute(props: ExecuteProps) {
                             data: funcData
                         },
                         smartWallet: currentSmartWallet,
-                        tokenAmount: Number(fees)
+                        tokenAmount: Number(fees),
+                        tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!
                     };
                     const transaction = await provider.relayTransaction(
                         relayTransactionOpts
