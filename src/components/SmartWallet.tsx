@@ -3,8 +3,6 @@ import { Modals, SmartWalletWithBalance } from 'src/types';
 import 'src/components/SmartWallet.css';
 import { Col, Row, Button, Icon } from 'react-materialize';
 
-// TODO: Replace it with react-materialize
-
 type SmartWalletProps = {
     connected: boolean;
     smartWallets: SmartWalletWithBalance[];

@@ -55,6 +55,7 @@ function App() {
         []
     );
     const [updateInfo, setUpdateInfo] = useState(false);
+    const [token, setToken] = useState('');
 
     useEffect(() => {
         if (!updateInfo) {
@@ -85,8 +86,8 @@ function App() {
                 preferredRelays: process.env
                     .REACT_APP_RIF_RELAY_PREFERRED_RELAYS
                     ? process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS.split(
-                          ','
-                      )
+                        ','
+                    )
                     : undefined,
                 relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
                 relayVerifierAddress:
@@ -106,7 +107,6 @@ function App() {
                     process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER!,
                 smartWalletRelayVerifier:
                     process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER!,
-                testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
                 // TODO: Why aren't these addresses required? we may set them as optional
                 penalizer: '',
                 customSmartWallet: '',
@@ -222,31 +222,38 @@ function App() {
         <div className='App'>
             <Loading show={show} />
             <Header
+                provider={provider!}
                 account={account}
                 // eslint-disable-next-line react/jsx-no-bind
                 connect={connect}
                 connected={connected}
                 chainId={chainId}
                 setUpdateInfo={setUpdateInfo}
+                token={token}
+                setToken={setToken}
             />
 
-            <SmartWallet
-                connected={connected}
-                smartWallets={smartWallets}
-                setCurrentSmartWallet={setCurrentSmartWallet}
-                setShow={setShow}
-                setModal={setModal}
-            />
+            {token && (
 
-            {connected && (
-                <Footer
-                    provider={provider}
-                    smartWallets={smartWallets}
-                    setSmartWallets={setSmartWallets}
-                    connected={connected}
-                    account={account}
-                    setShow={setShow}
-                />
+                <div>
+                    <SmartWallet
+                        connected={connected}
+                        smartWallets={smartWallets}
+                        setCurrentSmartWallet={setCurrentSmartWallet}
+                        setShow={setShow}
+                        setModal={setModal}
+                    />
+
+                    <Footer
+                        provider={provider}
+                        smartWallets={smartWallets}
+                        setSmartWallets={setSmartWallets}
+                        connected={connected}
+                        account={account}
+                        setShow={setShow}
+                        token={token}
+                    />
+                </div>
             )}
 
             <Deploy
@@ -255,6 +262,7 @@ function App() {
                 setUpdateInfo={setUpdateInfo}
                 modal={modal}
                 setModal={setModal}
+                token={token}
             />
             <Receive
                 currentSmartWallet={currentSmartWallet}
@@ -268,6 +276,7 @@ function App() {
                 account={account}
                 modal={modal}
                 setModal={setModal}
+                token={token}
             />
             <Execute
                 provider={provider!}
@@ -276,6 +285,7 @@ function App() {
                 setUpdateInfo={setUpdateInfo}
                 modal={modal}
                 setModal={setModal}
+                token={token}
             />
         </div>
     );

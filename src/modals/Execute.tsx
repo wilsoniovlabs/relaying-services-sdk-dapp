@@ -28,6 +28,7 @@ type ExecuteProps = {
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
+    token: string;
 };
 
 type ExecuteInfo = {
@@ -48,7 +49,8 @@ function Execute(props: ExecuteProps) {
         provider,
         setUpdateInfo,
         modal,
-        setModal
+        setModal,
+        token
     } = props;
     const [results, setResults] = useState('');
     const [execute, setExecute] = useState<ExecuteInfo>({
@@ -173,7 +175,7 @@ function Execute(props: ExecuteProps) {
                         },
                         smartWallet: currentSmartWallet,
                         tokenAmount: Number(fees),
-                        tokenAddress: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!
+                        tokenAddress: token
                     };
                     const transaction = await provider.relayTransaction(
                         relayTransactionOpts
@@ -237,7 +239,7 @@ function Execute(props: ExecuteProps) {
                 const swAddress = currentSmartWallet.address;
 
                 // for estimation we will use an eight of the user's token balance, it's just to estimate the gas cost
-                const tokenBalance = await Utils.tokenBalance(swAddress);
+                const tokenBalance = await Utils.tokenBalance(swAddress, token);
                 const userTokenBalance = toBN(tokenBalance);
 
                 if (userTokenBalance.gt(toBN('0'))) {
@@ -268,7 +270,8 @@ function Execute(props: ExecuteProps) {
                             relayWorker,
                             smartWalletAddress: swAddress,
                             tokenFees: '0',
-                            abiEncodedTx: funcData
+                            abiEncodedTx: funcData,
+                            testToken: token
                         };
 
                         const costInWei =
@@ -297,7 +300,7 @@ function Execute(props: ExecuteProps) {
                             'TRIf price in Wei:',
                             tRifPriceInWei.toString()
                         );
-                        const ritTokenDecimals = await Utils.ritTokenDecimals();
+                        const ritTokenDecimals = await Utils.ritTokenDecimals(token);
                         console.log('TRIF Decimals: ', ritTokenDecimals);
 
                         const costInTrif = Number(costInRBTC) / tRifPriceInRBTC;
@@ -393,7 +396,7 @@ function Execute(props: ExecuteProps) {
         >
             <Row>
                 <form>
-                    <Col s={10} className='execute-input'>
+                    <Col s={10}>
                         <TextInput
                             label='Contract'
                             placeholder='Contract address'
@@ -417,7 +420,7 @@ function Execute(props: ExecuteProps) {
                             <Icon center>content_paste</Icon>
                         </Button>
                     </Col>
-                    <Col s={8} className='execute-input'>
+                    <Col s={8}>
                         <TextInput
                             label='Contract function'
                             placeholder='e.g.  transfer(address,uint256)'
@@ -445,7 +448,7 @@ function Execute(props: ExecuteProps) {
                             }}
                         />
                     </Col>
-                    <Col s={8} className='execute-input'>
+                    <Col s={8}>
                         <TextInput
                             label='Contrac function values'
                             placeholder='e.g. recipientAddr,amount'
@@ -456,7 +459,7 @@ function Execute(props: ExecuteProps) {
                             }}
                         />
                     </Col>
-                    <Col s={8} className='execute-input'>
+                    <Col s={8}>
                         <TextInput
                             label={
                                 execute.check

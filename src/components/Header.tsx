@@ -2,6 +2,8 @@ import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import Utils from 'src/Utils';
 import 'src/components/Header.css';
 import { Row, Col, Button, Icon } from 'react-materialize';
+import { RelayingServices } from 'relaying-services-sdk';
+import AllowedTokens from './AllowedTokens';
 
 type HeaderProps = {
     account?: string;
@@ -9,12 +11,17 @@ type HeaderProps = {
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     connected: boolean;
     chainId: number;
+    provider: RelayingServices;
+    token: string;
+    setToken: Dispatch<SetStateAction<string>>
 };
 
 function Header(props: HeaderProps) {
-    const { account, connect, setUpdateInfo, connected, chainId } = props;
+    const { account, connect, setUpdateInfo, connected, chainId, provider, token, setToken } = props;
 
     const [balance, setBalance] = useState<string>();
+
+    console.log(provider);
 
     useEffect(() => {
         if (!account) {
@@ -28,23 +35,25 @@ function Header(props: HeaderProps) {
         })();
     }, [account]);
 
-    const refresh = async () => {
+
+    const reload = async () => {
         setUpdateInfo(true);
     };
+
     return (
         <header>
             <nav
                 className={
                     chainId.toString() ===
-                    process.env.REACT_APP_RIF_RELAY_CHAIN_ID
+                        process.env.REACT_APP_RIF_RELAY_CHAIN_ID
                         ? 'connected-network'
                         : ''
                 }
             >
                 <Row>
                     <Col s={6}>
-                        <Row className='left'>
-                            <Col>
+                        <Row>
+                            <Col s={4}>
                                 <div className='brand-logo'>
                                     <img
                                         alt='logo'
@@ -55,8 +64,19 @@ function Header(props: HeaderProps) {
                                     </span>
                                 </div>
                             </Col>
+                            <Col s={8}>
+                                {provider &&
+                                    <AllowedTokens
+                                        provider={provider!}
+                                        setUpdateInfo={setUpdateInfo}
+                                        token={token}
+                                        setToken={setToken}
+                                    />
+                                }
+                            </Col>
                         </Row>
                     </Col>
+
                     <Col s={6}>
                         <Row className='right'>
                             <Col>
@@ -84,7 +104,7 @@ function Header(props: HeaderProps) {
                             <Col>
                                 <Button
                                     waves='light'
-                                    onClick={refresh}
+                                    onClick={reload}
                                     floating
                                 >
                                     <Icon className='material-icons'>

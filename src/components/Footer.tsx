@@ -12,6 +12,7 @@ type FooterProps = {
     account?: string;
     provider?: RelayingServices;
     setShow: Dispatch<SetStateAction<boolean>>;
+    token: string;
 };
 
 function Footer(props: FooterProps) {
@@ -21,7 +22,8 @@ function Footer(props: FooterProps) {
         connected,
         account,
         provider,
-        setShow
+        setShow,
+        token
     } = props;
 
     const [workerBalance, setWorkerBalance] = useState('0');
@@ -29,7 +31,7 @@ function Footer(props: FooterProps) {
     const setBalance = async (
         smartWallet: SmartWallet
     ): Promise<SmartWalletWithBalance> => {
-        const balance = await Utils.tokenBalance(smartWallet.address);
+        const balance = await Utils.tokenBalance(smartWallet.address, token);
         const rbtcBalance = await Utils.getBalance(smartWallet.address);
         const swWithBalance = {
             ...smartWallet,
@@ -70,13 +72,13 @@ function Footer(props: FooterProps) {
                 }
             }
         })();
-    }, [account]);
+    }, [account, token]);
 
     useEffect(() => {
         (async () => {
             const workerAddress = process.env.REACT_APP_CONTRACTS_RELAY_WORKER!;
             const currentWorkerBalance = parseFloat(
-                Utils.fromWei(await Utils.tokenBalance(workerAddress))
+                Utils.fromWei(await Utils.tokenBalance(workerAddress, token))
             ).toFixed(4);
             setWorkerBalance(currentWorkerBalance);
         })();

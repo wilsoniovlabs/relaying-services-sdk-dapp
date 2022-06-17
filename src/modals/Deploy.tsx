@@ -15,6 +15,7 @@ type DeployProps = {
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
+    token:string;
 };
 
 type DeployInfo = {
@@ -27,7 +28,7 @@ type DeployInfo = {
 type DeployInfoKey = keyof DeployInfo;
 
 function Deploy(props: DeployProps) {
-    const { currentSmartWallet, provider, setUpdateInfo, modal, setModal } =
+    const { currentSmartWallet, provider, setUpdateInfo, modal, setModal, token } =
         props;
 
     const [deploy, setDeploy] = useState<DeployInfo>({
@@ -61,7 +62,8 @@ function Deploy(props: DeployProps) {
                 relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!,
                 smartWalletAddress: currentSmartWallet?.address!,
                 tokenFees: '1',
-                isSmartWalletDeploy: true
+                isSmartWalletDeploy: true,
+                testToken: token
             };
 
             console.log(opts);
@@ -74,7 +76,7 @@ function Deploy(props: DeployProps) {
                 console.log('Cost in RBTC:', costInRBTC);
 
                 const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
-                const tokenContract = await Utils.getTokenContract();
+                const tokenContract = await Utils.getTokenContract(token);
                 const ritTokenDecimals = await tokenContract.methods
                     .decimals()
                     .call();
@@ -130,15 +132,14 @@ function Deploy(props: DeployProps) {
         try {
             if (provider) {
                 const isTokenAllowed = await provider.isAllowedToken(
-                    process.env.REACT_APP_CONTRACTS_RIF_TOKEN!
+                    token
                 );
                 if (isTokenAllowed) {
                     const fees = await Utils.toWei(`${tokenAmount}`);
                     const smartWallet = await provider.deploySmartWallet(
                         currentSmartWallet!,
                         {
-                            tokenAddress:
-                                process.env.REACT_APP_CONTRACTS_RIF_TOKEN,
+                            tokenAddress: token,
                             tokenAmount: Number(fees)
                         }
                     );
@@ -235,7 +236,7 @@ function Deploy(props: DeployProps) {
         >
             <Row>
                 <form>
-                    <Col s={8} className='deploy-input'>
+                    <Col s={8}>
                         <TextInput
                             label='Fees (tRIF)'
                             placeholder='0'

@@ -6,20 +6,20 @@ export const TRIF_PRICE = 0.000005739;
 export const TRIF_TOKEN_DECIMALS = 18;
 
 class Utils {
-    static async ritTokenDecimals() {
+    static async ritTokenDecimals(token: string) {
         const rifTokenContract = new web3.eth.Contract(
             TestToken.abi as AbiItem[],
-            process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+            token
         );
 
         const balance = await rifTokenContract.methods.decimals().call();
         return balance;
     }
 
-    static async tokenBalance(address: string) {
+    static async tokenBalance(address: string, token: string) {
         const rifTokenContract = new web3.eth.Contract(
             TestToken.abi as AbiItem[],
-            process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+            token
         );
         const balance = await rifTokenContract.methods
             .balanceOf(address)
@@ -27,10 +27,10 @@ class Utils {
         return balance;
     }
 
-    static async getTokenContract() {
+    static async getTokenContract(token: string) {
         const rifTokenContract = new web3.eth.Contract(
             TestToken.abi as AbiItem[],
-            process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+            token
         );
         return rifTokenContract;
     }
