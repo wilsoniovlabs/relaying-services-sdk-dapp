@@ -5,7 +5,7 @@ import {
     SmartWallet
 } from 'relaying-services-sdk';
 import { Modal, Col, Row, TextInput, Button } from 'react-materialize';
-import Utils, { TRIF_PRICE } from 'src/Utils';
+import Utils, { TRIF_PRICE, ZERO_ADDRESS } from 'src/Utils';
 import { Modals } from 'src/types';
 import 'src/modals/Deploy.css';
 
@@ -15,7 +15,7 @@ type DeployProps = {
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
-    token:string;
+    token: string;
 };
 
 type DeployInfo = {
@@ -28,8 +28,14 @@ type DeployInfo = {
 type DeployInfoKey = keyof DeployInfo;
 
 function Deploy(props: DeployProps) {
-    const { currentSmartWallet, provider, setUpdateInfo, modal, setModal, token } =
-        props;
+    const {
+        currentSmartWallet,
+        provider,
+        setUpdateInfo,
+        modal,
+        setModal,
+        token
+    } = props;
 
     const [deploy, setDeploy] = useState<DeployInfo>({
         fees: '0',
@@ -59,14 +65,14 @@ function Deploy(props: DeployProps) {
         try {
             const opts: RelayGasEstimationOptions = {
                 abiEncodedTx: '0x',
+                destinationContract: ZERO_ADDRESS,
                 relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!,
                 smartWalletAddress: currentSmartWallet?.address!,
                 tokenFees: '1',
                 isSmartWalletDeploy: true,
+                index: currentSmartWallet?.index.toString(),
                 testToken: token
             };
-
-            console.log(opts);
 
             const estimate = await provider?.estimateMaxPossibleRelayGas(opts);
             console.log(estimate);
@@ -131,9 +137,7 @@ function Deploy(props: DeployProps) {
     const relaySmartWalletDeployment = async (tokenAmount: string | number) => {
         try {
             if (provider) {
-                const isTokenAllowed = await provider.isAllowedToken(
-                    token
-                );
+                const isTokenAllowed = await provider.isAllowedToken(token);
                 if (isTokenAllowed) {
                     const fees = await Utils.toWei(`${tokenAmount}`);
                     const smartWallet = await provider.deploySmartWallet(

@@ -62,10 +62,7 @@ function App() {
             return;
         }
         (async () => {
-            setConnect(false);
-            setSmartWallets([]);
             setTimeout(() => {
-                setConnect(true);
                 setUpdateInfo(false);
             }, 100);
         })();
@@ -86,8 +83,8 @@ function App() {
                 preferredRelays: process.env
                     .REACT_APP_RIF_RELAY_PREFERRED_RELAYS
                     ? process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS.split(
-                        ','
-                    )
+                          ','
+                      )
                     : undefined,
                 relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
                 relayVerifierAddress:
@@ -136,7 +133,6 @@ function App() {
 
     const reload = async () => {
         setShow(true);
-        setSmartWallets([]);
         await initProvider();
         await refreshAccount();
         setShow(false);
@@ -229,12 +225,10 @@ function App() {
                 connected={connected}
                 chainId={chainId}
                 setUpdateInfo={setUpdateInfo}
-                token={token}
                 setToken={setToken}
             />
 
             {token && (
-
                 <div>
                     <SmartWallet
                         connected={connected}
@@ -252,6 +246,7 @@ function App() {
                         account={account}
                         setShow={setShow}
                         token={token}
+                        updateInfo={updateInfo}
                     />
                 </div>
             )}

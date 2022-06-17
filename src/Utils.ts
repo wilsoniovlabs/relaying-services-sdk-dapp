@@ -4,35 +4,44 @@ import TestToken from './contracts/TestToken.json';
 
 export const TRIF_PRICE = 0.000005739;
 export const TRIF_TOKEN_DECIMALS = 18;
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 class Utils {
-    static async ritTokenDecimals(token: string) {
-        const rifTokenContract = new web3.eth.Contract(
+    static async tokenSymbol(token: string) {
+        const tokenContract = new web3.eth.Contract(
             TestToken.abi as AbiItem[],
             token
         );
 
-        const balance = await rifTokenContract.methods.decimals().call();
+        const symbol = await tokenContract.methods.symbol().call();
+        return symbol;
+    }
+
+    static async tokenDecimals(token: string) {
+        const tokenContract = new web3.eth.Contract(
+            TestToken.abi as AbiItem[],
+            token
+        );
+
+        const balance = await tokenContract.methods.decimals().call();
         return balance;
     }
 
     static async tokenBalance(address: string, token: string) {
-        const rifTokenContract = new web3.eth.Contract(
+        const tokenContract = new web3.eth.Contract(
             TestToken.abi as AbiItem[],
             token
         );
-        const balance = await rifTokenContract.methods
-            .balanceOf(address)
-            .call();
+        const balance = await tokenContract.methods.balanceOf(address).call();
         return balance;
     }
 
     static async getTokenContract(token: string) {
-        const rifTokenContract = new web3.eth.Contract(
+        const tokenContract = new web3.eth.Contract(
             TestToken.abi as AbiItem[],
             token
         );
-        return rifTokenContract;
+        return tokenContract;
     }
 
     static async getBalance(address: string) {

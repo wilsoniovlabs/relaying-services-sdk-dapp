@@ -12,16 +12,21 @@ type HeaderProps = {
     connected: boolean;
     chainId: number;
     provider: RelayingServices;
-    token: string;
-    setToken: Dispatch<SetStateAction<string>>
+    setToken: Dispatch<SetStateAction<string>>;
 };
 
 function Header(props: HeaderProps) {
-    const { account, connect, setUpdateInfo, connected, chainId, provider, token, setToken } = props;
+    const {
+        account,
+        connect,
+        setUpdateInfo,
+        connected,
+        chainId,
+        provider,
+        setToken
+    } = props;
 
     const [balance, setBalance] = useState<string>();
-
-    console.log(provider);
 
     useEffect(() => {
         if (!account) {
@@ -35,7 +40,6 @@ function Header(props: HeaderProps) {
         })();
     }, [account]);
 
-
     const reload = async () => {
         setUpdateInfo(true);
     };
@@ -45,7 +49,7 @@ function Header(props: HeaderProps) {
             <nav
                 className={
                     chainId.toString() ===
-                        process.env.REACT_APP_RIF_RELAY_CHAIN_ID
+                    process.env.REACT_APP_RIF_RELAY_CHAIN_ID
                         ? 'connected-network'
                         : ''
                 }
@@ -65,14 +69,12 @@ function Header(props: HeaderProps) {
                                 </div>
                             </Col>
                             <Col s={8}>
-                                {provider &&
+                                {provider && (
                                     <AllowedTokens
                                         provider={provider!}
-                                        setUpdateInfo={setUpdateInfo}
-                                        token={token}
                                         setToken={setToken}
                                     />
-                                }
+                                )}
                             </Col>
                         </Row>
                     </Col>
@@ -102,11 +104,7 @@ function Header(props: HeaderProps) {
                                 </Button>
                             </Col>
                             <Col>
-                                <Button
-                                    waves='light'
-                                    onClick={reload}
-                                    floating
-                                >
+                                <Button waves='light' onClick={reload} floating>
                                     <Icon className='material-icons'>
                                         update
                                     </Icon>

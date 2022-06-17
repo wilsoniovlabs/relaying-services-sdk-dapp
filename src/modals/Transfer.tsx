@@ -168,7 +168,6 @@ function Transfer(props: TransferProps) {
                 const opts: RelayGasEstimationOptions = {
                     abiEncodedTx: encodedTransferFunction,
                     smartWalletAddress: currentSmartWallet.address,
-                    callForwarder: currentSmartWallet.address,
                     tokenFees: '1',
                     destinationContract: token,
                     relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!,
@@ -296,8 +295,9 @@ function Transfer(props: TransferProps) {
                     <Col s={8}>
                         <TextInput
                             label='Amount'
-                            placeholder={`0  ${transfer.check ? 'RBTC' : 'tRif'
-                                }`}
+                            placeholder={`0  ${
+                                transfer.check ? 'RBTC' : 'tRif'
+                            }`}
                             value={transfer.amount}
                             type='number'
                             validate

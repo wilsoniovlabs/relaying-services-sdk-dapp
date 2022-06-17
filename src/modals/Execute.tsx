@@ -300,8 +300,8 @@ function Execute(props: ExecuteProps) {
                             'TRIf price in Wei:',
                             tRifPriceInWei.toString()
                         );
-                        const ritTokenDecimals = await Utils.ritTokenDecimals(token);
-                        console.log('TRIF Decimals: ', ritTokenDecimals);
+                        const tokenDecimals = await Utils.tokenDecimals(token);
+                        console.log('TRIF Decimals: ', tokenDecimals);
 
                         const costInTrif = Number(costInRBTC) / tRifPriceInRBTC;
                         console.log(
@@ -310,7 +310,7 @@ function Execute(props: ExecuteProps) {
                         );
 
                         const costInTrifFixed =
-                            costInTrif.toFixed(ritTokenDecimals);
+                            costInTrif.toFixed(tokenDecimals);
                         console.log(
                             'Cost in TRIF Fixed (rbtc): ',
                             costInTrifFixed.toString()
@@ -324,7 +324,7 @@ function Execute(props: ExecuteProps) {
                             costInTrifAsWei.toString()
                         );
 
-                        console.log('RIF Token Decimals: ', ritTokenDecimals);
+                        console.log('Token Decimals: ', tokenDecimals);
 
                         changeValue(costInTrifFixed, 'fees');
                         console.log('Cost in TRif: ', costInTrifFixed);

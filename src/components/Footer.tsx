@@ -13,6 +13,7 @@ type FooterProps = {
     provider?: RelayingServices;
     setShow: Dispatch<SetStateAction<boolean>>;
     token: string;
+    updateInfo: boolean;
 };
 
 function Footer(props: FooterProps) {
@@ -23,19 +24,22 @@ function Footer(props: FooterProps) {
         account,
         provider,
         setShow,
-        token
+        token,
+        updateInfo
     } = props;
 
+    const [tokenSymbol, setTokenSymbol] = useState('');
     const [workerBalance, setWorkerBalance] = useState('0');
 
     const setBalance = async (
-        smartWallet: SmartWallet
+        smartWallet: SmartWallet,
+        symbol: string
     ): Promise<SmartWalletWithBalance> => {
         const balance = await Utils.tokenBalance(smartWallet.address, token);
         const rbtcBalance = await Utils.getBalance(smartWallet.address);
         const swWithBalance = {
             ...smartWallet,
-            balance: `${Utils.fromWei(balance)} tRIF`,
+            balance: `${Utils.fromWei(balance)} ${symbol}`,
             rbtcBalance: `${Utils.fromWei(rbtcBalance)} RBTC`
         };
         return swWithBalance;
@@ -48,6 +52,10 @@ function Footer(props: FooterProps) {
         (async () => {
             let index: number = 0;
             let found: boolean = true;
+            const tempSmartWallets: SmartWalletWithBalance[] = [];
+            const symbol = await Utils.tokenSymbol(token);
+            setTokenSymbol(symbol);
+
             while (found) {
                 // eslint-disable-next-line no-await-in-loop
                 const smartWalletAddress = await provider.generateSmartWallet(
@@ -60,19 +68,18 @@ function Footer(props: FooterProps) {
                 if (deployed) {
                     // eslint-disable-next-line no-await-in-loop
                     const smartWalletWithBalance = await setBalance(
-                        smartWalletAddress
+                        smartWalletAddress,
+                        symbol
                     );
-                    setSmartWallets((currentSmartWallet) => [
-                        ...currentSmartWallet,
-                        smartWalletWithBalance
-                    ]);
+                    tempSmartWallets.push(smartWalletWithBalance);
                     index += 1;
                 } else {
+                    setSmartWallets(tempSmartWallets);
                     found = false;
                 }
             }
         })();
-    }, [account, token]);
+    }, [account, token, updateInfo]);
 
     useEffect(() => {
         (async () => {
@@ -91,7 +98,10 @@ function Footer(props: FooterProps) {
                 smartWallets.length + 1
             );
 
-            const smartWalletWithBalance = await setBalance(smartWallet);
+            const smartWalletWithBalance = await setBalance(
+                smartWallet,
+                tokenSymbol
+            );
             setSmartWallets([...smartWallets, smartWalletWithBalance]);
             setShow(false);
         }
@@ -114,15 +124,13 @@ function Footer(props: FooterProps) {
                 <Row>
                     <Col s={6}>
                         <h6>
-                            tRIF price:{' '}
-                            <span id='trif-price'>{TRIF_PRICE}</span> RBTC
+                            {tokenSymbol} price: <span>{TRIF_PRICE}</span> RBTC
                         </h6>
                     </Col>
                     <Col s={6}>
                         <h6>
-                            Worker balance:{' '}
-                            <span id='worker-balance'>{workerBalance}</span>{' '}
-                            tRIF
+                            Worker balance: <span>{workerBalance}</span>{' '}
+                            {tokenSymbol}
                         </h6>
                     </Col>
                 </Row>
