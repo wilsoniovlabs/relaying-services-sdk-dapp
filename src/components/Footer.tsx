@@ -55,7 +55,6 @@ function Footer(props: FooterProps) {
             const tempSmartWallets: SmartWalletWithBalance[] = [];
             const symbol = await Utils.tokenSymbol(token);
             setTokenSymbol(symbol);
-
             while (found) {
                 // eslint-disable-next-line no-await-in-loop
                 const smartWalletAddress = await provider.generateSmartWallet(
@@ -89,7 +88,7 @@ function Footer(props: FooterProps) {
             ).toFixed(4);
             setWorkerBalance(currentWorkerBalance);
         })();
-    }, [setWorkerBalance]);
+    }, [setWorkerBalance, token]);
 
     const create = async () => {
         if (provider) {

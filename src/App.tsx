@@ -62,8 +62,10 @@ function App() {
             return;
         }
         (async () => {
+            setShow(true);
             setTimeout(() => {
                 setUpdateInfo(false);
+                setShow(false);
             }, 100);
         })();
     }, [updateInfo]);
