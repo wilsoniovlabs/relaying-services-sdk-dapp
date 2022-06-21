@@ -346,12 +346,10 @@ function Execute(props: ExecuteProps) {
     };
 
     const pasteRecipientAddress = async () => {
-        setExecuteLoading(true);
         const address = await navigator.clipboard.readText();
         if (Utils.checkAddress(address.toLowerCase())) {
             changeValue(address, 'address');
         }
-        setExecuteLoading(false);
     };
 
     const returnLoading = (loading: boolean) => (
@@ -418,6 +416,7 @@ function Execute(props: ExecuteProps) {
                             waves='light'
                             className='indigo accent-2'
                             tooltip='Paste'
+                            node='div'
                         >
                             <Icon center>content_paste</Icon>
                         </Button>

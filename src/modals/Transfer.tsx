@@ -287,6 +287,7 @@ function Transfer(props: TransferProps) {
                             waves='light'
                             className='indigo accent-2'
                             tooltip='Paste'
+                            node='div'
                         >
                             <Icon center>content_paste</Icon>
                         </Button>
