@@ -154,7 +154,7 @@ function App() {
                 });
 
                 login.on('chainChanged', async (newChain: string) => {
-                    setChainId(parseInt(newChain,16));
+                    setChainId(parseInt(newChain, 16));
                 });
                 setChainId(chain);
                 isConnected = true;
