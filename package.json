@@ -1,10 +1,11 @@
 {
-  "name": "test-relay-sdk",
-  "version": "0.1.0",
+  "name": "@rsksmart/rif-relay-sample-dapp",
+  "version": "0.0.1-alpha.1",
   "private": true,
   "dependencies": {
-    "@rsksmart/rif-relay-client": "https://github.com/infuy/rif-relay-client",
-    "@rsksmart/rif-relay-common": "https://github.com/infuy/rif-relay-common",
+    "@rsksmart/rif-relay-client": "0.0.2-alpha.2",
+    "@rsksmart/rif-relay-common": "0.0.2-alpha.3",
+    "@rsksmart/rif-relay-sdk": "^0.0.1-alpha.2",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
@@ -15,7 +16,6 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
-    "relaying-services-sdk": "github:infuy/relaying-services-sdk",
     "typescript": "^4.5.5",
     "web-vitals": "^1.0.1",
     "web3": "^1.5.2",
@@ -69,7 +69,7 @@
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wilsoniovlabs/relaying-services-sdk-dapp.git"
+    "url": "git+https://github.com/@rsksmart/rif-relay-sample-dapp"
   },
   "keywords": [
     "SDK",
@@ -79,7 +79,7 @@
   "author": "Wilson Hamilton",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/wilsoniovlabs/relaying-services-sdk-dapp/issues"
+    "url": "https://github.com/@rsksmart/rif-relay-sample-dapp/issues"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --cache --fix",
