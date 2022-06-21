@@ -3,7 +3,7 @@ import {
     RelayGasEstimationOptions,
     RelayingServices,
     RelayingTransactionOptions
-} from 'relaying-services-sdk';
+} from '@rsksmart/rif-relay-sdk';
 import { toBN } from 'web3-utils';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import Utils, { TRIF_PRICE } from 'src/Utils';

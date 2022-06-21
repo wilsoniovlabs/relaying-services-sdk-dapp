@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { SmartWallet } from 'relaying-services-sdk';
+import { SmartWallet } from '@rsksmart/rif-relay-sdk';
 import { QRCodeSVG } from 'qrcode.react';
 import { Modal, Col, Row } from 'react-materialize';
 import './Receive.css';

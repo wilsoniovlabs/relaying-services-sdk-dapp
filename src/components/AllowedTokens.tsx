@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { RelayingServices } from 'relaying-services-sdk';
+import { RelayingServices } from '@rsksmart/rif-relay-sdk';
 import { Select } from 'react-materialize';
 
 type AllowedTokensProps = {

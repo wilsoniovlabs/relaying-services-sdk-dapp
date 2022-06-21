@@ -3,7 +3,7 @@ import {
     RelayGasEstimationOptions,
     RelayingServices,
     SmartWallet
-} from 'relaying-services-sdk';
+} from '@rsksmart/rif-relay-sdk';
 import { Modal, Col, Row, TextInput, Button } from 'react-materialize';
 import Utils, { TRIF_PRICE, ZERO_ADDRESS } from 'src/Utils';
 import { Modals } from 'src/types';

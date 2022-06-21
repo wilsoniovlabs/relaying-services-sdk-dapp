@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { RelayingServices, SmartWallet } from 'relaying-services-sdk';
+import { RelayingServices, SmartWallet } from '@rsksmart/rif-relay-sdk';
 import { SmartWalletWithBalance } from 'src/types';
 import Utils, { TRIF_PRICE } from 'src/Utils';
 import 'src/components/ActionBar.css';

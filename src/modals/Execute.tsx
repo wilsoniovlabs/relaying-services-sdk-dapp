@@ -5,7 +5,7 @@ import {
     RelayingServices,
     RelayGasEstimationOptions,
     RelayingTransactionOptions
-} from 'relaying-services-sdk';
+} from '@rsksmart/rif-relay-sdk';
 import IForwarder from 'src/contracts/IForwarder.json';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import 'src/modals/Execute.css';
