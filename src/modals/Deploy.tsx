@@ -3,9 +3,9 @@ import {
     RelayGasEstimationOptions,
     RelayingServices,
     SmartWallet
-} from 'relaying-services-sdk';
+} from '@rsksmart/rif-relay-sdk';
 import { Modal, Col, Row, TextInput, Button } from 'react-materialize';
-import Utils, { TRIF_PRICE } from 'src/Utils';
+import Utils, { TRIF_PRICE, ZERO_ADDRESS } from 'src/Utils';
 import { Modals } from 'src/types';
 import 'src/modals/Deploy.css';
 
@@ -15,6 +15,7 @@ type DeployProps = {
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
+    token: string;
 };
 
 type DeployInfo = {
@@ -27,8 +28,14 @@ type DeployInfo = {
 type DeployInfoKey = keyof DeployInfo;
 
 function Deploy(props: DeployProps) {
-    const { currentSmartWallet, provider, setUpdateInfo, modal, setModal } =
-        props;
+    const {
+        currentSmartWallet,
+        provider,
+        setUpdateInfo,
+        modal,
+        setModal,
+        token
+    } = props;
 
     const [deploy, setDeploy] = useState<DeployInfo>({
         fees: '0',
@@ -57,17 +64,17 @@ function Deploy(props: DeployProps) {
         setEstimateLoading(true);
         try {
             const opts: RelayGasEstimationOptions = {
-                abiEncodedTx: '',
-                destinationContract: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
+                abiEncodedTx: '0x',
+                destinationContract: ZERO_ADDRESS,
                 relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!,
                 smartWalletAddress: currentSmartWallet?.address!,
-                tokenFees: '1'
+                tokenFees: '1',
+                isSmartWalletDeploy: true,
+                index: currentSmartWallet?.index.toString(),
+                tokenAddress: token
             };
 
-            console.log(opts);
-
             const estimate = await provider?.estimateMaxPossibleRelayGas(opts);
-
             console.log(estimate);
 
             if (estimate) {
@@ -75,7 +82,7 @@ function Deploy(props: DeployProps) {
                 console.log('Cost in RBTC:', costInRBTC);
 
                 const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
-                const tokenContract = await Utils.getTokenContract();
+                const tokenContract = await Utils.getTokenContract(token);
                 const ritTokenDecimals = await tokenContract.methods
                     .decimals()
                     .call();
@@ -130,17 +137,14 @@ function Deploy(props: DeployProps) {
     const relaySmartWalletDeployment = async (tokenAmount: string | number) => {
         try {
             if (provider) {
-                const isTokenAllowed = await provider.isAllowedToken(
-                    process.env.REACT_APP_CONTRACTS_RIF_TOKEN!
-                );
+                const isTokenAllowed = await provider.isAllowedToken(token);
                 if (isTokenAllowed) {
                     const fees = await Utils.toWei(`${tokenAmount}`);
                     const smartWallet = await provider.deploySmartWallet(
                         currentSmartWallet!,
                         {
-                            tokenAddress:
-                                process.env.REACT_APP_CONTRACTS_RIF_TOKEN,
-                            tokenAmount: fees
+                            tokenAddress: token,
+                            tokenAmount: Number(fees)
                         }
                     );
                     const smartWalledIsDeployed =
@@ -182,7 +186,7 @@ function Deploy(props: DeployProps) {
 
         setDeployLoading(true);
         const smartWallet = await relaySmartWalletDeployment(deploy.fees);
-        if (smartWallet?.deployment!.deployTransaction) {
+        if (smartWallet?.deployment) {
             setUpdateInfo(true);
             close();
         }
@@ -236,7 +240,7 @@ function Deploy(props: DeployProps) {
         >
             <Row>
                 <form>
-                    <Col s={8} className='deploy-input'>
+                    <Col s={8}>
                         <TextInput
                             label='Fees (tRIF)'
                             placeholder='0'

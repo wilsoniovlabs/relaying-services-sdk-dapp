@@ -1,9 +1,8 @@
-import { SmartWallet } from 'relaying-services-sdk';
+import { SmartWallet } from '@rsksmart/rif-relay-sdk';
 
 export interface SmartWalletWithBalance extends SmartWallet {
     balance: string;
     rbtcBalance: string;
-    deployed: boolean;
 }
 
 export interface Modals {

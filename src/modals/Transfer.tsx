@@ -3,7 +3,7 @@ import {
     RelayGasEstimationOptions,
     RelayingServices,
     RelayingTransactionOptions
-} from 'relaying-services-sdk';
+} from '@rsksmart/rif-relay-sdk';
 import { toBN } from 'web3-utils';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import Utils, { TRIF_PRICE } from 'src/Utils';
@@ -25,6 +25,7 @@ type TransferProps = {
     account?: string;
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
+    token: string;
 };
 
 type TransferInfo = {
@@ -43,7 +44,8 @@ function Transfer(props: TransferProps) {
         setUpdateInfo,
         account,
         modal,
-        setModal
+        setModal,
+        token
     } = props;
 
     const [transferLoading, setTransferLoading] = useState(false);
@@ -102,7 +104,9 @@ function Transfer(props: TransferProps) {
     const pasteRecipientAddress = async () => {
         setTransferLoading(true);
         const address = await navigator.clipboard.readText();
+        console.log(address);
         if (Utils.checkAddress(address.toLowerCase())) {
+            console.log('entro aca');
             changeValue(address, 'address');
         }
         setTransferLoading(false);
@@ -114,7 +118,7 @@ function Transfer(props: TransferProps) {
             const { amount } = transfer;
             const fees = transfer.fees === '' ? '0' : transfer.fees;
 
-            const encodedAbi = (await Utils.getTokenContract()).methods
+            const encodedAbi = (await Utils.getTokenContract(token)).methods
                 .transfer(
                     transfer.address,
                     await Utils.toWei(amount.toString())
@@ -127,6 +131,7 @@ function Transfer(props: TransferProps) {
                     to: transfer.address,
                     data: encodedAbi
                 },
+                tokenAddress: token,
                 tokenAmount: Number(fees),
                 transactionDetails: {
                     retries: 7
@@ -152,7 +157,7 @@ function Transfer(props: TransferProps) {
             setEstimateLoading(true);
             try {
                 const encodedTransferFunction = (
-                    await Utils.getTokenContract()
+                    await Utils.getTokenContract(token)
                 ).methods
                     .transfer(
                         transfer.address,
@@ -164,9 +169,9 @@ function Transfer(props: TransferProps) {
                     abiEncodedTx: encodedTransferFunction,
                     smartWalletAddress: currentSmartWallet.address,
                     tokenFees: '1',
-                    destinationContract:
-                        process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
-                    relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!
+                    destinationContract: token,
+                    relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!,
+                    tokenAddress: token
                 };
 
                 const maxPossibleGasValue =
@@ -188,7 +193,7 @@ function Transfer(props: TransferProps) {
                 console.log('Cost in RBTC:', costInRBTC);
 
                 const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
-                const tokenContract = await Utils.getTokenContract();
+                const tokenContract = await Utils.getTokenContract(token);
                 const ritTokenDecimals = await tokenContract.methods
                     .decimals()
                     .call();
@@ -263,7 +268,7 @@ function Transfer(props: TransferProps) {
         >
             <Row>
                 <form>
-                    <Col s={8} className='transfer-input'>
+                    <Col s={8}>
                         <TextInput
                             label='Transfer to'
                             placeholder='Address'
@@ -287,10 +292,12 @@ function Transfer(props: TransferProps) {
                             <Icon center>content_paste</Icon>
                         </Button>
                     </Col>
-                    <Col s={8} className='transfer-input'>
+                    <Col s={8}>
                         <TextInput
                             label='Amount'
-                            placeholder='0 tRif'
+                            placeholder={`0  ${
+                                transfer.check ? 'RBTC' : 'tRif'
+                            }`}
                             value={transfer.amount}
                             type='number'
                             validate
@@ -315,7 +322,7 @@ function Transfer(props: TransferProps) {
                             }}
                         />
                     </Col>
-                    <Col s={10} className='transfer-input'>
+                    <Col s={10}>
                         <TextInput
                             label='Fees'
                             placeholder='0 tRif'

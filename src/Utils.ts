@@ -1,48 +1,47 @@
-import Web3 from 'web3';
 import { EnvelopingTransactionDetails } from '@rsksmart/rif-relay-common';
+import { AbiItem } from 'web3-utils';
 import TestToken from './contracts/TestToken.json';
 
 export const TRIF_PRICE = 0.000005739;
 export const TRIF_TOKEN_DECIMALS = 18;
-if (window.ethereum) {
-    window.web3 = new Web3(window.ethereum);
-} else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider);
-} else {
-    throw new Error('No web3 detected');
-}
-const { web3 } = window;
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 class Utils {
-    static async ritTokenDecimals() {
-        const rifTokenContract = new web3.eth.Contract(
-            TestToken.abi,
-            process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+    static async tokenSymbol(token: string) {
+        const tokenContract = new web3.eth.Contract(
+            TestToken.abi as AbiItem[],
+            token
         );
-        rifTokenContract.setProvider(web3.currentProvider);
-        const balance = await rifTokenContract.methods.decimals().call();
+
+        const symbol = await tokenContract.methods.symbol().call();
+        return symbol;
+    }
+
+    static async tokenDecimals(token: string) {
+        const tokenContract = new web3.eth.Contract(
+            TestToken.abi as AbiItem[],
+            token
+        );
+
+        const balance = await tokenContract.methods.decimals().call();
         return balance;
     }
 
-    static async tokenBalance(address: string) {
-        const rifTokenContract = new web3.eth.Contract(
-            TestToken.abi,
-            process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+    static async tokenBalance(address: string, token: string) {
+        const tokenContract = new web3.eth.Contract(
+            TestToken.abi as AbiItem[],
+            token
         );
-        rifTokenContract.setProvider(web3.currentProvider);
-        const balance = await rifTokenContract.methods
-            .balanceOf(address)
-            .call();
+        const balance = await tokenContract.methods.balanceOf(address).call();
         return balance;
     }
 
-    static async getTokenContract() {
-        const rifTokenContract = new web3.eth.Contract(
-            TestToken.abi,
-            process.env.REACT_APP_CONTRACTS_RIF_TOKEN
+    static async getTokenContract(token: string) {
+        const tokenContract = new web3.eth.Contract(
+            TestToken.abi as AbiItem[],
+            token
         );
-        rifTokenContract.setProvider(web3.currentProvider);
-        return rifTokenContract;
+        return tokenContract;
     }
 
     static async getBalance(address: string) {

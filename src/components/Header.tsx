@@ -28,9 +28,10 @@ function Header(props: HeaderProps) {
         })();
     }, [account]);
 
-    const refresh = async () => {
+    const reload = async () => {
         setUpdateInfo(true);
     };
+
     return (
         <header>
             <nav
@@ -43,8 +44,8 @@ function Header(props: HeaderProps) {
             >
                 <Row>
                     <Col s={6}>
-                        <Row className='left'>
-                            <Col>
+                        <Row>
+                            <Col s={4}>
                                 <div className='brand-logo'>
                                     <img
                                         alt='logo'
@@ -57,6 +58,7 @@ function Header(props: HeaderProps) {
                             </Col>
                         </Row>
                     </Col>
+
                     <Col s={6}>
                         <Row className='right'>
                             <Col>
@@ -84,8 +86,9 @@ function Header(props: HeaderProps) {
                             <Col>
                                 <Button
                                     waves='light'
-                                    onClick={refresh}
+                                    onClick={reload}
                                     floating
+                                    tooltip='Refresh information'
                                 >
                                     <Icon className='material-icons'>
                                         update

@@ -1,12 +1,11 @@
 import { Dispatch, SetStateAction, useState } from 'react';
 // @ts-ignore: TODO: Check if there is a ts library
 import abiDecoder from 'abi-decoder';
-import Web3 from 'web3';
 import {
     RelayingServices,
     RelayGasEstimationOptions,
     RelayingTransactionOptions
-} from 'relaying-services-sdk';
+} from '@rsksmart/rif-relay-sdk';
 import IForwarder from 'src/contracts/IForwarder.json';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import 'src/modals/Execute.css';
@@ -20,16 +19,7 @@ import {
     Switch
 } from 'react-materialize';
 import Utils from 'src/Utils';
-import { toBN } from 'web3-utils';
-
-if (window.ethereum) {
-    window.web3 = new Web3(window.ethereum);
-} else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider);
-} else {
-    throw new Error('Error: MetaMask or web3 not detected');
-}
-const { web3 } = window;
+import { AbiItem, toBN } from 'web3-utils';
 
 type ExecuteProps = {
     account?: string;
@@ -38,6 +28,7 @@ type ExecuteProps = {
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
+    token: string;
 };
 
 type ExecuteInfo = {
@@ -58,7 +49,8 @@ function Execute(props: ExecuteProps) {
         provider,
         setUpdateInfo,
         modal,
-        setModal
+        setModal,
+        token
     } = props;
     const [results, setResults] = useState('');
     const [execute, setExecute] = useState<ExecuteInfo>({
@@ -107,8 +99,10 @@ function Execute(props: ExecuteProps) {
         swAddress: string,
         abiEncodedTx: string
     ) => {
-        const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
-        swContract.setProvider(web3.currentProvider);
+        const swContract = new web3.eth.Contract(
+            IForwarder.abi as AbiItem[],
+            swAddress
+        );
         const fees = execute.fees === '' ? '0' : execute.fees;
         const weiAmount = await Utils.toWei(fees.toString());
         const transaction = await swContract.methods
@@ -144,6 +138,7 @@ function Execute(props: ExecuteProps) {
 
     const close = () => {
         setModal((prev) => ({ ...prev, execute: false }));
+        setResults('');
         setExecute({
             check: false,
             show: false,
@@ -179,7 +174,8 @@ function Execute(props: ExecuteProps) {
                             data: funcData
                         },
                         smartWallet: currentSmartWallet,
-                        tokenAmount: Number(fees)
+                        tokenAmount: Number(fees),
+                        tokenAddress: token
                     };
                     const transaction = await provider.relayTransaction(
                         relayTransactionOpts
@@ -220,8 +216,10 @@ function Execute(props: ExecuteProps) {
         toAddress: string,
         abiEncodedTx: string
     ) => {
-        const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
-        swContract.setProvider(web3.currentProvider);
+        const swContract = new web3.eth.Contract(
+            IForwarder.abi as AbiItem[],
+            swAddress
+        );
         const fees = execute.fees === '' ? '0' : execute.fees;
         const weiAmount = await Utils.toWei(fees.toString());
         const estimate = await swContract.methods
@@ -241,7 +239,7 @@ function Execute(props: ExecuteProps) {
                 const swAddress = currentSmartWallet.address;
 
                 // for estimation we will use an eight of the user's token balance, it's just to estimate the gas cost
-                const tokenBalance = await Utils.tokenBalance(swAddress);
+                const tokenBalance = await Utils.tokenBalance(swAddress, token);
                 const userTokenBalance = toBN(tokenBalance);
 
                 if (userTokenBalance.gt(toBN('0'))) {
@@ -272,7 +270,8 @@ function Execute(props: ExecuteProps) {
                             relayWorker,
                             smartWalletAddress: swAddress,
                             tokenFees: '0',
-                            abiEncodedTx: funcData
+                            abiEncodedTx: funcData,
+                            tokenAddress: token
                         };
 
                         const costInWei =
@@ -301,17 +300,17 @@ function Execute(props: ExecuteProps) {
                             'TRIf price in Wei:',
                             tRifPriceInWei.toString()
                         );
-                        const ritTokenDecimals = await Utils.ritTokenDecimals();
-                        console.log('TRIF Decimals: ', ritTokenDecimals);
+                        const tokenDecimals = await Utils.tokenDecimals(token);
+                        console.log('TRIF Decimals: ', tokenDecimals);
 
-                        const costInTrif = costInRBTC / tRifPriceInRBTC;
+                        const costInTrif = Number(costInRBTC) / tRifPriceInRBTC;
                         console.log(
                             'Cost in TRIF (rbtc): ',
                             costInTrif.toString()
                         );
 
                         const costInTrifFixed =
-                            costInTrif.toFixed(ritTokenDecimals);
+                            costInTrif.toFixed(tokenDecimals);
                         console.log(
                             'Cost in TRIF Fixed (rbtc): ',
                             costInTrifFixed.toString()
@@ -325,7 +324,7 @@ function Execute(props: ExecuteProps) {
                             costInTrifAsWei.toString()
                         );
 
-                        console.log('RIF Token Decimals: ', ritTokenDecimals);
+                        console.log('Token Decimals: ', tokenDecimals);
 
                         changeValue(costInTrifFixed, 'fees');
                         console.log('Cost in TRif: ', costInTrifFixed);
@@ -397,7 +396,7 @@ function Execute(props: ExecuteProps) {
         >
             <Row>
                 <form>
-                    <Col s={10} className='execute-input'>
+                    <Col s={10}>
                         <TextInput
                             label='Contract'
                             placeholder='Contract address'
@@ -421,7 +420,7 @@ function Execute(props: ExecuteProps) {
                             <Icon center>content_paste</Icon>
                         </Button>
                     </Col>
-                    <Col s={8} className='execute-input'>
+                    <Col s={8}>
                         <TextInput
                             label='Contract function'
                             placeholder='e.g.  transfer(address,uint256)'
@@ -449,7 +448,7 @@ function Execute(props: ExecuteProps) {
                             }}
                         />
                     </Col>
-                    <Col s={8} className='execute-input'>
+                    <Col s={8}>
                         <TextInput
                             label='Contrac function values'
                             placeholder='e.g. recipientAddr,amount'
@@ -460,7 +459,7 @@ function Execute(props: ExecuteProps) {
                             }}
                         />
                     </Col>
-                    <Col s={8} className='execute-input'>
+                    <Col s={8}>
                         <TextInput
                             label={
                                 execute.check

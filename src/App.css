@@ -5,3 +5,7 @@
 .row {
     margin-bottom: 0;
 }
+
+.input-field {
+    width: 100%;
+}
