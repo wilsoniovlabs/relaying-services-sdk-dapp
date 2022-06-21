@@ -153,8 +153,8 @@ function App() {
                     await reload();
                 });
 
-                login.on('chainChanged', async (newChain: number) => {
-                    setChainId(newChain);
+                login.on('chainChanged', async (newChain: string) => {
+                    setChainId(parseInt(newChain,16));
                 });
                 setChainId(chain);
                 isConnected = true;
