@@ -10,7 +10,7 @@ import {
 import { EnvelopingConfig } from '@rsksmart/rif-relay-common';
 import Header from 'src/components/Header';
 import SmartWallet from 'src/components/SmartWallet';
-import Footer from 'src/components/ActionBar';
+import ActionBar from 'src/components/ActionBar';
 import Deploy from 'src/modals/Deploy';
 import Receive from 'src/modals/Receive';
 import Transfer from 'src/modals/Transfer';
@@ -229,7 +229,7 @@ function App() {
             />
 
             {provider && (
-                <Footer
+                <ActionBar
                     provider={provider}
                     smartWallets={smartWallets}
                     setSmartWallets={setSmartWallets}
@@ -247,7 +247,6 @@ function App() {
                     connected={connected}
                     smartWallets={smartWallets}
                     setCurrentSmartWallet={setCurrentSmartWallet}
-                    setShow={setShow}
                     setModal={setModal}
                 />
             )}

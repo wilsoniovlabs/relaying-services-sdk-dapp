@@ -49,7 +49,7 @@ function ActionBar(props: ActionBarProps) {
     };
 
     useEffect(() => {
-        if (!account || !provider) {
+        if (!account || !provider || !token) {
             return;
         }
         (async () => {
@@ -85,11 +85,16 @@ function ActionBar(props: ActionBarProps) {
 
     useEffect(() => {
         (async () => {
-            const workerAddress = process.env.REACT_APP_CONTRACTS_RELAY_WORKER!;
-            const currentWorkerBalance = parseFloat(
-                Utils.fromWei(await Utils.tokenBalance(workerAddress, token))
-            ).toFixed(4);
-            setWorkerBalance(currentWorkerBalance);
+            if (token) {
+                const workerAddress =
+                    process.env.REACT_APP_CONTRACTS_RELAY_WORKER!;
+                const currentWorkerBalance = parseFloat(
+                    Utils.fromWei(
+                        await Utils.tokenBalance(workerAddress, token)
+                    )
+                ).toFixed(4);
+                setWorkerBalance(currentWorkerBalance);
+            }
         })();
     }, [token]);
 

@@ -102,14 +102,11 @@ function Transfer(props: TransferProps) {
     };
 
     const pasteRecipientAddress = async () => {
-        setTransferLoading(true);
         const address = await navigator.clipboard.readText();
         console.log(address);
         if (Utils.checkAddress(address.toLowerCase())) {
-            console.log('entro aca');
             changeValue(address, 'address');
         }
-        setTransferLoading(false);
     };
 
     const transferSmartWalletButtonClick = async () => {

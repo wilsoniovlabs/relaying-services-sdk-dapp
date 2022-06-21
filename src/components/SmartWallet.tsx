@@ -9,24 +9,15 @@ type SmartWalletProps = {
     setCurrentSmartWallet: Dispatch<
         SetStateAction<SmartWalletWithBalance | undefined>
     >;
-    setShow: Dispatch<SetStateAction<boolean>>;
     setModal: Dispatch<SetStateAction<Modals>>;
 };
 
 type ModalsKey = keyof Modals;
 
 function SmartWallet(props: SmartWalletProps) {
-    const {
-        connected,
-        smartWallets,
-        setCurrentSmartWallet,
-        setShow,
-        setModal
-    } = props;
+    const { connected, smartWallets, setCurrentSmartWallet, setModal } = props;
     async function copySmartWalletAddress(address: string) {
-        setShow(true);
         await navigator.clipboard.writeText(address);
-        setShow(false);
     }
 
     function openModal(smartWallet: SmartWalletWithBalance, modal: ModalsKey) {
