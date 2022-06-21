@@ -271,7 +271,7 @@ function Execute(props: ExecuteProps) {
                             smartWalletAddress: swAddress,
                             tokenFees: '0',
                             abiEncodedTx: funcData,
-                            testToken: token
+                            tokenAddress: token
                         };
 
                         const costInWei =

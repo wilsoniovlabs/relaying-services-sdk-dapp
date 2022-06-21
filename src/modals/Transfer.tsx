@@ -171,7 +171,7 @@ function Transfer(props: TransferProps) {
                     tokenFees: '1',
                     destinationContract: token,
                     relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!,
-                    testToken: token
+                    tokenAddress: token
                 };
 
                 const maxPossibleGasValue =

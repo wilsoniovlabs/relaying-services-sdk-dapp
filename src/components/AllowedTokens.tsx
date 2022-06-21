@@ -14,8 +14,12 @@ function AllowedTokens(props: AllowedTokensProps) {
 
     const reload = async () => {
         const tokens = await provider.getAllowedTokens();
-        setAllowedTokens(tokens);
-        setToken(tokens[0]);
+        if (tokens.length > 0) {
+            setAllowedTokens(tokens);
+            setToken(tokens[0]);
+        } else {
+            alert('Not allowed tokens');
+        }
     };
 
     useEffect(() => {

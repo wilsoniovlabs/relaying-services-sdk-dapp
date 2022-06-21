@@ -10,7 +10,7 @@ import { RelayingServicesAddresses } from 'relaying-services-sdk/dist/interfaces
 import { EnvelopingConfig } from '@rsksmart/rif-relay-common';
 import Header from 'src/components/Header';
 import SmartWallet from 'src/components/SmartWallet';
-import Footer from 'src/components/Footer';
+import Footer from 'src/components/ActionBar';
 import Deploy from 'src/modals/Deploy';
 import Receive from 'src/modals/Receive';
 import Transfer from 'src/modals/Transfer';
@@ -220,37 +220,36 @@ function App() {
         <div className='App'>
             <Loading show={show} />
             <Header
-                provider={provider!}
                 account={account}
                 // eslint-disable-next-line react/jsx-no-bind
                 connect={connect}
                 connected={connected}
                 chainId={chainId}
                 setUpdateInfo={setUpdateInfo}
-                setToken={setToken}
             />
 
-            {token && (
-                <div>
-                    <SmartWallet
-                        connected={connected}
-                        smartWallets={smartWallets}
-                        setCurrentSmartWallet={setCurrentSmartWallet}
-                        setShow={setShow}
-                        setModal={setModal}
-                    />
+            {provider && (
+                <Footer
+                    provider={provider}
+                    smartWallets={smartWallets}
+                    setSmartWallets={setSmartWallets}
+                    connected={connected}
+                    account={account}
+                    setShow={setShow}
+                    token={token}
+                    updateInfo={updateInfo}
+                    setToken={setToken}
+                />
+            )}
 
-                    <Footer
-                        provider={provider}
-                        smartWallets={smartWallets}
-                        setSmartWallets={setSmartWallets}
-                        connected={connected}
-                        account={account}
-                        setShow={setShow}
-                        token={token}
-                        updateInfo={updateInfo}
-                    />
-                </div>
+            {token && (
+                <SmartWallet
+                    connected={connected}
+                    smartWallets={smartWallets}
+                    setCurrentSmartWallet={setCurrentSmartWallet}
+                    setShow={setShow}
+                    setModal={setModal}
+                />
             )}
 
             <Deploy

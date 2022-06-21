@@ -71,7 +71,7 @@ function Deploy(props: DeployProps) {
                 tokenFees: '1',
                 isSmartWalletDeploy: true,
                 index: currentSmartWallet?.index.toString(),
-                testToken: token
+                tokenAddress: token
             };
 
             const estimate = await provider?.estimateMaxPossibleRelayGas(opts);

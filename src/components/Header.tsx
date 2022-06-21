@@ -2,8 +2,6 @@ import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import Utils from 'src/Utils';
 import 'src/components/Header.css';
 import { Row, Col, Button, Icon } from 'react-materialize';
-import { RelayingServices } from 'relaying-services-sdk';
-import AllowedTokens from './AllowedTokens';
 
 type HeaderProps = {
     account?: string;
@@ -11,20 +9,10 @@ type HeaderProps = {
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     connected: boolean;
     chainId: number;
-    provider: RelayingServices;
-    setToken: Dispatch<SetStateAction<string>>;
 };
 
 function Header(props: HeaderProps) {
-    const {
-        account,
-        connect,
-        setUpdateInfo,
-        connected,
-        chainId,
-        provider,
-        setToken
-    } = props;
+    const { account, connect, setUpdateInfo, connected, chainId } = props;
 
     const [balance, setBalance] = useState<string>();
 
@@ -68,14 +56,6 @@ function Header(props: HeaderProps) {
                                     </span>
                                 </div>
                             </Col>
-                            <Col s={8}>
-                                {provider && (
-                                    <AllowedTokens
-                                        provider={provider!}
-                                        setToken={setToken}
-                                    />
-                                )}
-                            </Col>
                         </Row>
                     </Col>
 
@@ -104,7 +84,12 @@ function Header(props: HeaderProps) {
                                 </Button>
                             </Col>
                             <Col>
-                                <Button waves='light' onClick={reload} floating>
+                                <Button
+                                    waves='light'
+                                    onClick={reload}
+                                    floating
+                                    tooltip='Refresh information'
+                                >
                                     <Icon className='material-icons'>
                                         update
                                     </Icon>
