@@ -56,6 +56,7 @@ function App() {
     );
     const [updateInfo, setUpdateInfo] = useState(false);
     const [token, setToken] = useState('');
+    const [tokenSymbol, setTokenSymbol] = useState('');
 
     useEffect(() => {
         if (!updateInfo) {
@@ -239,6 +240,8 @@ function App() {
                     token={token}
                     updateInfo={updateInfo}
                     setToken={setToken}
+                    tokenSymbol={tokenSymbol}
+                    setTokenSymbol={setTokenSymbol}
                 />
             )}
 
@@ -258,6 +261,7 @@ function App() {
                 modal={modal}
                 setModal={setModal}
                 token={token}
+                tokenSymbol={tokenSymbol}
             />
             <Receive
                 currentSmartWallet={currentSmartWallet}
@@ -272,6 +276,7 @@ function App() {
                 modal={modal}
                 setModal={setModal}
                 token={token}
+                tokenSymbol={tokenSymbol}
             />
             <Execute
                 provider={provider!}
@@ -281,6 +286,7 @@ function App() {
                 modal={modal}
                 setModal={setModal}
                 token={token}
+                tokenSymbol={tokenSymbol}
             />
         </div>
     );

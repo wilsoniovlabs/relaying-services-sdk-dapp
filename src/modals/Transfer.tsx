@@ -26,6 +26,7 @@ type TransferProps = {
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
     token: string;
+    tokenSymbol: string;
 };
 
 type TransferInfo = {
@@ -45,7 +46,8 @@ function Transfer(props: TransferProps) {
         account,
         modal,
         setModal,
-        token
+        token,
+        tokenSymbol
     } = props;
 
     const [transferLoading, setTransferLoading] = useState(false);
@@ -293,7 +295,7 @@ function Transfer(props: TransferProps) {
                         <TextInput
                             label='Amount'
                             placeholder={`0  ${
-                                transfer.check ? 'RBTC' : 'tRif'
+                                transfer.check ? 'RBTC' : tokenSymbol
                             }`}
                             value={transfer.amount}
                             type='number'
@@ -308,7 +310,7 @@ function Transfer(props: TransferProps) {
                     </Col>
                     <Col s={4}>
                         <Switch
-                            offLabel='tRif'
+                            offLabel={tokenSymbol}
                             onLabel='RBTC'
                             checked={transfer.check}
                             onChange={(event) => {
@@ -322,7 +324,7 @@ function Transfer(props: TransferProps) {
                     <Col s={10}>
                         <TextInput
                             label='Fees'
-                            placeholder='0 tRif'
+                            placeholder={`0 ${tokenSymbol}`}
                             value={transfer.fees}
                             type='number'
                             validate

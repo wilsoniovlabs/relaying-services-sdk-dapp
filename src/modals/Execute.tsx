@@ -29,6 +29,7 @@ type ExecuteProps = {
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
     token: string;
+    tokenSymbol: string;
 };
 
 type ExecuteInfo = {
@@ -50,7 +51,8 @@ function Execute(props: ExecuteProps) {
         setUpdateInfo,
         modal,
         setModal,
-        token
+        token,
+        tokenSymbol
     } = props;
     const [results, setResults] = useState('');
     const [execute, setExecute] = useState<ExecuteInfo>({
@@ -464,7 +466,7 @@ function Execute(props: ExecuteProps) {
                             label={
                                 execute.check
                                     ? 'Amount to be sent'
-                                    : 'Fees (tRIF)'
+                                    : `Fees (${tokenSymbol})`
                             }
                             placeholder='0'
                             value={execute.fees}
@@ -477,7 +479,7 @@ function Execute(props: ExecuteProps) {
                     </Col>
                     <Col s={4}>
                         <Switch
-                            offLabel='tRif'
+                            offLabel={tokenSymbol}
                             onLabel='RBTC'
                             checked={execute.check}
                             onChange={(event) => {

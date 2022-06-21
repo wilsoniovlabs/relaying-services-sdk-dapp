@@ -16,6 +16,7 @@ type DeployProps = {
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
     token: string;
+    tokenSymbol: string;
 };
 
 type DeployInfo = {
@@ -34,7 +35,8 @@ function Deploy(props: DeployProps) {
         setUpdateInfo,
         modal,
         setModal,
-        token
+        token,
+        tokenSymbol
     } = props;
 
     const [deploy, setDeploy] = useState<DeployInfo>({
@@ -242,7 +244,7 @@ function Deploy(props: DeployProps) {
                 <form>
                     <Col s={8}>
                         <TextInput
-                            label='Fees (tRIF)'
+                            label={`Fees (${tokenSymbol})`}
                             placeholder='0'
                             value={deploy.fees}
                             type='number'

@@ -16,6 +16,8 @@ type ActionBarProps = {
     token: string;
     updateInfo: boolean;
     setToken: Dispatch<SetStateAction<string>>;
+    tokenSymbol: string;
+    setTokenSymbol: Dispatch<SetStateAction<string>>;
 };
 
 function ActionBar(props: ActionBarProps) {
@@ -28,10 +30,11 @@ function ActionBar(props: ActionBarProps) {
         setShow,
         token,
         updateInfo,
-        setToken
+        setToken,
+        tokenSymbol,
+        setTokenSymbol
     } = props;
 
-    const [tokenSymbol, setTokenSymbol] = useState('');
     const [workerBalance, setWorkerBalance] = useState('0');
 
     const setBalance = async (
