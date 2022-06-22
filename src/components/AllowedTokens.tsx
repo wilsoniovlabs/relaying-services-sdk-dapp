@@ -32,10 +32,7 @@ function AllowedTokens(props: AllowedTokensProps) {
     };
 
     return (
-        <Select 
-        onChange={handleChange}
-        disabled={allowedTokens.length < 2}
-        >
+        <Select onChange={handleChange} disabled={allowedTokens.length < 2}>
             {allowedTokens.map((value) => (
                 <option value={value} key={value}>
                     {value}

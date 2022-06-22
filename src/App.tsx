@@ -40,7 +40,7 @@ function App() {
         execute: false,
         receive: false,
         transfer: false,
-        transactions: true
+        transactions: false
     });
     const [connected, setConnect] = useState(false);
     const [chainId, setChainId] = useState(0);
@@ -88,8 +88,8 @@ function App() {
                 preferredRelays: process.env
                     .REACT_APP_RIF_RELAY_PREFERRED_RELAYS
                     ? process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS.split(
-                        ','
-                    )
+                          ','
+                      )
                     : undefined,
                 relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
                 relayVerifierAddress:
@@ -236,7 +236,6 @@ function App() {
                     provider={provider}
                     smartWallets={smartWallets}
                     setSmartWallets={setSmartWallets}
-                    connected={connected}
                     account={account}
                     setShow={setShow}
                     token={token}

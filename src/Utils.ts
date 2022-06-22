@@ -109,7 +109,7 @@ class Utils {
         await web3.eth.sendTransaction(transactionDetails);
     }
 
-    static openExplorer(trx: string){
+    static openExplorer(trx: string) {
         window.open(process.env.REACT_APP_BLOCK_EXPLORER + trx, '_blank');
     }
 }

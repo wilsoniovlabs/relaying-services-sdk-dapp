@@ -9,7 +9,6 @@ import AllowedTokens from 'src/components/AllowedTokens';
 type ActionBarProps = {
     smartWallets: SmartWalletWithBalance[];
     setSmartWallets: Dispatch<SetStateAction<SmartWalletWithBalance[]>>;
-    connected: boolean;
     account?: string;
     provider?: RelayingServices;
     setShow: Dispatch<SetStateAction<boolean>>;
@@ -24,7 +23,6 @@ function ActionBar(props: ActionBarProps) {
     const {
         smartWallets,
         setSmartWallets,
-        connected,
         account,
         provider,
         setShow,
