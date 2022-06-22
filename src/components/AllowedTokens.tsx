@@ -5,10 +5,11 @@ import { Select } from 'react-materialize';
 type AllowedTokensProps = {
     provider: RelayingServices;
     setToken: Dispatch<SetStateAction<string>>;
+    updateInfo: boolean;
 };
 
 function AllowedTokens(props: AllowedTokensProps) {
-    const { provider, setToken } = props;
+    const { provider, setToken, updateInfo } = props;
 
     const [allowedTokens, setAllowedTokens] = useState<Array<string>>([]);
 
@@ -24,14 +25,17 @@ function AllowedTokens(props: AllowedTokensProps) {
 
     useEffect(() => {
         reload();
-    }, []);
+    }, [updateInfo]);
 
     const handleChange = (event: any) => {
         setToken(event.target.value);
     };
 
     return (
-        <Select onChange={handleChange}>
+        <Select 
+        onChange={handleChange}
+        disabled={allowedTokens.length < 2}
+        >
             {allowedTokens.map((value) => (
                 <option value={value} key={value}>
                     {value}

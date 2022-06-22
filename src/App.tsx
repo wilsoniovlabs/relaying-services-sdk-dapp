@@ -20,6 +20,7 @@ import Utils from 'src/Utils';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import rLogin from 'src/rLogin';
 import Web3 from 'web3';
+import TransactionHistory from './modals/TransactionHistory';
 
 if (window.ethereum) {
     window.web3 = new Web3(window.ethereum);
@@ -38,7 +39,8 @@ function App() {
         deploy: false,
         execute: false,
         receive: false,
-        transfer: false
+        transfer: false,
+        transactions: true
     });
     const [connected, setConnect] = useState(false);
     const [chainId, setChainId] = useState(0);
@@ -86,8 +88,8 @@ function App() {
                 preferredRelays: process.env
                     .REACT_APP_RIF_RELAY_PREFERRED_RELAYS
                     ? process.env.REACT_APP_RIF_RELAY_PREFERRED_RELAYS.split(
-                          ','
-                      )
+                        ','
+                    )
                     : undefined,
                 relayHubAddress: process.env.REACT_APP_CONTRACTS_RELAY_HUB,
                 relayVerifierAddress:
@@ -287,6 +289,11 @@ function App() {
                 setModal={setModal}
                 token={token}
                 tokenSymbol={tokenSymbol}
+            />
+            <TransactionHistory
+                currentSmartWallet={currentSmartWallet}
+                modal={modal}
+                setModal={setModal}
             />
         </div>
     );

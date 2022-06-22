@@ -124,14 +124,18 @@ function ActionBar(props: ActionBarProps) {
                     waves='light'
                     className='indigo accent-2'
                     onClick={create}
-                    disabled={!connected}
+                    disabled={!token}
                 >
                     New Smart Wallet
                     <Icon right>add_circle_outline</Icon>
                 </Button>
             </Col>
             <Col s={5}>
-                <AllowedTokens provider={provider!} setToken={setToken} />
+                <AllowedTokens
+                    provider={provider!}
+                    setToken={setToken}
+                    updateInfo={updateInfo}
+                />
             </Col>
             <Col s={5}>
                 <Row>

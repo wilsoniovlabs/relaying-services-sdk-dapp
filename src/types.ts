@@ -10,4 +10,5 @@ export interface Modals {
     execute: boolean;
     receive: boolean;
     transfer: boolean;
+    transactions: boolean;
 }
