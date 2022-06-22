@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { SmartWallet } from '@rsksmart/rif-relay-sdk';
 import { Modal, Col, Row, Table, Button, Icon } from 'react-materialize';
-import { Modals } from '../types';
+import { Modals, Transaction } from '../types';
 import Utils from '../Utils';
 
 type TransactionHistoryProps = {
@@ -10,15 +10,10 @@ type TransactionHistoryProps = {
     setModal: Dispatch<SetStateAction<Modals>>;
 };
 
-type Transaction = {
-    date: Date;
-    id: string;
-};
-
 function TransactionHistory(props: TransactionHistoryProps) {
     const { currentSmartWallet, modal, setModal } = props;
 
-    const columns: string[] = ['No', 'Date', 'Transaction', 'Action'];
+    const columns: string[] = ['No', 'Date', 'Transaction', 'Type', 'Action'];
 
     const [transactions, setTransactions] = useState<Transaction[]>([]);
 
@@ -27,20 +22,24 @@ function TransactionHistory(props: TransactionHistoryProps) {
             const localTransactions: Transaction[] = JSON.parse(
                 localStorage.getItem(currentSmartWallet?.address!)!
             );
+            console.log(localTransactions);
             setTransactions(localTransactions);
+        } else {
+            setTransactions([]);
         }
-    }, []);
+    }, [currentSmartWallet]);
 
     const openExplorer = (transaction: Transaction) => {
         Utils.openExplorer(transaction.id);
     };
 
-    const tableRows = () => {
-        transactions.map((transaction: Transaction, index: number) => (
+    const tableRows = transactions.map(
+        (transaction: Transaction, index: number) => (
             <tr key={transaction.id}>
                 <td>{index}</td>
-                <td>{transaction.date.toISOString()}</td>
+                <td>{transaction.date}</td>
                 <td>{transaction.id}</td>
+                <td>{transaction.type}</td>
                 <td>
                     <Button
                         waves='light'
@@ -53,8 +52,8 @@ function TransactionHistory(props: TransactionHistoryProps) {
                     </Button>
                 </td>
             </tr>
-        ));
-    };
+        )
+    );
 
     return (
         <Modal
@@ -79,7 +78,7 @@ function TransactionHistory(props: TransactionHistoryProps) {
                                 tableRows
                             ) : (
                                 <tr>
-                                    <td colSpan={4}>There are no records</td>
+                                    <td colSpan={5}>There are no records</td>
                                 </tr>
                             )}
                         </tbody>

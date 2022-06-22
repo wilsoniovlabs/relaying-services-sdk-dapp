@@ -12,3 +12,9 @@ export interface Modals {
     transfer: boolean;
     transactions: boolean;
 }
+
+export interface Transaction {
+    date: Date;
+    id: string;
+    type: string;
+}

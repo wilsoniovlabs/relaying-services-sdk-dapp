@@ -138,6 +138,11 @@ function Transfer(props: TransferProps) {
 
             const txDetails = await provider.relayTransaction(relayTrxOpts);
             console.log(txDetails);
+            Utils.addTransaction(currentSmartWallet.address, {
+                date: new Date(),
+                id: txDetails.transactionHash,
+                type: `Transfer ${transfer.check ? 'RBTC' : tokenSymbol}`
+            });
             setUpdateInfo(true);
             close();
         } catch (error) {

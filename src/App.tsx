@@ -281,7 +281,7 @@ function App() {
             />
             <Execute
                 provider={provider!}
-                currentSmartWallet={currentSmartWallet}
+                currentSmartWallet={currentSmartWallet!}
                 account={account}
                 setUpdateInfo={setUpdateInfo}
                 modal={modal}

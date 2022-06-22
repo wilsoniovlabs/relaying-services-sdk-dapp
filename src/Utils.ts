@@ -1,6 +1,7 @@
 import { EnvelopingTransactionDetails } from '@rsksmart/rif-relay-common';
 import { AbiItem } from 'web3-utils';
 import TestToken from './contracts/TestToken.json';
+import { Transaction } from './types';
 
 export const TRIF_PRICE = 0.000005739;
 export const TRIF_TOKEN_DECIMALS = 18;
@@ -110,7 +111,19 @@ class Utils {
     }
 
     static openExplorer(trx: string) {
-        window.open(process.env.REACT_APP_BLOCK_EXPLORER + trx, '_blank');
+        window.open(
+            `${process.env.REACT_APP_BLOCK_EXPLORER}/tx/${trx}`,
+            '_blank'
+        );
+    }
+
+    static addTransaction(address: string, transaction: Transaction) {
+        let transactions: Transaction[] = [];
+        if (address in localStorage) {
+            transactions = JSON.parse(localStorage.getItem(address)!);
+        }
+        transactions.push(transaction);
+        localStorage.setItem(address, JSON.stringify(transactions));
     }
 }
 

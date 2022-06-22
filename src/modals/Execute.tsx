@@ -23,7 +23,7 @@ import { AbiItem, toBN } from 'web3-utils';
 
 type ExecuteProps = {
     account?: string;
-    currentSmartWallet?: SmartWalletWithBalance;
+    currentSmartWallet: SmartWalletWithBalance;
     provider: RelayingServices;
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     modal: Modals;
@@ -136,6 +136,11 @@ function Execute(props: ExecuteProps) {
                     }
                 }
             );
+        Utils.addTransaction(currentSmartWallet.address, {
+            date: new Date(),
+            id: transaction.transactionHash,
+            type: 'Execute RBTC'
+        });
     };
 
     const close = () => {
@@ -182,7 +187,11 @@ function Execute(props: ExecuteProps) {
                     const transaction = await provider.relayTransaction(
                         relayTransactionOpts
                     );
-
+                    Utils.addTransaction(currentSmartWallet.address, {
+                        date: new Date(),
+                        id: transaction.transactionHash,
+                        type: `Execute ${tokenSymbol}`
+                    });
                     console.log('Transaction ', transaction);
                     console.log(`Transaction hash: ${transaction.blockHash}`);
 
