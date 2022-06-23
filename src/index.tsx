@@ -4,8 +4,8 @@ import 'src/index.css';
 import App from 'src/App';
 import reportWebVitals from 'src/reportWebVitals';
 // import { Store } from './context/store';
-/* import 'materialize-css/dist/css/materialize.min.css';
-import 'materialize-css/dist/js/materialize.min.js'; */
+import 'materialize-css/dist/css/materialize.min.css';
+import 'materialize-css/dist/js/materialize.min';
 
 ReactDOM.render(
     <React.StrictMode>

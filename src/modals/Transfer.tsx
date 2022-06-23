@@ -16,6 +16,7 @@ import {
     Icon,
     Switch
 } from 'react-materialize';
+import LoadingButton from './LoadingButton';
 
 type TransferProps = {
     currentSmartWallet: SmartWalletWithBalance;
@@ -216,14 +217,6 @@ function Transfer(props: TransferProps) {
         }
     };
 
-    const returnLoading = (loading: boolean) => (
-        <img
-            alt='loading'
-            className={`loading ${!loading ? 'hide' : ''}`}
-            src='images/loading.gif'
-        />
-    );
-
     const returnActions = () => [
         <Button
             flat
@@ -233,7 +226,7 @@ function Transfer(props: TransferProps) {
             disabled={transferLoading}
         >
             Transfer
-            {returnLoading(transferLoading)}
+            <LoadingButton show={transferLoading} />
         </Button>,
         <Button
             flat
@@ -243,7 +236,7 @@ function Transfer(props: TransferProps) {
             disabled={estimateLoading}
         >
             Estimate
-            {returnLoading(estimateLoading)}
+            <LoadingButton show={estimateLoading} />
         </Button>,
         <Button flat modal='close' node='button' waves='green'>
             Cancel

@@ -18,8 +18,9 @@ import {
     Icon,
     Switch
 } from 'react-materialize';
-import Utils from 'src/Utils';
+import Utils, { TRIF_PRICE } from 'src/Utils';
 import { AbiItem, toBN } from 'web3-utils';
+import LoadingButton from './LoadingButton';
 
 type ExecuteProps = {
     account?: string;
@@ -293,7 +294,9 @@ function Execute(props: ExecuteProps) {
                         const costInRBTC = await Utils.fromWei(
                             costInWei.toString()
                         );
-                        const tRifPriceInRBTC = parseFloat('5'); // 1 tRIF = tRifPriceInRBTC RBTC
+                        // TODO: We need to change it to support different tokens
+                        // (we may want to receive it from the user)
+                        const tRifPriceInRBTC = TRIF_PRICE;
                         const tRifPriceInWei = toBN(
                             await Utils.toWei(tRifPriceInRBTC.toString())
                         ); // 1 tRIF = tRifPriceInWei wei
@@ -361,14 +364,6 @@ function Execute(props: ExecuteProps) {
         }
     };
 
-    const returnLoading = (loading: boolean) => (
-        <img
-            alt='loading'
-            className={`loading ${!loading ? 'hide' : ''}`}
-            src='images/loading.gif'
-        />
-    );
-
     const returnActions = () => [
         <Button
             flat
@@ -378,7 +373,7 @@ function Execute(props: ExecuteProps) {
             disabled={executeLoading}
         >
             Execute
-            {returnLoading(executeLoading)}
+            <LoadingButton show={executeLoading} />
         </Button>,
         <Button
             flat
@@ -388,7 +383,7 @@ function Execute(props: ExecuteProps) {
             disabled={estimateLoading}
         >
             Estimate
-            {returnLoading(estimateLoading)}
+            <LoadingButton show={estimateLoading} />
         </Button>,
         <Button flat modal='close' node='button' waves='green'>
             Cancel
