@@ -1,15 +1,16 @@
 import { EnvelopingTransactionDetails } from '@rsksmart/rif-relay-common';
 import { AbiItem } from 'web3-utils';
 import ERC20 from './contracts/ERC20.json';
+import { Transaction } from './types';
 
 export const TRIF_PRICE = 0.000005739;
 export const TRIF_TOKEN_DECIMALS = 18;
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 class Utils {
+
     static async tokenSymbol(token: string) {
         const tokenContract = this.getTokenContract(token);
-        console.log(tokenContract);
         const symbol = await tokenContract.methods.symbol().call();
         return symbol;
     }
@@ -99,6 +100,23 @@ class Utils {
     ) {
         await web3.eth.sendTransaction(transactionDetails);
     }
+
+    static openExplorer(trx: string) {
+        window.open(
+            `${process.env.REACT_APP_BLOCK_EXPLORER}/tx/${trx}`,
+            '_blank'
+        );
+    }
+
+    static addTransaction(address: string, transaction: Transaction) {
+        let transactions: Transaction[] = [];
+        if (address in localStorage) {
+            transactions = JSON.parse(localStorage.getItem(address)!);
+        }
+        transactions.push(transaction);
+        localStorage.setItem(address, JSON.stringify(transactions));
+    }
+
 }
 
 export default Utils;
