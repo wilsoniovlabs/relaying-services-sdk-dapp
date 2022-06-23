@@ -172,8 +172,9 @@ function Transfer(props: TransferProps) {
                     tokenAddress: token
                 };
 
-                const estimate =
-                    await provider.estimateMaxPossibleRelayGas(opts);
+                const estimate = await provider.estimateMaxPossibleRelayGas(
+                    opts
+                );
 
                 const costInRBTC = await Utils.fromWei(estimate.toString());
                 console.log('Cost in RBTC:', costInRBTC);
