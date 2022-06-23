@@ -117,7 +117,6 @@ function App() {
             };
 
             // Get an RIF Relay RelayProvider instance and assign it to Web3 to use RIF Relay transparently
-            console.log(process.env);
             const relayingServices = new DefaultRelayingServices(web3);
             await relayingServices.initialize(config, contractAddresses, {
                 loglevel: 1
@@ -169,33 +168,6 @@ function App() {
         setConnect(isConnected);
         return isConnected;
     };
-
-    /*  const connectToMetamask = async () => {
-        let isConnected = false;
-        try {
-            const chain: number = await web3.eth.getChainId();
-            if (chain.toString() === process.env.REACT_APP_RIF_RELAY_CHAIN_ID) {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                window.ethereum.on('accountsChanged', async () => {
-                    await refreshAccount();
-                });
-
-                window.ethereum.on('networkChanged', async (newChain: number) => {
-                    setChainId(newChain);
-                });
-                setChainId(chain);
-                isConnected = true;
-            } else {
-                alert(
-                    `Wrong network ID ${chain}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`
-                );
-            }
-        } catch (error) {
-            console.error(error);
-        }
-        setConnect(isConnected);
-        return isConnected;
-    } */
 
     const connect = async () => {
         try {

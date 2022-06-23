@@ -8,6 +8,7 @@ import { Modal, Col, Row, TextInput, Button } from 'react-materialize';
 import Utils, { TRIF_PRICE, ZERO_ADDRESS } from 'src/Utils';
 import { Modals } from 'src/types';
 import 'src/modals/Deploy.css';
+import LoadingButton from './LoadingButton';
 
 type DeployProps = {
     currentSmartWallet?: SmartWallet;
@@ -77,7 +78,6 @@ function Deploy(props: DeployProps) {
             };
 
             const estimate = await provider?.estimateMaxPossibleRelayGas(opts);
-            console.log(estimate);
 
             if (estimate) {
                 const costInRBTC = await Utils.fromWei(estimate.toString());
@@ -196,14 +196,6 @@ function Deploy(props: DeployProps) {
         setDeployLoading(false);
     };
 
-    const returnLoading = (loading: boolean) => (
-        <img
-            alt='loading'
-            className={`loading ${!loading ? 'hide' : ''}`}
-            src='images/loading.gif'
-        />
-    );
-
     function returnActions() {
         return [
             <Button
@@ -214,7 +206,7 @@ function Deploy(props: DeployProps) {
                 disabled={deployLoading}
             >
                 Deploy
-                {returnLoading(deployLoading)}
+                <LoadingButton show={deployLoading} />
             </Button>,
             <Button
                 flat
@@ -224,7 +216,7 @@ function Deploy(props: DeployProps) {
                 disabled={estimateLoading}
             >
                 Estimate
-                {returnLoading(estimateLoading)}
+                <LoadingButton show={estimateLoading} />
             </Button>,
             <Button flat modal='close' node='button' waves='green'>
                 Cancel

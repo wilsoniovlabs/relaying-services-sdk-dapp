@@ -20,6 +20,7 @@ import {
 } from 'react-materialize';
 import Utils, { TRIF_PRICE } from 'src/Utils';
 import { AbiItem, toBN } from 'web3-utils';
+import LoadingButton from './LoadingButton';
 
 type ExecuteProps = {
     account?: string;
@@ -354,14 +355,6 @@ function Execute(props: ExecuteProps) {
         }
     };
 
-    const returnLoading = (loading: boolean) => (
-        <img
-            alt='loading'
-            className={`loading ${!loading ? 'hide' : ''}`}
-            src='images/loading.gif'
-        />
-    );
-
     const returnActions = () => [
         <Button
             flat
@@ -371,7 +364,7 @@ function Execute(props: ExecuteProps) {
             disabled={executeLoading}
         >
             Execute
-            {returnLoading(executeLoading)}
+            <LoadingButton show={executeLoading} />
         </Button>,
         <Button
             flat
@@ -381,7 +374,7 @@ function Execute(props: ExecuteProps) {
             disabled={estimateLoading}
         >
             Estimate
-            {returnLoading(estimateLoading)}
+            <LoadingButton show={estimateLoading} />
         </Button>,
         <Button flat modal='close' node='button' waves='green'>
             Cancel
