@@ -18,6 +18,7 @@ class Utils {
     }
 
     static async tokenDecimals(token: string) {
+        // TODO: we may want to change this to support multiple tokens
         const tokenContract = new web3.eth.Contract(
             TestToken.abi as AbiItem[],
             token

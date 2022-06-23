@@ -18,7 +18,7 @@ import {
     Icon,
     Switch
 } from 'react-materialize';
-import Utils from 'src/Utils';
+import Utils, { TRIF_PRICE } from 'src/Utils';
 import { AbiItem, toBN } from 'web3-utils';
 
 type ExecuteProps = {
@@ -284,7 +284,9 @@ function Execute(props: ExecuteProps) {
                         const costInRBTC = await Utils.fromWei(
                             costInWei.toString()
                         );
-                        const tRifPriceInRBTC = parseFloat('5'); // 1 tRIF = tRifPriceInRBTC RBTC
+                        // TODO: We need to change it to support different tokens
+                        // (we may want to receive it from the user)
+                        const tRifPriceInRBTC = TRIF_PRICE;
                         const tRifPriceInWei = toBN(
                             await Utils.toWei(tRifPriceInRBTC.toString())
                         ); // 1 tRIF = tRifPriceInWei wei
