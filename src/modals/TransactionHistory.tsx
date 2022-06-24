@@ -1,33 +1,33 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { SmartWallet } from '@rsksmart/rif-relay-sdk';
 import { Modal, Col, Row, Table, Button, Icon } from 'react-materialize';
 import { Modals, Transaction } from '../types';
 import Utils from '../Utils';
+import { useStore } from '../context/context';
 
 type TransactionHistoryProps = {
-    currentSmartWallet?: SmartWallet;
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
 };
 
 function TransactionHistory(props: TransactionHistoryProps) {
-    const { currentSmartWallet, modal, setModal } = props;
+    const { state } = useStore();
+
+    const { modal, setModal } = props;
 
     const columns: string[] = ['No', 'Date', 'Transaction', 'Type', 'Action'];
 
     const [transactions, setTransactions] = useState<Transaction[]>([]);
 
     useEffect(() => {
-        if (currentSmartWallet?.address! in localStorage) {
+        if (state.smartWallet?.address! in localStorage) {
             const localTransactions: Transaction[] = JSON.parse(
-                localStorage.getItem(currentSmartWallet?.address!)!
+                localStorage.getItem(state.smartWallet?.address!)!
             );
-            console.log(localTransactions);
             setTransactions(localTransactions);
         } else {
             setTransactions([]);
         }
-    }, [currentSmartWallet]);
+    }, [state.smartWallet]);
 
     const openExplorer = (transaction: Transaction) => {
         Utils.openExplorer(transaction.id);
@@ -38,7 +38,7 @@ function TransactionHistory(props: TransactionHistoryProps) {
             <tr key={transaction.id}>
                 <td>{index}</td>
                 <td>{transaction.date}</td>
-                <td>{transaction.id}</td>
+                <td style={{ wordBreak: 'break-all' }}>{transaction.id}</td>
                 <td>{transaction.type}</td>
                 <td>
                     <Button

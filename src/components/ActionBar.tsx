@@ -1,79 +1,61 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { RelayingServices, SmartWallet } from '@rsksmart/rif-relay-sdk';
+import { SmartWallet } from '@rsksmart/rif-relay-sdk';
 import { SmartWalletWithBalance } from 'src/types';
 import Utils, { TRIF_PRICE } from 'src/Utils';
 import 'src/components/ActionBar.css';
 import { Col, Row, Button, Icon } from 'react-materialize';
 import AllowedTokens from 'src/components/AllowedTokens';
+import { useStore } from '../context/context';
 
 type ActionBarProps = {
     smartWallets: SmartWalletWithBalance[];
     setSmartWallets: Dispatch<SetStateAction<SmartWalletWithBalance[]>>;
-    account?: string;
-    provider?: RelayingServices;
-    setShow: Dispatch<SetStateAction<boolean>>;
-    token: string;
     updateInfo: boolean;
-    setToken: Dispatch<SetStateAction<string>>;
-    tokenSymbol: string;
-    setTokenSymbol: Dispatch<SetStateAction<string>>;
 };
 
 function ActionBar(props: ActionBarProps) {
-    const {
-        smartWallets,
-        setSmartWallets,
-        account,
-        provider,
-        setShow,
-        token,
-        updateInfo,
-        setToken,
-        tokenSymbol,
-        setTokenSymbol
-    } = props;
+    const { smartWallets, setSmartWallets, updateInfo } = props;
 
     const [workerBalance, setWorkerBalance] = useState('0');
 
+    const { state, dispatch } = useStore();
+
     const setBalance = async (
-        smartWallet: SmartWallet,
-        symbol: string
+        smartWallet: SmartWallet
     ): Promise<SmartWalletWithBalance> => {
-        const balance = await Utils.tokenBalance(smartWallet.address, token);
+        const balance = await Utils.tokenBalance(
+            smartWallet.address,
+            state.token!.address
+        );
         const rbtcBalance = await Utils.getBalance(smartWallet.address);
         const swWithBalance = {
             ...smartWallet,
-            balance: `${Utils.fromWei(balance)} ${symbol}`,
+            balance: `${Utils.fromWei(balance)} ${state.token!.symbol}`,
             rbtcBalance: `${Utils.fromWei(rbtcBalance)} RBTC`
         };
         return swWithBalance;
     };
 
     useEffect(() => {
-        if (!account || !provider || !token) {
+        if (!state.account || !state.provider || !state.token) {
             return;
         }
         (async () => {
             let index: number = 0;
             let found: boolean = true;
             const tempSmartWallets: SmartWalletWithBalance[] = [];
-            const symbol = await Utils.tokenSymbol(token);
-            setTokenSymbol(symbol);
             while (found) {
                 // eslint-disable-next-line no-await-in-loop
-                const smartWalletAddress = await provider.generateSmartWallet(
+                const swAddress = await state.provider!.generateSmartWallet(
                     index + 1
                 );
                 // eslint-disable-next-line no-await-in-loop
-                const deployed = await provider.isSmartWalletDeployed(
-                    smartWalletAddress.address
+                const deployed = await state.provider!.isSmartWalletDeployed(
+                    swAddress.address
                 );
                 if (deployed) {
                     // eslint-disable-next-line no-await-in-loop
-                    const smartWalletWithBalance = await setBalance(
-                        smartWalletAddress,
-                        symbol
-                    );
+                    const smartWalletWithBalance = await setBalance(swAddress);
                     tempSmartWallets.push(smartWalletWithBalance);
                     index += 1;
                 } else {
@@ -82,36 +64,36 @@ function ActionBar(props: ActionBarProps) {
                 }
             }
         })();
-    }, [account, token, updateInfo]);
+    }, [state.account, state.token, updateInfo]);
 
     useEffect(() => {
         (async () => {
-            if (token) {
+            if (state.token) {
                 const workerAddress =
                     process.env.REACT_APP_CONTRACTS_RELAY_WORKER!;
                 const currentWorkerBalance = parseFloat(
                     Utils.fromWei(
-                        await Utils.tokenBalance(workerAddress, token)
+                        await Utils.tokenBalance(
+                            workerAddress,
+                            state.token!.address
+                        )
                     )
                 ).toFixed(4);
                 setWorkerBalance(currentWorkerBalance);
             }
         })();
-    }, [token]);
+    }, [state.token]);
 
     const create = async () => {
-        if (provider) {
-            setShow(true);
-            const smartWallet = await provider?.generateSmartWallet(
+        if (state.provider) {
+            dispatch({ type: 'set_loader', loader: true });
+            const smartWallet = await state.provider.generateSmartWallet(
                 smartWallets.length + 1
             );
 
-            const smartWalletWithBalance = await setBalance(
-                smartWallet,
-                tokenSymbol
-            );
+            const smartWalletWithBalance = await setBalance(smartWallet);
             setSmartWallets([...smartWallets, smartWalletWithBalance]);
-            setShow(false);
+            dispatch({ type: 'set_loader', loader: false });
         }
     };
 
@@ -122,30 +104,27 @@ function ActionBar(props: ActionBarProps) {
                     waves='light'
                     className='indigo accent-2'
                     onClick={create}
-                    disabled={!token}
+                    disabled={!state.token}
                 >
                     New Smart Wallet
                     <Icon right>add_circle_outline</Icon>
                 </Button>
             </Col>
             <Col s={5}>
-                <AllowedTokens
-                    provider={provider!}
-                    setToken={setToken}
-                    updateInfo={updateInfo}
-                />
+                <AllowedTokens updateInfo={updateInfo} />
             </Col>
             <Col s={5}>
                 <Row>
                     <Col s={6}>
                         <h6>
-                            {tokenSymbol} price: <span>{TRIF_PRICE}</span> RBTC
+                            {state.token?.symbol} price:{' '}
+                            <span>{TRIF_PRICE}</span> RBTC
                         </h6>
                     </Col>
                     <Col s={6}>
                         <h6>
                             Worker balance: <span>{workerBalance}</span>{' '}
-                            {tokenSymbol}
+                            {state.token?.symbol}
                         </h6>
                     </Col>
                 </Row>

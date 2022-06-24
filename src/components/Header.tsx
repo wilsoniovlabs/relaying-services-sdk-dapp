@@ -2,31 +2,31 @@ import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import Utils from 'src/Utils';
 import 'src/components/Header.css';
 import { Row, Col, Button, Icon } from 'react-materialize';
+import { useStore } from '../context/context';
 
 type HeaderProps = {
-    account?: string;
     connect: () => Promise<void>;
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
-    connected: boolean;
-    chainId: number;
 };
 
 function Header(props: HeaderProps) {
-    const { account, connect, setUpdateInfo, connected, chainId } = props;
+    const { state } = useStore();
+
+    const { connect, setUpdateInfo } = props;
 
     const [balance, setBalance] = useState<string>();
 
     useEffect(() => {
-        if (!account) {
+        if (!state.account) {
             return;
         }
         (async () => {
-            console.log(account);
-            const currentBalance = await Utils.getBalance(account);
+            console.log(state.account);
+            const currentBalance = await Utils.getBalance(state.account);
             const balanceConverted = Utils.fromWei(currentBalance);
             setBalance(`${balanceConverted} RBTC  `);
         })();
-    }, [account]);
+    }, [state.account]);
 
     const reload = async () => {
         setUpdateInfo(true);
@@ -36,7 +36,7 @@ function Header(props: HeaderProps) {
         <header>
             <nav
                 className={
-                    chainId.toString() ===
+                    state.chainId.toString() ===
                     process.env.REACT_APP_RIF_RELAY_CHAIN_ID
                         ? 'connected-network'
                         : ''
@@ -63,7 +63,7 @@ function Header(props: HeaderProps) {
                         <Row className='right'>
                             <Col>
                                 <span id='eoa-address'>
-                                    {account || 'Address'}{' '}
+                                    {state.account || 'Address'}{' '}
                                 </span>
                                 <span>&nbsp;|&nbsp;</span>
                                 <span id='eoa-balance' className='eoa-balance'>
@@ -75,7 +75,7 @@ function Header(props: HeaderProps) {
                                     waves='light'
                                     className='indigo accent-2'
                                     onClick={connect}
-                                    disabled={connected}
+                                    disabled={state.connected}
                                 >
                                     Connect Wallet
                                     <Icon right className='material-icons'>

@@ -2,12 +2,11 @@ import { Dispatch, SetStateAction, useState } from 'react';
 // @ts-ignore: TODO: Check if there is a ts library
 import abiDecoder from 'abi-decoder';
 import {
-    RelayingServices,
     RelayGasEstimationOptions,
     RelayingTransactionOptions
 } from '@rsksmart/rif-relay-sdk';
-import IForwarder from 'src/contracts/IForwarder.json';
-import { Modals, SmartWalletWithBalance } from 'src/types';
+import IForwarderAbi from 'src/contracts/IForwarderAbi.json';
+import { Modals } from 'src/types';
 import 'src/modals/Execute.css';
 import {
     Modal,
@@ -21,16 +20,12 @@ import {
 import Utils, { TRIF_PRICE } from 'src/Utils';
 import { AbiItem, toBN } from 'web3-utils';
 import LoadingButton from './LoadingButton';
+import { useStore } from '../context/context';
 
 type ExecuteProps = {
-    account?: string;
-    currentSmartWallet: SmartWalletWithBalance;
-    provider: RelayingServices;
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
-    token: string;
-    tokenSymbol: string;
 };
 
 type ExecuteInfo = {
@@ -45,16 +40,8 @@ type ExecuteInfo = {
 type ExecuteInfoKey = keyof ExecuteInfo;
 
 function Execute(props: ExecuteProps) {
-    const {
-        account,
-        currentSmartWallet,
-        provider,
-        setUpdateInfo,
-        modal,
-        setModal,
-        token,
-        tokenSymbol
-    } = props;
+    const { state } = useStore();
+    const { setUpdateInfo, modal, setModal } = props;
     const [results, setResults] = useState('');
     const [execute, setExecute] = useState<ExecuteInfo>({
         check: false,
@@ -103,7 +90,7 @@ function Execute(props: ExecuteProps) {
         abiEncodedTx: string
     ) => {
         const swContract = new web3.eth.Contract(
-            IForwarder.abi as AbiItem[],
+            IForwarderAbi as AbiItem[],
             swAddress
         );
         const fees = execute.fees === '' ? '0' : execute.fees;
@@ -112,7 +99,7 @@ function Execute(props: ExecuteProps) {
             .directExecute(toAddress, weiAmount, abiEncodedTx)
             .send(
                 {
-                    from: account
+                    from: state.account
                 },
                 // TODO: we may add the types
                 async (error: any, data: any) => {
@@ -137,7 +124,7 @@ function Execute(props: ExecuteProps) {
                     }
                 }
             );
-        Utils.addTransaction(currentSmartWallet.address, {
+        Utils.addTransaction(state.smartWallet!.address, {
             date: new Date(),
             id: transaction.transactionHash,
             type: 'Execute RBTC'
@@ -162,65 +149,63 @@ function Execute(props: ExecuteProps) {
     };
 
     const handleExecuteSmartWalletButtonClick = async () => {
-        if (currentSmartWallet) {
-            setExecuteLoading(true);
-            try {
-                const funcData = calculateAbiEncodedFunction();
-                const destinationContract = execute.address;
-                const swAddress = currentSmartWallet.address;
+        setExecuteLoading(true);
+        try {
+            const funcData = calculateAbiEncodedFunction();
+            const destinationContract = execute.address;
+            const swAddress = state.smartWallet!.address;
 
-                if (execute.check) {
-                    await relayTransactionDirectExecution(
-                        destinationContract,
-                        swAddress,
-                        funcData
-                    );
+            if (execute.check) {
+                await relayTransactionDirectExecution(
+                    destinationContract,
+                    swAddress,
+                    funcData
+                );
+            } else {
+                const fees = execute.fees === '' ? '0' : execute.fees;
+                const relayTransactionOpts: RelayingTransactionOptions = {
+                    unsignedTx: {
+                        data: funcData
+                    },
+                    smartWallet: state.smartWallet!,
+                    tokenAmount: Number(fees),
+                    tokenAddress: state.token!.address
+                };
+                const transaction = await state.provider!.relayTransaction(
+                    relayTransactionOpts
+                );
+                Utils.addTransaction(state.smartWallet!.address, {
+                    date: new Date(),
+                    id: transaction.transactionHash,
+                    type: `Execute ${state.token!.symbol}`
+                });
+                console.log('Transaction ', transaction);
+                console.log(`Transaction hash: ${transaction.blockHash}`);
+
+                const logs = abiDecoder.decodeLogs(transaction.logs);
+
+                console.log('Transaction logs: ', logs);
+
+                // TODO: abi-decode doesn't provide declaration files
+                const sampleRecipientEmitted = logs.find(
+                    (e: any) => e != null && e.name === 'TransactionRelayed'
+                );
+                console.log(sampleRecipientEmitted);
+                if (execute.show) {
+                    setResults(JSON.stringify(transaction));
                 } else {
-                    const fees = execute.fees === '' ? '0' : execute.fees;
-                    const relayTransactionOpts: RelayingTransactionOptions = {
-                        unsignedTx: {
-                            data: funcData
-                        },
-                        smartWallet: currentSmartWallet,
-                        tokenAmount: Number(fees),
-                        tokenAddress: token
-                    };
-                    const transaction = await provider.relayTransaction(
-                        relayTransactionOpts
-                    );
-                    Utils.addTransaction(currentSmartWallet.address, {
-                        date: new Date(),
-                        id: transaction.transactionHash,
-                        type: `Execute ${tokenSymbol}`
-                    });
-                    console.log('Transaction ', transaction);
-                    console.log(`Transaction hash: ${transaction.blockHash}`);
-
-                    const logs = abiDecoder.decodeLogs(transaction.logs);
-
-                    console.log('Transaction logs: ', logs);
-
-                    // TODO: abi-decode doesn't provide declaration files
-                    const sampleRecipientEmitted = logs.find(
-                        (e: any) => e != null && e.name === 'TransactionRelayed'
-                    );
-                    console.log(sampleRecipientEmitted);
-                    if (execute.show) {
-                        setResults(JSON.stringify(transaction));
-                    } else {
-                        setUpdateInfo(true);
-                        close();
-                    }
+                    setUpdateInfo(true);
+                    close();
                 }
-            } catch (error) {
-                const errorObj = error as Error;
-                if (errorObj.message) {
-                    alert(errorObj.message);
-                }
-                console.error(error);
             }
-            setExecuteLoading(false);
+        } catch (error) {
+            const errorObj = error as Error;
+            if (errorObj.message) {
+                alert(errorObj.message);
+            }
+            console.error(error);
         }
+        setExecuteLoading(false);
     };
 
     const estimateDirectExecution = async (
@@ -229,132 +214,128 @@ function Execute(props: ExecuteProps) {
         abiEncodedTx: string
     ) => {
         const swContract = new web3.eth.Contract(
-            IForwarder.abi as AbiItem[],
+            IForwarderAbi as AbiItem[],
             swAddress
         );
         const fees = execute.fees === '' ? '0' : execute.fees;
         const weiAmount = await Utils.toWei(fees.toString());
         const estimate = await swContract.methods
             .directExecute(toAddress, weiAmount, abiEncodedTx)
-            .estimateGas({ from: account });
+            .estimateGas({ from: state.account });
         return estimate;
     };
 
     const handleEstimateSmartWalletButtonClick = async () => {
-        if (currentSmartWallet) {
-            setEstimateLoading(true);
-            try {
-                const isUnitRBTC = execute.check;
+        setEstimateLoading(true);
+        try {
+            const isUnitRBTC = execute.check;
 
-                const funcData = calculateAbiEncodedFunction();
-                const destinationContract = execute.address;
-                const swAddress = currentSmartWallet.address;
+            const funcData = calculateAbiEncodedFunction();
+            const destinationContract = execute.address;
+            const swAddress = state.smartWallet!.address;
 
-                // for estimation we will use an eight of the user's token balance, it's just to estimate the gas cost
-                const tokenBalance = await Utils.tokenBalance(swAddress, token);
-                const userTokenBalance = toBN(tokenBalance);
+            // for estimation we will use an eight of the user's token balance, it's just to estimate the gas cost
+            const tokenBalance = await Utils.tokenBalance(
+                swAddress,
+                state.token!.address
+            );
+            const userTokenBalance = toBN(tokenBalance);
 
-                if (userTokenBalance.gt(toBN('0'))) {
-                    const eightOfBalance = await Utils.fromWei(
-                        userTokenBalance.divRound(toBN('8')).toString()
+            if (userTokenBalance.gt(toBN('0'))) {
+                const eightOfBalance = await Utils.fromWei(
+                    userTokenBalance.divRound(toBN('8')).toString()
+                );
+                console.log(
+                    'Your Balance: ',
+                    await Utils.fromWei(userTokenBalance.toString())
+                );
+                console.log('Estimating with: ', eightOfBalance.toString());
+
+                let result = 0;
+                if (isUnitRBTC) {
+                    result = await estimateDirectExecution(
+                        swAddress,
+                        destinationContract,
+                        funcData
+                    );
+                    changeValue(result, 'fees');
+                    console.log('Estimated direct SWCall cost: ', result);
+                } else {
+                    const relayWorker =
+                        process.env.REACT_APP_CONTRACTS_RELAY_WORKER!;
+
+                    const gasEstimationOpts: RelayGasEstimationOptions = {
+                        destinationContract,
+                        relayWorker,
+                        smartWalletAddress: swAddress,
+                        tokenFees: '0',
+                        abiEncodedTx: funcData,
+                        tokenAddress: state.token!.address
+                    };
+
+                    const costInWei =
+                        await state.provider!.estimateMaxPossibleRelayGasWithLinearFit(
+                            gasEstimationOpts
+                        );
+
+                    const costInRBTC = await Utils.fromWei(
+                        costInWei.toString()
+                    );
+                    // TODO: We need to change it to support different tokens
+                    // (we may want to receive it from the user)
+                    const tRifPriceInRBTC = TRIF_PRICE;
+                    const tRifPriceInWei = toBN(
+                        await Utils.toWei(tRifPriceInRBTC.toString())
+                    ); // 1 tRIF = tRifPriceInWei wei
+
+                    console.log('Cost in RBTC (wei): ', costInWei.toString());
+                    console.log('Cost in RBTC:', costInRBTC);
+                    console.log(
+                        'TRIf price in RBTC:',
+                        tRifPriceInRBTC.toString()
                     );
                     console.log(
-                        'Your Balance: ',
-                        await Utils.fromWei(userTokenBalance.toString())
+                        'TRIf price in Wei:',
+                        tRifPriceInWei.toString()
                     );
-                    console.log('Estimating with: ', eightOfBalance.toString());
+                    const tokenDecimals = await Utils.tokenDecimals(
+                        state.token!.address
+                    );
+                    console.log('TRIF Decimals: ', tokenDecimals);
 
-                    let result = 0;
-                    if (isUnitRBTC) {
-                        result = await estimateDirectExecution(
-                            swAddress,
-                            destinationContract,
-                            funcData
-                        );
-                        changeValue(result, 'fees');
-                        console.log('Estimated direct SWCall cost: ', result);
-                    } else {
-                        const relayWorker =
-                            process.env.REACT_APP_CONTRACTS_RELAY_WORKER!;
+                    const costInTrif = Number(costInRBTC) / tRifPriceInRBTC;
+                    console.log('Cost in TRIF (rbtc): ', costInTrif.toString());
 
-                        const gasEstimationOpts: RelayGasEstimationOptions = {
-                            destinationContract,
-                            relayWorker,
-                            smartWalletAddress: swAddress,
-                            tokenFees: '0',
-                            abiEncodedTx: funcData,
-                            tokenAddress: token
-                        };
+                    const costInTrifFixed = costInTrif.toFixed(tokenDecimals);
+                    console.log(
+                        'Cost in TRIF Fixed (rbtc): ',
+                        costInTrifFixed.toString()
+                    );
 
-                        const costInWei =
-                            await provider.estimateMaxPossibleRelayGasWithLinearFit(
-                                gasEstimationOpts
-                            );
+                    const costInTrifAsWei = Utils.toWei(
+                        costInTrifFixed.toString()
+                    );
+                    console.log(
+                        'Cost in TRIF (wei): ',
+                        costInTrifAsWei.toString()
+                    );
 
-                        const costInRBTC = await Utils.fromWei(
-                            costInWei.toString()
-                        );
-                        // TODO: We need to change it to support different tokens
-                        // (we may want to receive it from the user)
-                        const tRifPriceInRBTC = TRIF_PRICE;
-                        const tRifPriceInWei = toBN(
-                            await Utils.toWei(tRifPriceInRBTC.toString())
-                        ); // 1 tRIF = tRifPriceInWei wei
+                    console.log('Token Decimals: ', tokenDecimals);
 
-                        console.log(
-                            'Cost in RBTC (wei): ',
-                            costInWei.toString()
-                        );
-                        console.log('Cost in RBTC:', costInRBTC);
-                        console.log(
-                            'TRIf price in RBTC:',
-                            tRifPriceInRBTC.toString()
-                        );
-                        console.log(
-                            'TRIf price in Wei:',
-                            tRifPriceInWei.toString()
-                        );
-                        const tokenDecimals = await Utils.tokenDecimals(token);
-                        console.log('TRIF Decimals: ', tokenDecimals);
-
-                        const costInTrif = Number(costInRBTC) / tRifPriceInRBTC;
-                        console.log(
-                            'Cost in TRIF (rbtc): ',
-                            costInTrif.toString()
-                        );
-
-                        const costInTrifFixed =
-                            costInTrif.toFixed(tokenDecimals);
-                        console.log(
-                            'Cost in TRIF Fixed (rbtc): ',
-                            costInTrifFixed.toString()
-                        );
-
-                        const costInTrifAsWei = Utils.toWei(
-                            costInTrifFixed.toString()
-                        );
-                        console.log(
-                            'Cost in TRIF (wei): ',
-                            costInTrifAsWei.toString()
-                        );
-
-                        console.log('Token Decimals: ', tokenDecimals);
-
-                        changeValue(costInTrifFixed, 'fees');
-                        console.log('Cost in TRif: ', costInTrifFixed);
-                    }
-                } else {
-                    throw new Error('You dont have any token balance');
+                    changeValue(costInTrifFixed, 'fees');
+                    console.log('Cost in TRif: ', costInTrifFixed);
                 }
-            } catch (error) {
-                const errorObj = error as Error;
-                if (errorObj.message) {
-                    alert(errorObj.message);
-                }
-                console.error(error);
+            } else {
+                throw new Error('You dont have any token balance');
             }
-            setEstimateLoading(false);
+        } catch (error) {
+            const errorObj = error as Error;
+            if (errorObj.message) {
+                alert(errorObj.message);
+            }
+            console.error(error);
         }
+        setEstimateLoading(false);
     };
 
     const pasteRecipientAddress = async () => {
@@ -469,7 +450,7 @@ function Execute(props: ExecuteProps) {
                             label={
                                 execute.check
                                     ? 'Amount to be sent'
-                                    : `Fees (${tokenSymbol})`
+                                    : `Fees (${state.token!.symbol})`
                             }
                             placeholder='0'
                             value={execute.fees}
@@ -482,7 +463,7 @@ function Execute(props: ExecuteProps) {
                     </Col>
                     <Col s={4}>
                         <Switch
-                            offLabel={tokenSymbol}
+                            offLabel={state.token!.symbol}
                             onLabel='RBTC'
                             checked={execute.check}
                             onChange={(event) => {

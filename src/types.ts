@@ -5,6 +5,12 @@ export interface SmartWalletWithBalance extends SmartWallet {
     rbtcBalance: string;
 }
 
+export interface Token {
+    address: string;
+    symbol: string;
+    decimals: number;
+}
+
 export interface Modals {
     deploy: boolean;
     execute: boolean;
