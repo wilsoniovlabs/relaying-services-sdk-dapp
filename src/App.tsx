@@ -1,26 +1,25 @@
 import { useState, useEffect } from 'react';
-import './App.css';
-import Web3 from 'web3';
+import 'src/App.css';
 
 import {
     DefaultRelayingServices,
-    RelayingServices
-} from 'relaying-services-sdk';
+    RelayingServices,
+    RelayingServicesAddresses
+} from '@rsksmart/rif-relay-sdk';
 
-import { RelayingServicesAddresses } from 'relaying-services-sdk/dist/interfaces';
 import { EnvelopingConfig } from '@rsksmart/rif-relay-common';
-import Header from './components/Header';
-import SmartWallet from './components/SmartWallet';
-import Footer from './components/Footer';
-
-import Deploy from './modals/Deploy';
-
-import Receive from './modals/Receive';
-import Transfer from './modals/Transfer';
-import Loading from './modals/Loading';
-import Execute from './modals/Execute';
-import Utils from './Utils';
-import { SmartWalletWithBalance } from './types';
+import Header from 'src/components/Header';
+import SmartWallet from 'src/components/SmartWallet';
+import ActionBar from 'src/components/ActionBar';
+import Deploy from 'src/modals/Deploy';
+import Receive from 'src/modals/Receive';
+import Transfer from 'src/modals/Transfer';
+import Loading from 'src/modals/Loading';
+import Execute from 'src/modals/Execute';
+import Utils from 'src/Utils';
+import { Modals, SmartWalletWithBalance } from 'src/types';
+import rLogin from 'src/rLogin';
+import Web3 from 'web3';
 
 if (window.ethereum) {
     window.web3 = new Web3(window.ethereum);
@@ -34,11 +33,15 @@ function getEnvParamAsInt(value: string | undefined): number | undefined {
     return value ? parseInt(value, 10) : undefined;
 }
 
-const { web3 } = window;
-const { ethereum } = window;
-
 function App() {
+    const [modal, setModal] = useState<Modals>({
+        deploy: false,
+        execute: false,
+        receive: false,
+        transfer: false
+    });
     const [connected, setConnect] = useState(false);
+    const [chainId, setChainId] = useState(0);
     const [account, setAccount] = useState<string | undefined>(undefined);
     const [currentSmartWallet, setCurrentSmartWallet] = useState<
         SmartWalletWithBalance | undefined
@@ -52,8 +55,23 @@ function App() {
         []
     );
     const [updateInfo, setUpdateInfo] = useState(false);
+    const [token, setToken] = useState('');
+    const [tokenSymbol, setTokenSymbol] = useState('');
 
-    async function initProvider() {
+    useEffect(() => {
+        if (!updateInfo) {
+            return;
+        }
+        (async () => {
+            setShow(true);
+            setTimeout(() => {
+                setUpdateInfo(false);
+                setShow(false);
+            }, 100);
+        })();
+    }, [updateInfo]);
+
+    const initProvider = async () => {
         try {
             const config: Partial<EnvelopingConfig> = {
                 chainId: getEnvParamAsInt(
@@ -89,7 +107,6 @@ function App() {
                     process.env.REACT_APP_CONTRACTS_DEPLOY_VERIFIER!,
                 smartWalletRelayVerifier:
                     process.env.REACT_APP_CONTRACTS_RELAY_VERIFIER!,
-                testToken: process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
                 // TODO: Why aren't these addresses required? we may set them as optional
                 penalizer: '',
                 customSmartWallet: '',
@@ -108,77 +125,69 @@ function App() {
         } catch (error) {
             console.error(error);
         }
-    }
+    };
 
-    useEffect(() => {
-        if (!updateInfo) {
-            return;
-        }
-        (async () => {
-            setConnect(false);
-            setSmartWallets([]);
-            setTimeout(() => {
-                setConnect(true);
-                setUpdateInfo(false);
-            }, 100);
-        })();
-    }, [updateInfo]);
-
-    async function start() {
-        const chainId = await web3.eth.getChainId();
-        if (chainId === Number(process.env.REACT_APP_RIF_RELAY_CHAIN_ID)) {
-            await initProvider();
-        } else {
-            console.error(
-                `Wrong network ID ${chainId}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`
-            );
-        }
-    }
-
-    async function refreshAccount() {
+    const refreshAccount = async () => {
         const accounts = await Utils.getAccounts();
         const currentAccount = accounts[0];
         setAccount(currentAccount);
-    }
+    };
 
-    async function connectToMetamask() {
+    const reload = async () => {
+        setShow(true);
+        await initProvider();
+        await refreshAccount();
+        setShow(false);
+    };
+
+    const connectToRLogin = async () => {
         let isConnected = false;
         try {
-            await ethereum.request({ method: 'eth_requestAccounts' });
-            ethereum.on('accountsChanged', async (/* accounts */) => {
-                await refreshAccount();
-            });
-            isConnected = true;
+            const chain: number = await web3.eth.getChainId();
+            if (chain.toString() === process.env.REACT_APP_RIF_RELAY_CHAIN_ID) {
+                const connect = await rLogin.connect();
+                const login = connect.provider;
+
+                login.on('accountsChanged', async (/* accounts */) => {
+                    await reload();
+                });
+
+                login.on('chainChanged', async (newChain: string) => {
+                    setChainId(parseInt(newChain, 16));
+                });
+                setChainId(chain);
+                isConnected = true;
+            } else {
+                alert(
+                    `Wrong network ID ${chain}, it must be ${process.env.REACT_APP_RIF_RELAY_CHAIN_ID}`
+                );
+            }
         } catch (error) {
             console.error(error);
         }
         setConnect(isConnected);
         return isConnected;
-    }
+    };
 
-    async function connect() {
+    const connect = async () => {
         try {
-            setShow(true);
             let isConnected = false;
             if (!connected) {
-                isConnected = await connectToMetamask();
+                isConnected = await connectToRLogin();
             }
 
             if (isConnected) {
-                await refreshAccount();
-                await start();
+                await reload();
             } else {
                 console.warn('Unable to connect to Metamask');
                 setConnect(isConnected);
             }
-
-            setShow(false);
         } catch (error) {
             console.log(error);
             console.warn('User denied account access');
             setShow(false);
         }
-    }
+    };
 
     return (
         <div className='App'>
@@ -188,24 +197,32 @@ function App() {
                 // eslint-disable-next-line react/jsx-no-bind
                 connect={connect}
                 connected={connected}
+                chainId={chainId}
                 setUpdateInfo={setUpdateInfo}
             />
 
-            <SmartWallet
-                connected={connected}
-                smartWallets={smartWallets}
-                setCurrentSmartWallet={setCurrentSmartWallet}
-                setShow={setShow}
-            />
-
-            {connected && (
-                <Footer
+            {provider && (
+                <ActionBar
                     provider={provider}
                     smartWallets={smartWallets}
                     setSmartWallets={setSmartWallets}
                     connected={connected}
                     account={account}
                     setShow={setShow}
+                    token={token}
+                    updateInfo={updateInfo}
+                    setToken={setToken}
+                    tokenSymbol={tokenSymbol}
+                    setTokenSymbol={setTokenSymbol}
+                />
+            )}
+
+            {token && (
+                <SmartWallet
+                    connected={connected}
+                    smartWallets={smartWallets}
+                    setCurrentSmartWallet={setCurrentSmartWallet}
+                    setModal={setModal}
                 />
             )}
 
@@ -213,19 +230,35 @@ function App() {
                 currentSmartWallet={currentSmartWallet}
                 provider={provider}
                 setUpdateInfo={setUpdateInfo}
+                modal={modal}
+                setModal={setModal}
+                token={token}
+                tokenSymbol={tokenSymbol}
             />
-            <Receive currentSmartWallet={currentSmartWallet} />
+            <Receive
+                currentSmartWallet={currentSmartWallet}
+                modal={modal}
+                setModal={setModal}
+            />
             <Transfer
                 provider={provider!}
                 currentSmartWallet={currentSmartWallet!}
                 setUpdateInfo={setUpdateInfo}
                 account={account}
+                modal={modal}
+                setModal={setModal}
+                token={token}
+                tokenSymbol={tokenSymbol}
             />
             <Execute
                 provider={provider!}
                 currentSmartWallet={currentSmartWallet}
                 account={account}
                 setUpdateInfo={setUpdateInfo}
+                modal={modal}
+                setModal={setModal}
+                token={token}
+                tokenSymbol={tokenSymbol}
             />
         </div>
     );

@@ -1,10 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
-import { SmartWalletWithBalance } from '../types';
-import './SmartWallet.css';
-
-// TODO: Replace it with react-materialize
-window.M.AutoInit();
-const { M } = window;
+import { Modals, SmartWalletWithBalance } from 'src/types';
+import 'src/components/SmartWallet.css';
+import { Col, Row, Button, Icon } from 'react-materialize';
 
 type SmartWalletProps = {
     connected: boolean;
@@ -12,144 +9,126 @@ type SmartWalletProps = {
     setCurrentSmartWallet: Dispatch<
         SetStateAction<SmartWalletWithBalance | undefined>
     >;
-    setShow: Dispatch<SetStateAction<boolean>>;
+    setModal: Dispatch<SetStateAction<Modals>>;
 };
 
-function SmartWallet(props: SmartWalletProps) {
-    const { connected, smartWallets, setCurrentSmartWallet, setShow } = props;
+type ModalsKey = keyof Modals;
 
+function SmartWallet(props: SmartWalletProps) {
+    const { connected, smartWallets, setCurrentSmartWallet, setModal } = props;
     async function copySmartWalletAddress(address: string) {
-        setShow(true);
         await navigator.clipboard.writeText(address);
-        setShow(false);
     }
-    function openModal(modalId: string, smartWallet: SmartWalletWithBalance) {
+
+    function openModal(smartWallet: SmartWalletWithBalance, modal: ModalsKey) {
         setCurrentSmartWallet(smartWallet);
-        const instance = M.Modal.init(document.getElementById(modalId), {
-            dismissible: false
-        });
-        instance.open();
+        setModal((prev) => ({ ...prev, [modal]: true }));
     }
+
     return (
         <div className='smart-wallets'>
-            <div id='no-smart-wallets' className='row grey'>
-                <div
-                    id='no-wallets-message'
-                    className={`col s12 ${
-                        smartWallets.length <= 0 && connected ? '' : 'hide'
-                    }`}
-                >
+            <Row
+                className={`grey ${
+                    smartWallets.length <= 0 && connected ? '' : 'hide'
+                }`}
+            >
+                <Col s={12}>
                     <h6 className='center-align'>
                         No Smart Wallets detected for selected account. Create a
                         new Smart Wallet by clicking the New Smart Wallet
                         button.
                     </h6>
-                </div>
-                <div
-                    id='no-connection'
-                    className={`col s12 ${connected ? 'hide' : ''}`}
-                >
+                </Col>
+                <Col s={12} className={`${connected ? 'hide' : ''}`}>
                     <h6 className='center-align'>
                         Wallet not connected, please connect.
                     </h6>
-                </div>
-            </div>
+                </Col>
+            </Row>
             {smartWallets.map((smartWallet: SmartWalletWithBalance) => (
-                <div
-                    key={smartWallet.index}
-                    className='smart-wallet row teal lighten-4'
-                >
-                    <div className='col s1'>
-                        <a
-                            className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${
-                                smartWallet.deployed ? 'disabled' : ''
-                            }`}
-                            href='#!'
-                            data-position='bottom'
-                            data-tooltip='Deploy'
-                            onClick={() => {
-                                openModal('deploy-modal', smartWallet);
-                            }}
-                        >
-                            <i className='material-icons'>file_upload</i>
-                        </a>
-                    </div>
-                    <div className='col s2'>
-                        <h6
-                            className='tooltipped summary-smart-wallet-address'
-                            data-position='bottom'
-                            data-tooltip='0x'
-                        >
-                            {smartWallet.address}
-                        </h6>
-                    </div>
-                    <div className='col s1 copy-container'>
-                        <a
-                            href='#!'
-                            className='btn-floating btn-small waves-effect waves-light indigo accent-2 tooltipped'
-                            data-position='bottom'
-                            data-tooltip='Copy address'
-                            onClick={() => {
-                                copySmartWalletAddress(smartWallet.address);
-                            }}
-                        >
-                            <i className='material-icons'>content_copy</i>
-                        </a>
-                    </div>
-                    <div className='col s2'>
-                        <h6>{smartWallet.balance}</h6>
-                    </div>
-                    <div className='col s3'>
-                        <h6>{smartWallet.rbtcBalance}</h6>
-                    </div>
-                    <div className='col s1 right-align'>
-                        <a
-                            id='transfer-button-0'
-                            href='#!'
-                            className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${
-                                smartWallet.deployed ? '' : 'disabled'
-                            }`}
-                            data-position='bottom'
-                            data-tooltip='Transfer'
-                            onClick={() => {
-                                openModal('transfer-modal', smartWallet);
-                            }}
-                        >
-                            <i className='material-icons'>call_made</i>
-                        </a>
-                    </div>
-                    <div className='col s1 center-align'>
-                        <a
-                            id='receive-button-0'
-                            href='#!'
-                            className='btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger'
-                            data-position='bottom'
-                            data-tooltip='Receive'
-                            onClick={() => {
-                                openModal('receive-modal', smartWallet);
-                            }}
-                        >
-                            <i className='material-icons'>arrow_downward</i>
-                        </a>
-                    </div>
-                    <div className='col s1 left-align'>
-                        <a
-                            className={`btn-floating btn-medium waves-effect waves-light indigo accent-2 tooltipped modal-trigger ${
-                                smartWallet.deployed ? '' : 'disabled'
-                            }`}
-                            href='#!'
-                            data-position='bottom'
-                            data-tooltip='Execute'
-                            onClick={() => {
-                                openModal('execute-modal', smartWallet);
-                            }}
-                        >
-                            <i className='material-icons'>
-                                play_circle_outline
-                            </i>
-                        </a>
-                    </div>
-                </div>
+                <Row key={smartWallet.index} className='space-row'>
+                    <Row className='teal lighten-4'>
+                        <Col s={1}>
+                            <Button
+                                waves='light'
+                                className='indigo accent-2'
+                                tooltip='Deploy'
+                                floating
+                                disabled={smartWallet.deployed}
+                                onClick={() => {
+                                    openModal(smartWallet, 'deploy');
+                                }}
+                            >
+                                <Icon center>file_upload</Icon>
+                            </Button>
+                        </Col>
+                        <Col s={3}>
+                            <h6 className='summary-smart-wallet-address'>
+                                {smartWallet.address}
+                            </h6>
+                        </Col>
+                        <Col s={1}>
+                            <Button
+                                waves='light'
+                                className='indigo accent-2'
+                                tooltip='Copy address'
+                                floating
+                                onClick={() => {
+                                    copySmartWalletAddress(smartWallet.address);
+                                }}
+                            >
+                                <Icon center>content_copy</Icon>
+                            </Button>
+                        </Col>
+                        <Col s={2}>
+                            <h6>{smartWallet.balance}</h6>
+                        </Col>
+                        <Col s={2}>
+                            <h6>{smartWallet.rbtcBalance}</h6>
+                        </Col>
+                        <Col s={1}>
+                            <Button
+                                waves='light'
+                                className='indigo accent-2'
+                                tooltip='Transfer'
+                                floating
+                                disabled={!smartWallet.deployed}
+                                onClick={() => {
+                                    openModal(smartWallet, 'transfer');
+                                }}
+                            >
+                                <Icon center>call_made</Icon>
+                            </Button>
+                        </Col>
+                        <Col s={1}>
+                            <Button
+                                waves='light'
+                                className='indigo accent-2'
+                                tooltip='Receive'
+                                floating
+                                onClick={() => {
+                                    openModal(smartWallet, 'receive');
+                                }}
+                            >
+                                <Icon center>arrow_downward</Icon>
+                            </Button>
+                        </Col>
+                        <Col s={1}>
+                            <Button
+                                waves='light'
+                                className='indigo accent-2'
+                                tooltip='Execute'
+                                floating
+                                disabled={!smartWallet.deployed}
+                                onClick={() => {
+                                    openModal(smartWallet, 'execute');
+                                }}
+                            >
+                                <Icon center>play_circle_outline</Icon>
+                            </Button>
+                        </Col>
+                    </Row>
+                </Row>
             ))}
         </div>
     );

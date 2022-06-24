@@ -1,16 +1,18 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import Utils from '../Utils';
-import './Header.css';
+import Utils from 'src/Utils';
+import 'src/components/Header.css';
+import { Row, Col, Button, Icon } from 'react-materialize';
 
 type HeaderProps = {
     account?: string;
     connect: () => Promise<void>;
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
     connected: boolean;
+    chainId: number;
 };
 
 function Header(props: HeaderProps) {
-    const { account, connect, setUpdateInfo, connected } = props;
+    const { account, connect, setUpdateInfo, connected, chainId } = props;
 
     const [balance, setBalance] = useState<string>();
 
@@ -26,66 +28,76 @@ function Header(props: HeaderProps) {
         })();
     }, [account]);
 
-    async function refresh() {
+    const reload = async () => {
         setUpdateInfo(true);
-    }
+    };
+
     return (
         <header>
-            <nav>
-                <div className='nav-wrapper gradient'>
-                    <div className='brand-logo left'>
-                        <img
-                            className='responsive-img'
-                            alt='logo'
-                            src='images/rif_logo.png'
-                            onClick={() => refresh()}
-                        />
-                        <span>
-                            <b>RIF Relay</b>
-                        </span>
-                    </div>
-                    <ul id='nav-mobile' className='right hide-on-med-and-down'>
-                        <li>
-                            <span id='eoa-address'>
-                                {account || 'Address'}{' '}
-                            </span>
-                        </li>
-                        <li>
-                            <span>&nbsp;|&nbsp;</span>
-                        </li>
-                        <li>
-                            <span id='eoa-balance' className='eoa-balance'>
-                                {balance || 'Balance'}{' '}
-                            </span>
-                        </li>
-                        <li>
-                            <a
-                                className='waves-effect waves-light btn indigo accent-2'
-                                href='#!'
-                                onClick={() => {
-                                    connect();
-                                }}
-                            >
-                                Connect wallet
-                                <i className='material-icons right'>
-                                    account_balance_wallet
-                                </i>
-                            </a>
-                        </li>
-                        <a
-                            className={`btn-floating btn-small waves-effect waves-light accent-2 ${
-                                !connected ? 'disabled' : ''
-                            }`}
-                            onClick={() => {
-                                refresh();
-                            }}
-                            data-position='bottom'
-                            href='#!'
-                        >
-                            <i className='material-icons'>update</i>
-                        </a>
-                    </ul>
-                </div>
+            <nav
+                className={
+                    chainId.toString() ===
+                    process.env.REACT_APP_RIF_RELAY_CHAIN_ID
+                        ? 'connected-network'
+                        : ''
+                }
+            >
+                <Row>
+                    <Col s={6}>
+                        <Row>
+                            <Col s={4}>
+                                <div className='brand-logo'>
+                                    <img
+                                        alt='logo'
+                                        src='images/rif_logo_2.png'
+                                    />
+                                    <span>
+                                        <b>RIF Relay</b>
+                                    </span>
+                                </div>
+                            </Col>
+                        </Row>
+                    </Col>
+
+                    <Col s={6}>
+                        <Row className='right'>
+                            <Col>
+                                <span id='eoa-address'>
+                                    {account || 'Address'}{' '}
+                                </span>
+                                <span>&nbsp;|&nbsp;</span>
+                                <span id='eoa-balance' className='eoa-balance'>
+                                    {balance || 'Balance'}{' '}
+                                </span>
+                            </Col>
+                            <Col>
+                                <Button
+                                    waves='light'
+                                    className='indigo accent-2'
+                                    onClick={connect}
+                                    disabled={connected}
+                                >
+                                    Connect Wallet
+                                    <Icon right className='material-icons'>
+                                        account_balance_wallet
+                                    </Icon>
+                                </Button>
+                            </Col>
+                            <Col>
+                                <Button
+                                    waves='light'
+                                    onClick={reload}
+                                    floating
+                                    tooltip='Refresh information'
+                                >
+                                    <Icon className='material-icons'>
+                                        update
+                                    </Icon>
+                                </Button>
+                            </Col>
+                        </Row>
+                    </Col>
+                </Row>
             </nav>
         </header>
     );

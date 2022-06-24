@@ -1,37 +1,40 @@
 import { Dispatch, SetStateAction, useState } from 'react';
 // @ts-ignore: TODO: Check if there is a ts library
 import abiDecoder from 'abi-decoder';
-import Web3 from 'web3';
-import { toBN } from 'web3-utils';
 import {
     RelayingServices,
     RelayGasEstimationOptions,
     RelayingTransactionOptions
-} from 'relaying-services-sdk';
-import IForwarder from '../contracts/IForwarder.json';
-import { SmartWalletWithBalance } from '../types';
-import Utils from '../Utils';
-
-const { M } = window;
-const { $ } = window;
-if (window.ethereum) {
-    window.web3 = new Web3(window.ethereum);
-} else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider);
-} else {
-    throw new Error('Error: MetaMask or web3 not detected');
-}
-const { web3 } = window;
+} from '@rsksmart/rif-relay-sdk';
+import IForwarder from 'src/contracts/IForwarder.json';
+import { Modals, SmartWalletWithBalance } from 'src/types';
+import 'src/modals/Execute.css';
+import {
+    Modal,
+    Col,
+    Row,
+    TextInput,
+    Button,
+    Icon,
+    Switch
+} from 'react-materialize';
+import Utils, { TRIF_PRICE } from 'src/Utils';
+import { AbiItem, toBN } from 'web3-utils';
+import LoadingButton from './LoadingButton';
 
 type ExecuteProps = {
     account?: string;
     currentSmartWallet?: SmartWalletWithBalance;
     provider: RelayingServices;
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
+    modal: Modals;
+    setModal: Dispatch<SetStateAction<Modals>>;
+    token: string;
+    tokenSymbol: string;
 };
 
 type ExecuteInfo = {
-    fees: number | string;
+    fees: string;
     check: boolean;
     show: boolean;
     address: string;
@@ -42,7 +45,16 @@ type ExecuteInfo = {
 type ExecuteInfoKey = keyof ExecuteInfo;
 
 function Execute(props: ExecuteProps) {
-    const { account, currentSmartWallet, provider, setUpdateInfo } = props;
+    const {
+        account,
+        currentSmartWallet,
+        provider,
+        setUpdateInfo,
+        modal,
+        setModal,
+        token,
+        tokenSymbol
+    } = props;
     const [results, setResults] = useState('');
     const [execute, setExecute] = useState<ExecuteInfo>({
         check: false,
@@ -55,7 +67,7 @@ function Execute(props: ExecuteProps) {
     const [executeLoading, setExecuteLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
 
-    function calculateAbiEncodedFunction() {
+    const calculateAbiEncodedFunction = () => {
         const contractFunction = execute.function.trim();
         const functionSig =
             web3.eth.abi.encodeFunctionSignature(contractFunction);
@@ -74,7 +86,6 @@ function Execute(props: ExecuteProps) {
 
             const paramsTypes = paramsStr.split(',');
             const paramsValues = execute.value.split(',');
-
             const encodedParamVals = web3.eth.abi.encodeParameters(
                 paramsTypes,
                 paramsValues
@@ -84,45 +95,53 @@ function Execute(props: ExecuteProps) {
             );
         }
         return funcData;
-    }
+    };
 
-    async function relayTransactionDirectExecution(
+    const relayTransactionDirectExecution = async (
         toAddress: string,
         swAddress: string,
         abiEncodedTx: string
-    ) {
-        const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
-        swContract.setProvider(web3.currentProvider);
-
-        await swContract.methods.directExecute(toAddress, abiEncodedTx).send(
-            {
-                from: account
-            },
-            // TODO: we may add the types
-            async (error: any, data: any) => {
-                if (error !== undefined && error !== null) {
-                    throw error;
-                } else {
-                    const txHash = data;
-                    console.log(`Your TxHash is ${txHash}`);
-
-                    // checks to verify that the contract was executed properly
-                    const receipt = await Utils.getReceipt(txHash);
-
-                    console.log(`Your receipt is`);
-                    console.log(receipt);
-
-                    const trxData = await web3.eth.getTransaction(txHash);
-                    console.log('Your tx data is');
-                    console.log(trxData);
-                }
-            }
+    ) => {
+        const swContract = new web3.eth.Contract(
+            IForwarder.abi as AbiItem[],
+            swAddress
         );
-    }
+        const fees = execute.fees === '' ? '0' : execute.fees;
+        const weiAmount = await Utils.toWei(fees.toString());
+        const transaction = await swContract.methods
+            .directExecute(toAddress, weiAmount, abiEncodedTx)
+            .send(
+                {
+                    from: account
+                },
+                // TODO: we may add the types
+                async (error: any, data: any) => {
+                    if (error !== undefined && error !== null) {
+                        throw error;
+                    } else {
+                        const txHash = data;
+                        console.log(`Your TxHash is ${txHash}`);
 
-    function close() {
-        const instance = M.Modal.getInstance($('#execute-modal'));
-        instance.close();
+                        // checks to verify that the contract was executed properly
+                        const receipt = await Utils.getReceipt(txHash);
+
+                        console.log(`Your receipt is`);
+                        console.log(receipt);
+
+                        const trxData = await web3.eth.getTransaction(txHash);
+                        console.log('Your tx data is');
+                        console.log(trxData);
+                        if (execute.show) {
+                            setResults(JSON.stringify(transaction));
+                        }
+                    }
+                }
+            );
+    };
+
+    const close = () => {
+        setModal((prev) => ({ ...prev, execute: false }));
+        setResults('');
         setExecute({
             check: false,
             show: false,
@@ -131,16 +150,13 @@ function Execute(props: ExecuteProps) {
             function: '',
             fees: ''
         });
-    }
+    };
 
-    function changeValue<T>(value: T, prop: ExecuteInfoKey) {
-        const obj = { ...execute };
-        // @ts-ignore: TODO: change this to be type safe
-        obj[prop] = value;
-        setExecute(obj);
-    }
+    const changeValue = <T,>(value: T, prop: ExecuteInfoKey) => {
+        setExecute((prev) => ({ ...prev, [prop]: value }));
+    };
 
-    async function handleExecuteSmartWalletButtonClick() {
+    const handleExecuteSmartWalletButtonClick = async () => {
         if (currentSmartWallet) {
             setExecuteLoading(true);
             try {
@@ -160,10 +176,9 @@ function Execute(props: ExecuteProps) {
                         unsignedTx: {
                             data: funcData
                         },
-                        tokenAddress:
-                            process.env.REACT_APP_CONTRACTS_RIF_TOKEN!,
                         smartWallet: currentSmartWallet,
-                        tokenAmount: Number(fees)
+                        tokenAmount: Number(fees),
+                        tokenAddress: token
                     };
                     const transaction = await provider.relayTransaction(
                         relayTransactionOpts
@@ -197,23 +212,26 @@ function Execute(props: ExecuteProps) {
             }
             setExecuteLoading(false);
         }
-    }
+    };
 
-    async function estimateDirectExecution(
+    const estimateDirectExecution = async (
         swAddress: string,
         toAddress: string,
         abiEncodedTx: string
-    ) {
-        const swContract = new web3.eth.Contract(IForwarder.abi, swAddress);
-        swContract.setProvider(web3.currentProvider);
-
+    ) => {
+        const swContract = new web3.eth.Contract(
+            IForwarder.abi as AbiItem[],
+            swAddress
+        );
+        const fees = execute.fees === '' ? '0' : execute.fees;
+        const weiAmount = await Utils.toWei(fees.toString());
         const estimate = await swContract.methods
-            .directExecute(toAddress, abiEncodedTx)
+            .directExecute(toAddress, weiAmount, abiEncodedTx)
             .estimateGas({ from: account });
         return estimate;
-    }
+    };
 
-    async function handleEstimateSmartWalletButtonClick() {
+    const handleEstimateSmartWalletButtonClick = async () => {
         if (currentSmartWallet) {
             setEstimateLoading(true);
             try {
@@ -224,7 +242,7 @@ function Execute(props: ExecuteProps) {
                 const swAddress = currentSmartWallet.address;
 
                 // for estimation we will use an eight of the user's token balance, it's just to estimate the gas cost
-                const tokenBalance = await Utils.tokenBalance(swAddress);
+                const tokenBalance = await Utils.tokenBalance(swAddress, token);
                 const userTokenBalance = toBN(tokenBalance);
 
                 if (userTokenBalance.gt(toBN('0'))) {
@@ -255,7 +273,8 @@ function Execute(props: ExecuteProps) {
                             relayWorker,
                             smartWalletAddress: swAddress,
                             tokenFees: '0',
-                            abiEncodedTx: funcData
+                            abiEncodedTx: funcData,
+                            tokenAddress: token
                         };
 
                         const costInWei =
@@ -266,9 +285,9 @@ function Execute(props: ExecuteProps) {
                         const costInRBTC = await Utils.fromWei(
                             costInWei.toString()
                         );
-                        const tRifPriceInRBTC = parseFloat(
-                            $('#trif-price').text()
-                        ); // 1 tRIF = tRifPriceInRBTC RBTC
+                        // TODO: We need to change it to support different tokens
+                        // (we may want to receive it from the user)
+                        const tRifPriceInRBTC = TRIF_PRICE;
                         const tRifPriceInWei = toBN(
                             await Utils.toWei(tRifPriceInRBTC.toString())
                         ); // 1 tRIF = tRifPriceInWei wei
@@ -286,17 +305,17 @@ function Execute(props: ExecuteProps) {
                             'TRIf price in Wei:',
                             tRifPriceInWei.toString()
                         );
-                        const ritTokenDecimals = await Utils.ritTokenDecimals();
-                        console.log('TRIF Decimals: ', ritTokenDecimals);
+                        const tokenDecimals = await Utils.tokenDecimals(token);
+                        console.log('TRIF Decimals: ', tokenDecimals);
 
-                        const costInTrif = costInRBTC / tRifPriceInRBTC;
+                        const costInTrif = Number(costInRBTC) / tRifPriceInRBTC;
                         console.log(
                             'Cost in TRIF (rbtc): ',
                             costInTrif.toString()
                         );
 
                         const costInTrifFixed =
-                            costInTrif.toFixed(ritTokenDecimals);
+                            costInTrif.toFixed(tokenDecimals);
                         console.log(
                             'Cost in TRIF Fixed (rbtc): ',
                             costInTrifFixed.toString()
@@ -310,7 +329,7 @@ function Execute(props: ExecuteProps) {
                             costInTrifAsWei.toString()
                         );
 
-                        console.log('RIF Token Decimals: ', ritTokenDecimals);
+                        console.log('Token Decimals: ', tokenDecimals);
 
                         changeValue(costInTrifFixed, 'fees');
                         console.log('Cost in TRif: ', costInTrifFixed);
@@ -327,234 +346,157 @@ function Execute(props: ExecuteProps) {
             }
             setEstimateLoading(false);
         }
-    }
+    };
 
-    async function pasteRecipientAddress() {
-        setExecuteLoading(true);
+    const pasteRecipientAddress = async () => {
         const address = await navigator.clipboard.readText();
         if (Utils.checkAddress(address.toLowerCase())) {
             changeValue(address, 'address');
         }
-        setExecuteLoading(false);
-    }
+    };
+
+    const returnActions = () => [
+        <Button
+            flat
+            node='button'
+            waves='green'
+            onClick={handleExecuteSmartWalletButtonClick}
+            disabled={executeLoading}
+        >
+            Execute
+            <LoadingButton show={executeLoading} />
+        </Button>,
+        <Button
+            flat
+            node='button'
+            waves='green'
+            onClick={handleEstimateSmartWalletButtonClick}
+            disabled={estimateLoading}
+        >
+            Estimate
+            <LoadingButton show={estimateLoading} />
+        </Button>,
+        <Button flat modal='close' node='button' waves='green'>
+            Cancel
+        </Button>
+    ];
 
     return (
-        <div
-            id='execute-modal'
-            className='modal large-modal'
-            style={{ maxHeight: '95%' }}
+        <Modal
+            open={modal.execute}
+            options={{
+                onCloseEnd: () => close()
+            }}
+            actions={returnActions()}
         >
-            <div className='modal-content' style={{ paddingBottom: '0em' }}>
-                <div className='row'>
-                    <form className='col s12'>
-                        <div className='row mb-0'>
-                            <div className='input-field col s10'>
-                                <input
-                                    placeholder='Contract address'
-                                    id='execute-contract-address'
-                                    type='text'
-                                    className='validate'
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'address'
-                                        );
-                                    }}
-                                    value={execute.address}
-                                />
-                                <label htmlFor='execute-contract-address'>
-                                    Contract
-                                </label>
-                            </div>
-                            <div
-                                className='input-field col s1'
-                                style={{ paddingTop: '0.5em' }}
-                            >
-                                <a
-                                    href='#!'
-                                    id='paste-contract-address-button'
-                                    className='btn waves-effect waves-light indigo accent-2'
-                                    onClick={pasteRecipientAddress}
-                                >
-                                    <i className='material-icons center'>
-                                        content_paste
-                                    </i>
-                                </a>
-                            </div>
-                        </div>
-                        <div className='row mb-0'>
-                            <div className='input-field col s8'>
-                                <input
-                                    placeholder='e.g.  transfer(address,uint256)'
-                                    id='contract-function'
-                                    type='text'
-                                    className='validate'
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'function'
-                                        );
-                                    }}
-                                    value={execute.function}
-                                />
-                                <label htmlFor='contract-function'>
-                                    Contract Function
-                                </label>
-                            </div>
-                            <div
-                                className='switch col s4'
-                                style={{ paddingTop: '2.0em' }}
-                            >
-                                <label>
-                                    Show return data
-                                    <input
-                                        type='checkbox'
-                                        id='show-return-execute'
-                                        onChange={(event) => {
-                                            changeValue(
-                                                event.currentTarget.checked,
-                                                'show'
-                                            );
-                                        }}
-                                        checked={execute.show ?? undefined}
-                                    />
-                                    <span className='lever' />
-                                </label>
-                            </div>
-                        </div>
-                        <div className='row mb-0'>
-                            <div className='input-field col s8'>
-                                <input
-                                    placeholder='e.g. recipientAddr,amount'
-                                    id='execute-param-values'
-                                    type='text'
-                                    className='validate'
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'value'
-                                        );
-                                    }}
-                                    value={execute.value}
-                                />
-                                <label htmlFor='execute-param-values'>
-                                    Contract Function Values
-                                </label>
-                            </div>
-                        </div>
-                        <div className='row mb-0'>
-                            <div className='input-field col s8'>
-                                <input
-                                    placeholder='0'
-                                    id='execute-fees'
-                                    type='number'
-                                    min='0'
-                                    className='validate tooltipped'
-                                    data-tooltip=''
-                                    onChange={(event) => {
-                                        changeValue(
-                                            event.currentTarget.value,
-                                            'fees'
-                                        );
-                                    }}
-                                    value={execute.fees}
-                                />
-                                <label
-                                    htmlFor='execute-fees'
-                                    id='execute-fees-label'
-                                >
-                                    Fees (tRIF)
-                                </label>
-                            </div>
-                            <div
-                                className='switch col s4'
-                                style={{ paddingTop: '2.5em' }}
-                            >
-                                <label>
-                                    tRIF
-                                    <input
-                                        type='checkbox'
-                                        onChange={(event) => {
-                                            changeValue(
-                                                event.currentTarget.checked,
-                                                'check'
-                                            );
-                                        }}
-                                        checked={execute.check ?? undefined}
-                                    />
-                                    <span className='lever' />
-                                    RBTC
-                                </label>
-                            </div>
-                        </div>
-                        <div
-                            className={`row mb-0 ${
-                                execute.show && results ? '' : 'hide'
-                            }`}
-                            id='execute-result-row'
+            <Row>
+                <form>
+                    <Col s={10}>
+                        <TextInput
+                            label='Contract'
+                            placeholder='Contract address'
+                            value={execute.address}
+                            validate
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.value,
+                                    'address'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={1}>
+                        <Button
+                            onClick={pasteRecipientAddress}
+                            waves='light'
+                            className='indigo accent-2'
+                            tooltip='Paste'
+                            node='div'
                         >
-                            <div className='input-field col s12'>
-                                <span
-                                    id='execute-result'
-                                    style={{
-                                        wordBreak: 'break-all',
-                                        width: 'inherit'
-                                    }}
-                                >
-                                    {results}
-                                </span>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div className='modal-footer'>
-                <a
-                    href='#!'
-                    id='execute-smart-wallet'
-                    className={`waves-effect waves-green btn-flat  ${
-                        executeLoading ? 'disabled' : ''
-                    }`}
-                    onClick={() => {
-                        handleExecuteSmartWalletButtonClick();
-                    }}
-                >
-                    Execute{' '}
-                    <img
-                        alt='loading'
-                        className={`loading ${!executeLoading ? 'hide' : ''}`}
-                        src='images/loading.gif'
-                    />
-                </a>
-                <a
-                    href='#!'
-                    id='execute-smart-wallet-estimate'
-                    className={`waves-effect waves-green btn-flat  ${
-                        estimateLoading ? 'disabled' : ''
-                    }`}
-                    onClick={() => {
-                        handleEstimateSmartWalletButtonClick();
-                    }}
-                >
-                    Estimate{' '}
-                    <img
-                        alt='loading'
-                        className={`loading ${!estimateLoading ? 'hide' : ''}`}
-                        src='images/loading.gif'
-                    />
-                </a>
-                <a
-                    href='#!'
-                    id='execute-smart-wallet-cancel'
-                    className='waves-effect waves-green btn-flat'
-                    onClick={() => {
-                        close();
-                    }}
-                >
-                    Cancel
-                </a>
-            </div>
-        </div>
+                            <Icon center>content_paste</Icon>
+                        </Button>
+                    </Col>
+                    <Col s={8}>
+                        <TextInput
+                            label='Contract function'
+                            placeholder='e.g.  transfer(address,uint256)'
+                            value={execute.function}
+                            type='text'
+                            validate
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.value,
+                                    'function'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={4}>
+                        <Switch
+                            offLabel='Show return data'
+                            onLabel=''
+                            checked={execute.show}
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.checked,
+                                    'show'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={8}>
+                        <TextInput
+                            label='Contrac function values'
+                            placeholder='e.g. recipientAddr,amount'
+                            value={execute.value}
+                            validate
+                            onChange={(event) => {
+                                changeValue(event.currentTarget.value, 'value');
+                            }}
+                        />
+                    </Col>
+                    <Col s={8}>
+                        <TextInput
+                            label={
+                                execute.check
+                                    ? 'Amount to be sent'
+                                    : `Fees (${tokenSymbol})`
+                            }
+                            placeholder='0'
+                            value={execute.fees}
+                            type='text'
+                            validate
+                            onChange={(event) => {
+                                changeValue(event.currentTarget.value, 'fees');
+                            }}
+                        />
+                    </Col>
+                    <Col s={4}>
+                        <Switch
+                            offLabel={tokenSymbol}
+                            onLabel='RBTC'
+                            checked={execute.check}
+                            onChange={(event) => {
+                                changeValue(
+                                    event.currentTarget.checked,
+                                    'check'
+                                );
+                            }}
+                        />
+                    </Col>
+                    <Col s={12}>
+                        <span
+                            style={{
+                                wordBreak: 'break-all',
+                                width: 'inherit'
+                            }}
+                        >
+                            {results}
+                        </span>
+                    </Col>
+                </form>
+            </Row>
+        </Modal>
     );
 }
 
