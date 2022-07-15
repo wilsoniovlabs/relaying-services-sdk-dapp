@@ -2,26 +2,26 @@ import { Dispatch, SetStateAction } from 'react';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import 'src/components/SmartWallet.css';
 import { Col, Row, Button, Icon } from 'react-materialize';
+import { useStore } from 'src/context/context';
 
 type SmartWalletProps = {
-    connected: boolean;
     smartWallets: SmartWalletWithBalance[];
-    setCurrentSmartWallet: Dispatch<
-        SetStateAction<SmartWalletWithBalance | undefined>
-    >;
     setModal: Dispatch<SetStateAction<Modals>>;
 };
 
 type ModalsKey = keyof Modals;
 
 function SmartWallet(props: SmartWalletProps) {
-    const { connected, smartWallets, setCurrentSmartWallet, setModal } = props;
+    const { state, dispatch } = useStore();
+
+    const { smartWallets, setModal } = props;
+
     async function copySmartWalletAddress(address: string) {
         await navigator.clipboard.writeText(address);
     }
 
     function openModal(smartWallet: SmartWalletWithBalance, modal: ModalsKey) {
-        setCurrentSmartWallet(smartWallet);
+        dispatch({ type: 'set_smart_wallet', smartWallet });
         setModal((prev) => ({ ...prev, [modal]: true }));
     }
 
@@ -29,7 +29,7 @@ function SmartWallet(props: SmartWalletProps) {
         <div className='smart-wallets'>
             <Row
                 className={`grey ${
-                    smartWallets.length <= 0 && connected ? '' : 'hide'
+                    smartWallets.length <= 0 && state.connected ? '' : 'hide'
                 }`}
             >
                 <Col s={12}>
@@ -39,7 +39,7 @@ function SmartWallet(props: SmartWalletProps) {
                         button.
                     </h6>
                 </Col>
-                <Col s={12} className={`${connected ? 'hide' : ''}`}>
+                <Col s={12} className={`${state.connected ? 'hide' : ''}`}>
                     <h6 className='center-align'>
                         Wallet not connected, please connect.
                     </h6>
@@ -86,46 +86,67 @@ function SmartWallet(props: SmartWalletProps) {
                         <Col s={2}>
                             <h6>{smartWallet.rbtcBalance}</h6>
                         </Col>
-                        <Col s={1}>
-                            <Button
-                                waves='light'
-                                className='indigo accent-2'
-                                tooltip='Transfer'
-                                floating
-                                disabled={!smartWallet.deployed}
-                                onClick={() => {
-                                    openModal(smartWallet, 'transfer');
-                                }}
-                            >
-                                <Icon center>call_made</Icon>
-                            </Button>
-                        </Col>
-                        <Col s={1}>
-                            <Button
-                                waves='light'
-                                className='indigo accent-2'
-                                tooltip='Receive'
-                                floating
-                                onClick={() => {
-                                    openModal(smartWallet, 'receive');
-                                }}
-                            >
-                                <Icon center>arrow_downward</Icon>
-                            </Button>
-                        </Col>
-                        <Col s={1}>
-                            <Button
-                                waves='light'
-                                className='indigo accent-2'
-                                tooltip='Execute'
-                                floating
-                                disabled={!smartWallet.deployed}
-                                onClick={() => {
-                                    openModal(smartWallet, 'execute');
-                                }}
-                            >
-                                <Icon center>play_circle_outline</Icon>
-                            </Button>
+                        <Col s={3}>
+                            <Row>
+                                <Col>
+                                    <Button
+                                        waves='light'
+                                        className='indigo accent-2'
+                                        tooltip='Transfer'
+                                        floating
+                                        disabled={!smartWallet.deployed}
+                                        onClick={() => {
+                                            openModal(smartWallet, 'transfer');
+                                        }}
+                                    >
+                                        <Icon center>call_made</Icon>
+                                    </Button>
+                                </Col>
+                                <Col>
+                                    <Button
+                                        waves='light'
+                                        className='indigo accent-2'
+                                        tooltip='Receive'
+                                        floating
+                                        onClick={() => {
+                                            openModal(smartWallet, 'receive');
+                                        }}
+                                    >
+                                        <Icon center>arrow_downward</Icon>
+                                    </Button>
+                                </Col>
+                                <Col>
+                                    <Button
+                                        waves='light'
+                                        className='indigo accent-2'
+                                        tooltip='Execute'
+                                        floating
+                                        disabled={!smartWallet.deployed}
+                                        onClick={() => {
+                                            openModal(smartWallet, 'execute');
+                                        }}
+                                    >
+                                        <Icon center>play_circle_outline</Icon>
+                                    </Button>
+                                </Col>
+                                <Col>
+                                    <Button
+                                        waves='light'
+                                        className='indigo accent-2'
+                                        tooltip='Transactions'
+                                        floating
+                                        disabled={!smartWallet.deployed}
+                                        onClick={() => {
+                                            openModal(
+                                                smartWallet,
+                                                'transactions'
+                                            );
+                                        }}
+                                    >
+                                        <Icon center>manage_search</Icon>
+                                    </Button>
+                                </Col>
+                            </Row>
                         </Col>
                     </Row>
                 </Row>

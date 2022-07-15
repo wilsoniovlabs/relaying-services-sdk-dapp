@@ -1,10 +1,10 @@
 import { Dispatch, SetStateAction, useState } from 'react';
 import {
     RelayGasEstimationOptions,
-    RelayingServices,
-    RelayingTransactionOptions
+    RelayingTransactionOptions,
+    RelayingResult
 } from '@rsksmart/rif-relay-sdk';
-import { Modals, SmartWalletWithBalance } from 'src/types';
+import { Modals } from 'src/types';
 import Utils, { TRIF_PRICE } from 'src/Utils';
 import 'src/modals/Transfer.css';
 import {
@@ -16,17 +16,13 @@ import {
     Icon,
     Switch
 } from 'react-materialize';
-import LoadingButton from './LoadingButton';
+import LoadingButton from 'src/modals/LoadingButton';
+import { useStore } from 'src/context/context';
 
 type TransferProps = {
-    currentSmartWallet: SmartWalletWithBalance;
-    provider: RelayingServices;
     setUpdateInfo: Dispatch<SetStateAction<boolean>>;
-    account?: string;
     modal: Modals;
     setModal: Dispatch<SetStateAction<Modals>>;
-    token: string;
-    tokenSymbol: string;
 };
 
 type TransferInfo = {
@@ -39,16 +35,9 @@ type TransferInfo = {
 type TransferInfoKey = keyof TransferInfo;
 
 function Transfer(props: TransferProps) {
-    const {
-        currentSmartWallet,
-        provider,
-        setUpdateInfo,
-        account,
-        modal,
-        setModal,
-        token,
-        tokenSymbol
-    } = props;
+    const { state } = useStore();
+
+    const { setUpdateInfo, modal, setModal } = props;
 
     const [transferLoading, setTransferLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
@@ -80,12 +69,12 @@ function Transfer(props: TransferProps) {
     };
 
     const sendRBTC = async () => {
-        if (account) {
+        if (state.account) {
             setTransferLoading(true);
             try {
                 const amount = await Utils.toWei(transfer.amount.toString());
                 await Utils.sendTransaction({
-                    from: account, // currentSmartWallet.address,
+                    from: state.account, // currentSmartWallet.address,
                     to: transfer.address,
                     value: amount,
                     data: '0x'
@@ -117,7 +106,9 @@ function Transfer(props: TransferProps) {
             const { amount } = transfer;
             const fees = transfer.fees === '' ? '0' : transfer.fees;
 
-            const encodedAbi = (await Utils.getTokenContract(token)).methods
+            const encodedAbi = (
+                await Utils.getTokenContract(state.token!.address)
+            ).methods
                 .transfer(
                     transfer.address,
                     await Utils.toWei(amount.toString())
@@ -125,22 +116,33 @@ function Transfer(props: TransferProps) {
                 .encodeABI();
 
             const relayTrxOpts: RelayingTransactionOptions = {
-                smartWallet: currentSmartWallet,
+                smartWallet: state.smartWallet!,
                 unsignedTx: {
                     to: transfer.address,
                     data: encodedAbi
                 },
-                tokenAddress: token,
+                tokenAddress: state.token!.address,
                 tokenAmount: Number(fees),
                 transactionDetails: {
-                    retries: 7
+                    retries: 7,
+                    waitForTransactionReceipt: false
                 }
             };
 
-            const txDetails = await provider.relayTransaction(relayTrxOpts);
-            console.log(txDetails);
-            setUpdateInfo(true);
+            const result: RelayingResult =
+                await state.provider!.relayTransaction(relayTrxOpts);
+            const txHash: string = result
+                .transaction!.hash(true)
+                .toString('hex');
+            Utils.addTransaction(state.smartWallet!.address, {
+                date: new Date(),
+                id: txHash,
+                type: `Transfer ${
+                    transfer.check ? 'RBTC' : state.token!.symbol
+                }`
+            });
             close();
+            setUpdateInfo(true);
         } catch (error) {
             const errorObj = error as Error;
             if (errorObj.message) {
@@ -152,11 +154,11 @@ function Transfer(props: TransferProps) {
     };
 
     const handleEstimateTransferButtonClick = async () => {
-        if (account) {
+        if (state.account) {
             setEstimateLoading(true);
             try {
                 const encodedTransferFunction = (
-                    await Utils.getTokenContract(token)
+                    await Utils.getTokenContract(state.token!.address)
                 ).methods
                     .transfer(
                         transfer.address,
@@ -166,22 +168,23 @@ function Transfer(props: TransferProps) {
 
                 const opts: RelayGasEstimationOptions = {
                     abiEncodedTx: encodedTransferFunction,
-                    smartWalletAddress: currentSmartWallet.address,
+                    smartWalletAddress: state.smartWallet!.address,
                     tokenFees: '1',
-                    destinationContract: token,
+                    destinationContract: state.token!.address,
                     relayWorker: process.env.REACT_APP_CONTRACTS_RELAY_WORKER!,
-                    tokenAddress: token
+                    tokenAddress: state.token!.address
                 };
 
-                const estimate = await provider.estimateMaxPossibleRelayGas(
-                    opts
-                );
+                const estimate =
+                    await state.provider!.estimateMaxPossibleRelayGas(opts);
 
                 const costInRBTC = await Utils.fromWei(estimate.toString());
                 console.log('Cost in RBTC:', costInRBTC);
 
                 const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
-                const tokenContract = await Utils.getTokenContract(token);
+                const tokenContract = await Utils.getTokenContract(
+                    state.token!.address
+                );
                 const ritTokenDecimals = await tokenContract.methods
                     .decimals()
                     .call();
@@ -277,7 +280,7 @@ function Transfer(props: TransferProps) {
                         <TextInput
                             label='Amount'
                             placeholder={`0  ${
-                                transfer.check ? 'RBTC' : tokenSymbol
+                                transfer.check ? 'RBTC' : state.token!.symbol
                             }`}
                             value={transfer.amount}
                             type='number'
@@ -292,7 +295,7 @@ function Transfer(props: TransferProps) {
                     </Col>
                     <Col s={4}>
                         <Switch
-                            offLabel={tokenSymbol}
+                            offLabel={state.token!.symbol}
                             onLabel='RBTC'
                             checked={transfer.check}
                             onChange={(event) => {
@@ -306,7 +309,7 @@ function Transfer(props: TransferProps) {
                     <Col s={10}>
                         <TextInput
                             label='Fees'
-                            placeholder={`0 ${tokenSymbol}`}
+                            placeholder={`0 ${state.token!.symbol}`}
                             value={transfer.fees}
                             type='number'
                             validate

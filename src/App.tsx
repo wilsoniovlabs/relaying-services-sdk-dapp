@@ -3,11 +3,10 @@ import 'src/App.css';
 
 import {
     DefaultRelayingServices,
-    RelayingServices,
-    RelayingServicesAddresses
+    RelayingServicesAddresses,
+    EnvelopingConfig
 } from '@rsksmart/rif-relay-sdk';
 
-import { EnvelopingConfig } from '@rsksmart/rif-relay-common';
 import Header from 'src/components/Header';
 import SmartWallet from 'src/components/SmartWallet';
 import ActionBar from 'src/components/ActionBar';
@@ -20,6 +19,8 @@ import Utils from 'src/Utils';
 import { Modals, SmartWalletWithBalance } from 'src/types';
 import rLogin from 'src/rLogin';
 import Web3 from 'web3';
+import TransactionHistory from './modals/TransactionHistory';
+import { useStore } from './context/context';
 
 if (window.ethereum) {
     window.web3 = new Web3(window.ethereum);
@@ -34,39 +35,31 @@ function getEnvParamAsInt(value: string | undefined): number | undefined {
 }
 
 function App() {
+    const { state, dispatch } = useStore();
+
     const [modal, setModal] = useState<Modals>({
         deploy: false,
         execute: false,
         receive: false,
-        transfer: false
+        transfer: false,
+        transactions: false
     });
-    const [connected, setConnect] = useState(false);
-    const [chainId, setChainId] = useState(0);
-    const [account, setAccount] = useState<string | undefined>(undefined);
-    const [currentSmartWallet, setCurrentSmartWallet] = useState<
-        SmartWalletWithBalance | undefined
-    >(undefined);
-    const [provider, setProvider] = useState<RelayingServices | undefined>(
-        undefined
-    );
-    const [show, setShow] = useState(false);
 
     const [smartWallets, setSmartWallets] = useState<SmartWalletWithBalance[]>(
         []
     );
+
     const [updateInfo, setUpdateInfo] = useState(false);
-    const [token, setToken] = useState('');
-    const [tokenSymbol, setTokenSymbol] = useState('');
 
     useEffect(() => {
         if (!updateInfo) {
             return;
         }
         (async () => {
-            setShow(true);
+            dispatch({ type: 'set_loader', loader: true });
             setTimeout(() => {
                 setUpdateInfo(false);
-                setShow(false);
+                dispatch({ type: 'set_loader', loader: false });
             }, 100);
         })();
     }, [updateInfo]);
@@ -121,7 +114,7 @@ function App() {
             await relayingServices.initialize(config, contractAddresses, {
                 loglevel: 1
             });
-            setProvider(relayingServices);
+            dispatch({ type: 'set_provider', provider: relayingServices });
         } catch (error) {
             console.error(error);
         }
@@ -130,14 +123,14 @@ function App() {
     const refreshAccount = async () => {
         const accounts = await Utils.getAccounts();
         const currentAccount = accounts[0];
-        setAccount(currentAccount);
+        dispatch({ type: 'set_account', account: currentAccount });
     };
 
     const reload = async () => {
-        setShow(true);
+        dispatch({ type: 'set_loader', loader: true });
         await initProvider();
         await refreshAccount();
-        setShow(false);
+        dispatch({ type: 'set_loader', loader: false });
     };
 
     const connectToRLogin = async () => {
@@ -153,9 +146,12 @@ function App() {
                 });
 
                 login.on('chainChanged', async (newChain: string) => {
-                    setChainId(parseInt(newChain, 16));
+                    dispatch({
+                        type: 'set_chain_id',
+                        chainId: parseInt(newChain, 16)
+                    });
                 });
-                setChainId(chain);
+                dispatch({ type: 'set_chain_id', chainId: chain });
                 isConnected = true;
             } else {
                 alert(
@@ -165,14 +161,15 @@ function App() {
         } catch (error) {
             console.error(error);
         }
-        setConnect(isConnected);
+        dispatch({ type: 'set_connected', connected: isConnected });
         return isConnected;
     };
 
     const connect = async () => {
+        // TODO refactor this code
         try {
             let isConnected = false;
-            if (!connected) {
+            if (!state.connected) {
                 isConnected = await connectToRLogin();
             }
 
@@ -180,86 +177,56 @@ function App() {
                 await reload();
             } else {
                 console.warn('Unable to connect to Metamask');
-                setConnect(isConnected);
             }
         } catch (error) {
             console.log(error);
             console.warn('User denied account access');
-            setShow(false);
+            dispatch({ type: 'set_loader', loader: false });
         }
     };
 
     return (
         <div className='App'>
-            <Loading show={show} />
+            <Loading />
             <Header
-                account={account}
                 // eslint-disable-next-line react/jsx-no-bind
                 connect={connect}
-                connected={connected}
-                chainId={chainId}
                 setUpdateInfo={setUpdateInfo}
             />
 
-            {provider && (
+            {state.provider && (
                 <ActionBar
-                    provider={provider}
                     smartWallets={smartWallets}
                     setSmartWallets={setSmartWallets}
-                    connected={connected}
-                    account={account}
-                    setShow={setShow}
-                    token={token}
                     updateInfo={updateInfo}
-                    setToken={setToken}
-                    tokenSymbol={tokenSymbol}
-                    setTokenSymbol={setTokenSymbol}
                 />
             )}
 
-            {token && (
-                <SmartWallet
-                    connected={connected}
-                    smartWallets={smartWallets}
-                    setCurrentSmartWallet={setCurrentSmartWallet}
-                    setModal={setModal}
-                />
+            {state.token && (
+                <div>
+                    <SmartWallet
+                        smartWallets={smartWallets}
+                        setModal={setModal}
+                    />
+                    <Deploy
+                        setUpdateInfo={setUpdateInfo}
+                        modal={modal}
+                        setModal={setModal}
+                    />
+                    <Receive modal={modal} setModal={setModal} />
+                    <Transfer
+                        setUpdateInfo={setUpdateInfo}
+                        modal={modal}
+                        setModal={setModal}
+                    />
+                    <Execute
+                        setUpdateInfo={setUpdateInfo}
+                        modal={modal}
+                        setModal={setModal}
+                    />
+                    <TransactionHistory modal={modal} setModal={setModal} />
+                </div>
             )}
-
-            <Deploy
-                currentSmartWallet={currentSmartWallet}
-                provider={provider}
-                setUpdateInfo={setUpdateInfo}
-                modal={modal}
-                setModal={setModal}
-                token={token}
-                tokenSymbol={tokenSymbol}
-            />
-            <Receive
-                currentSmartWallet={currentSmartWallet}
-                modal={modal}
-                setModal={setModal}
-            />
-            <Transfer
-                provider={provider!}
-                currentSmartWallet={currentSmartWallet!}
-                setUpdateInfo={setUpdateInfo}
-                account={account}
-                modal={modal}
-                setModal={setModal}
-                token={token}
-                tokenSymbol={tokenSymbol}
-            />
-            <Execute
-                provider={provider!}
-                currentSmartWallet={currentSmartWallet}
-                account={account}
-                setUpdateInfo={setUpdateInfo}
-                modal={modal}
-                setModal={setModal}
-                token={token}
-                tokenSymbol={tokenSymbol}
-            />
         </div>
     );
 }
