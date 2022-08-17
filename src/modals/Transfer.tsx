@@ -94,7 +94,6 @@ function Transfer(props: TransferProps) {
 
     const pasteRecipientAddress = async () => {
         const address = await navigator.clipboard.readText();
-        console.log(address);
         if (Utils.checkAddress(address.toLowerCase())) {
             changeValue(address, 'address');
         }
@@ -125,7 +124,7 @@ function Transfer(props: TransferProps) {
                 tokenAmount: Number(fees),
                 transactionDetails: {
                     retries: 7,
-                    waitForTransactionReceipt: false
+                    ignoreTransactionReceipt: true
                 }
             };
 
@@ -134,7 +133,7 @@ function Transfer(props: TransferProps) {
             const txHash: string = result
                 .transaction!.hash(true)
                 .toString('hex');
-            Utils.addTransaction(state.smartWallet!.address, {
+            Utils.addTransaction(state.smartWallet!.address, state.chainId, {
                 date: new Date(),
                 id: txHash,
                 type: `Transfer ${
