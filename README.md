@@ -9,8 +9,8 @@ See [RIF Relay](https://github.com/rsksmart/rif-relay) project.
 
 * [NodeJS Version v16.14.2 or higher](https://nodejs.org/en/download/).
 * [RSKj Node Running](https://github.com/rsksmart/rskj).
-* [RIF Relay Contracts](https://github.com/anarancio/rif-relay-contracts) deployed.
-* [An allowed Token](https://github.com/anarancio/rif-relay-contracts#allowing-tokens).
+* [RIF Relay Contract](https://github.com/anarancio/rif-relay-contracts) deployed.
+* [Current Token Allowed](https://github.com/anarancio/rif-relay-contracts#allowing-tokens).
 * [RIF Relay Server](https://github.com/infuy/rif-relay-server) running and registered.
 
 ## Running the sample dApp
@@ -29,7 +29,12 @@ REACT_APP_CONTRACTS_DEPLOY_VERIFIER=0x1eD614cd3443EFd9c70F04b6d777aed947A4b0c4
 REACT_APP_CONTRACTS_RELAY_VERIFIER=0x5159345aaB821172e795d56274D0f5FDFdC6aBD9
 REACT_APP_CONTRACTS_SMART_WALLET_FACTORY=0x03F23ae1917722d5A27a2Ea0Bcc98725a2a2a49a
 REACT_APP_CONTRACTS_SMART_WALLET=0x73ec81da0C72DD112e06c09A6ec03B5544d26F05
+REACT_APP_CONTRACTS_RIF_TOKEN=0x726ECC75d5D51356AA4d0a5B648790cC345985ED
+REACT_APP_CONTRACTS_TEST_RECIPIENT=0xCd5805d60Bbf9Afe69a394c2BDa10F6Dae2c39AF
+REACT_APP_CONTRACTS_RIF_TOKEN=0x726ECC75d5D51356AA4d0a5B648790cC345985ED
 REACT_APP_CONTRACTS_RELAY_WORKER=0x3d67f029f778a088904f12d030933967d220faa3
+REACT_APP_CONTRACTS_COLLECTOR=0x9957A338858bc941dA9D0ED2ACBCa4F16116B836
+REACT_APP_CONTRACTS_PARTNERS="0x7986b3DF570230288501EEa3D890bd66948C9B79,0x0a3aA774752ec2042c46548456c094A76C7F3a79,0xCF7CDBbB5F7BA79d3ffe74A0bBA13FC0295F6036,0x39B12C05E8503356E3a7DF0B7B33efA4c054C409"
 
 REACT_APP_RIF_RELAY_CHAIN_ID=33
 REACT_APP_RIF_RELAY_GAS_PRICE_FACTOR_PERCENT=0
