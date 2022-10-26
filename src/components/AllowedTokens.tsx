@@ -1,25 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Select } from 'react-materialize';
 import { useStore } from 'src/context/context';
-import Utils from 'src/Utils';
 
 function AllowedTokens() {
     const { state, dispatch } = useStore();
 
-    const { token, provider } = state;
+    const { token, provider, reload } = state;
 
     const [allowedTokens, setAllowedTokens] = useState<Array<string>>([]);
 
     const setToken = async (newToken: string) => {
-        const symbol: string = await Utils.getTokenSymbol(newToken);
-        const decimals: number = await Utils.getTokenDecimals(newToken);
+        const erc20Token = await provider!.getERC20Token(newToken, {
+            decimals: true,
+            symbol: true
+        });
         dispatch({
             type: 'set_token',
-            token: { address: newToken, symbol, decimals }
+            token: erc20Token
         });
     };
 
-    const reload = async () => {
+    const reloadTokens = useCallback(async () => {
         const tokens = await provider!.getAllowedTokens();
         if (tokens.length > 0) {
             setAllowedTokens(tokens);
@@ -29,11 +30,13 @@ function AllowedTokens() {
         } else {
             alert('Not allowed tokens');
         }
-    };
+    }, [reload]);
 
     useEffect(() => {
-        reload();
-    }, [token]);
+        if (!reload) {
+            reloadTokens();
+        }
+    }, [reload]);
 
     const handleChange = (event: any) => {
         setToken(event.target.value);

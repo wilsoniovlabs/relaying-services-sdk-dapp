@@ -2,9 +2,10 @@ import { useState } from 'react';
 import {
     RelayGasEstimationOptions,
     RelayingTransactionOptions,
-    RelayingResult
+    RelayingResult,
+    RelayEstimation
 } from '@rsksmart/rif-relay-sdk';
-import Utils, { TRIF_PRICE } from 'src/Utils';
+import Utils from 'src/Utils';
 import 'src/modals/Transfer.css';
 import {
     Modal,
@@ -30,7 +31,7 @@ type TransferInfoKey = keyof TransferInfo;
 function Transfer() {
     const { state, dispatch } = useStore();
 
-    const { modals } = state;
+    const { modals, account, token, smartWallet, provider, chainId } = state;
 
     const [transferLoading, setTransferLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
@@ -62,12 +63,12 @@ function Transfer() {
     };
 
     const sendRBTC = async () => {
-        if (state.account) {
+        if (account) {
             setTransferLoading(true);
             try {
                 const amount = await Utils.toWei(transfer.amount.toString());
                 await Utils.sendTransaction({
-                    from: state.account, // currentSmartWallet.address,
+                    from: account, // currentSmartWallet.address,
                     to: transfer.address,
                     value: amount,
                     data: '0x'
@@ -97,9 +98,7 @@ function Transfer() {
             const { amount } = transfer;
             const fees = transfer.fees === '' ? '0' : transfer.fees;
 
-            const encodedAbi = (
-                await Utils.getTokenContract(state.token!.address)
-            ).methods
+            const encodedAbi = token!.instance.contract.methods
                 .transfer(
                     transfer.address,
                     await Utils.toWei(amount.toString())
@@ -107,12 +106,12 @@ function Transfer() {
                 .encodeABI();
 
             const relayTrxOpts: RelayingTransactionOptions = {
-                smartWallet: state.smartWallet!,
+                smartWallet: smartWallet!,
                 unsignedTx: {
                     to: transfer.address,
                     data: encodedAbi
                 },
-                tokenAddress: state.token!.address,
+                tokenAddress: token!.instance.address,
                 tokenAmount: Number(fees),
                 transactionDetails: {
                     retries: 7,
@@ -120,17 +119,16 @@ function Transfer() {
                 }
             };
 
-            const result: RelayingResult =
-                await state.provider!.relayTransaction(relayTrxOpts);
+            const result: RelayingResult = await provider!.relayTransaction(
+                relayTrxOpts
+            );
             const txHash: string = result
                 .transaction!.hash(true)
                 .toString('hex');
-            Utils.addTransaction(state.smartWallet!.address, state.chainId, {
+            Utils.addTransaction(smartWallet!.address, chainId, {
                 date: new Date(),
                 id: txHash,
-                type: `Transfer ${
-                    transfer.check ? 'RBTC' : state.token!.symbol
-                }`
+                type: `Transfer ${transfer.check ? 'RBTC' : token!.symbol}`
             });
             dispatch({ type: 'reload', reload: true });
             close();
@@ -145,12 +143,10 @@ function Transfer() {
     };
 
     const handleEstimateTransferButtonClick = async () => {
-        if (state.account) {
+        if (account) {
             setEstimateLoading(true);
             try {
-                const encodedTransferFunction = (
-                    await Utils.getTokenContract(state.token!.address)
-                ).methods
+                const encodedTransferFunction = token!.instance.contract.methods
                     .transfer(
                         transfer.address,
                         await Utils.toWei(transfer.amount.toString() || '0')
@@ -159,32 +155,21 @@ function Transfer() {
 
                 const opts: RelayGasEstimationOptions = {
                     abiEncodedTx: encodedTransferFunction,
-                    smartWalletAddress: state.smartWallet!.address,
+                    smartWalletAddress: smartWallet!.address,
                     tokenFees: '1',
-                    destinationContract: state.token!.address,
-                    tokenAddress: state.token!.address
+                    destinationContract: token!.instance.address,
+                    tokenAddress: token!.instance.address
                 };
 
-                const estimate =
-                    await state.provider!.estimateMaxPossibleRelayGas(opts);
+                const estimation: RelayEstimation =
+                    await provider!.estimateGasRelayLimit(opts);
 
-                const costInRBTC = await Utils.fromWei(estimate.toString());
-                console.log('Cost in RBTC:', costInRBTC);
-
-                const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
-                const tokenContract = await Utils.getTokenContract(
-                    state.token!.address
-                );
-                const ritTokenDecimals = await tokenContract.methods
-                    .decimals()
-                    .call();
-                const costInTrifFixed = costInTrif.toFixed(ritTokenDecimals);
-                console.log('Cost in TRif: ', costInTrifFixed);
+                console.log('estimation', estimation);
 
                 if (transfer.check === true) {
-                    changeValue(costInRBTC, 'fees');
+                    changeValue(estimation.requiredNativeAmount, 'fees');
                 } else {
-                    changeValue(costInTrifFixed, 'fees');
+                    changeValue(estimation.requiredTokenAmount, 'fees');
                 }
             } catch (error) {
                 const errorObj = error as Error;
@@ -270,7 +255,7 @@ function Transfer() {
                         <TextInput
                             label='Amount'
                             placeholder={`0  ${
-                                transfer.check ? 'RBTC' : state.token!.symbol
+                                transfer.check ? 'RBTC' : token!.symbol
                             }`}
                             value={transfer.amount}
                             type='number'
@@ -285,7 +270,7 @@ function Transfer() {
                     </Col>
                     <Col s={4}>
                         <Switch
-                            offLabel={state.token!.symbol}
+                            offLabel={token!.symbol!}
                             onLabel='RBTC'
                             checked={transfer.check}
                             onChange={(event) => {
@@ -299,7 +284,7 @@ function Transfer() {
                     <Col s={10}>
                         <TextInput
                             label='Fees'
-                            placeholder={`0 ${state.token!.symbol}`}
+                            placeholder={`0 ${token!.symbol}`}
                             value={transfer.fees}
                             type='number'
                             validate

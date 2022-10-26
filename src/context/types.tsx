@@ -1,6 +1,6 @@
-import { RelayingServices } from '@rsksmart/rif-relay-sdk';
+import { RelayingServices, ERC20Token } from '@rsksmart/rif-relay-sdk';
 import { ReactNode } from 'react';
-import { Token, Modals, SmartWalletWithBalance, Partner } from 'src/types';
+import { Modals, SmartWalletWithBalance, Partner } from 'src/types';
 
 export const RELOAD_ACTION = 'reload';
 export const SET_ACCOUNT_ACTION = 'set_account';
@@ -23,7 +23,7 @@ export type Action =
     | { type: typeof SET_PROVIDER_ACTION; provider: RelayingServices }
     | { type: typeof SET_CHAIN_ID_ACTION; chainId: number }
     | { type: typeof SET_LOADER_ACTION; loader: boolean }
-    | { type: typeof SET_TOKEN_ACTION; token: Token }
+    | { type: typeof SET_TOKEN_ACTION; token: ERC20Token }
     | {
           type: typeof SET_SMART_WALLET_ACTION;
           smartWallet: SmartWalletWithBalance;
@@ -61,7 +61,7 @@ export type State = {
     provider: RelayingServices | undefined;
     chainId: number;
     loader: boolean;
-    token: Token | undefined;
+    token: ERC20Token | undefined;
     smartWallet: SmartWalletWithBalance | undefined;
     reload: boolean;
     modals: Modals;
