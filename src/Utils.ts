@@ -1,48 +1,25 @@
 import {
     EnvelopingTransactionDetails,
-    SmartWallet
+    SmartWallet,
+    ERC20Token
 } from '@rsksmart/rif-relay-sdk';
-import { AbiItem } from 'web3-utils';
-import ERC20Abi from 'src/contracts/ERC20Abi.json';
 import { SmartWalletWithBalance, Transaction } from 'src/types';
 
-export const TRIF_PRICE = 0.000005739;
-export const TRIF_TOKEN_DECIMALS = 18;
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 class Utils {
-    static async getTokenSymbol(token: string) {
-        const tokenContract = this.getTokenContract(token);
-        const symbol = await tokenContract.methods.symbol().call();
-        return symbol;
-    }
-
-    static async getTokenDecimals(token: string) {
-        // TODO: we may want to change this to support multiple tokens
-        const tokenContract = this.getTokenContract(token);
-        const balance = await tokenContract.methods.decimals().call();
-        return balance;
-    }
-
     static async getTokenBalance(
         address: string,
-        token: string,
+        erc20Token: ERC20Token,
         formatted?: boolean
     ): Promise<string> {
-        const tokenContract = this.getTokenContract(token);
-        const balance = await tokenContract.methods.balanceOf(address).call();
+        const balance = await erc20Token.instance.contract.methods
+            .balanceOf(address)
+            .call();
         if (formatted) {
             return Utils.fromWei(balance);
         }
         return balance;
-    }
-
-    static getTokenContract(token: string) {
-        const tokenContract = new web3.eth.Contract(
-            ERC20Abi as AbiItem[],
-            token
-        );
-        return tokenContract;
     }
 
     static async getBalance(

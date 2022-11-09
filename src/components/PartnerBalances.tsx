@@ -3,7 +3,7 @@ import { useStore } from 'src/context/context';
 type PartnerBalanceProp = {
     label: string;
     balance: string;
-    symbol: string;
+    symbol: string | undefined;
 };
 
 function PartnerBalance({ label, balance, symbol }: PartnerBalanceProp) {
@@ -32,13 +32,13 @@ function PartnerBalances() {
             <PartnerBalance
                 label='Worker'
                 balance={worker!.balance}
-                symbol={token!.symbol}
+                symbol={token!.symbol!}
             />
             {collector && (
                 <PartnerBalance
                     label='Collector'
                     balance={collector.balance}
-                    symbol={token!.symbol}
+                    symbol={token!.symbol!}
                 />
             )}
             {partners &&
@@ -47,7 +47,7 @@ function PartnerBalances() {
                         key={partner.address}
                         label={`Partner #${index + 1}`}
                         balance={partner.balance}
-                        symbol={state.token!.symbol}
+                        symbol={token?.symbol}
                     />
                 ))}
         </ul>

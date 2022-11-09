@@ -1,39 +1,53 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Select } from 'react-materialize';
 import { useStore } from 'src/context/context';
-import Utils from 'src/Utils';
 
 function AllowedTokens() {
     const { state, dispatch } = useStore();
 
-    const { token, provider } = state;
+    const { token, provider, reloadToken } = state;
 
     const [allowedTokens, setAllowedTokens] = useState<Array<string>>([]);
 
     const setToken = async (newToken: string) => {
-        const symbol: string = await Utils.getTokenSymbol(newToken);
-        const decimals: number = await Utils.getTokenDecimals(newToken);
+        const erc20Token = await provider!.getERC20Token(newToken, {
+            decimals: true,
+            symbol: true
+        });
         dispatch({
             type: 'set_token',
-            token: { address: newToken, symbol, decimals }
+            token: erc20Token
         });
     };
 
-    const reload = async () => {
-        const tokens = await provider!.getAllowedTokens();
-        if (tokens.length > 0) {
-            setAllowedTokens(tokens);
-            if (!token) {
-                setToken(tokens[0]);
-            }
-        } else {
-            alert('Not allowed tokens');
+    const verifyToken = (tokens: Array<string>): boolean => {
+        if (!token) {
+            return true;
         }
+        if (!tokens.includes(token.instance.address)) {
+            return true;
+        }
+        return false;
     };
 
+    const reloadTokens = useCallback(async () => {
+        if (reloadToken) {
+            const tokens = await provider!.getAllowedTokens();
+            if (tokens.length > 0) {
+                setAllowedTokens(tokens);
+                if (verifyToken(tokens)) {
+                    setToken(tokens[0]);
+                }
+            } else {
+                alert('Not allowed tokens');
+            }
+        }
+        dispatch({ type: 'reload_token', reloadToken: false });
+    }, [reloadToken]);
+
     useEffect(() => {
-        reload();
-    }, [token]);
+        reloadTokens();
+    }, [reloadTokens]);
 
     const handleChange = (event: any) => {
         setToken(event.target.value);

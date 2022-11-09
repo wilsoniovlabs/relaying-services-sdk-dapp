@@ -23,12 +23,14 @@ type ValidateInfoKey = keyof ValidateInfo;
 function Validate() {
     const { state, dispatch } = useStore();
 
-    const { chainId, account, smartWallets, modals } = state;
+    const { chainId, account, smartWallets, modals, provider } = state;
 
-    const [validate, setValidate] = useState<ValidateInfo>({
+    const initialState: ValidateInfo = {
         check: false,
         address: ''
-    });
+    };
+
+    const [validate, setValidate] = useState<ValidateInfo>(initialState);
 
     const [validateLoading, setValidateLoading] = useState(false);
 
@@ -42,10 +44,7 @@ function Validate() {
     const close = () => {
         dispatch({ type: 'set_loader', loader: false });
         dispatch({ type: 'set_modals', modal: { validate: false } });
-        setValidate({
-            check: false,
-            address: ''
-        });
+        setValidate(initialState);
     };
 
     const validateSmartWallets = (address: string): Boolean => {
@@ -68,7 +67,7 @@ function Validate() {
                 return;
             }
             // TO-DO: Check if it can be re-factored to return a value
-            await state.provider!.validateSmartWallet(validate.address);
+            await provider!.validateSmartWallet(validate.address);
             const smartWallet: SmartWalletWithBalance = {
                 index: -1,
                 address: validate.address,
@@ -100,8 +99,8 @@ function Validate() {
     };
 
     const createSmartWallet = async () => {
-        if (state.provider) {
-            const smartWallet = await state.provider.generateSmartWallet(
+        if (provider) {
+            const smartWallet = await provider.generateSmartWallet(
                 Number(validate.address)
             );
             if (validateSmartWallets(smartWallet.address)) {
@@ -194,8 +193,8 @@ function Validate() {
                     </Col>
                     <Col s={4}>
                         <Switch
-                            offLabel='Create smart wallet'
-                            onLabel='Import smart wallet'
+                            offLabel='Deploy'
+                            onLabel='Import'
                             checked={validate.check}
                             onChange={(event) => {
                                 changeValue(

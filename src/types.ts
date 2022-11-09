@@ -10,12 +10,6 @@ export type Partner = {
     balance: string;
 };
 
-export type Token = {
-    address: string;
-    symbol: string;
-    decimals: number;
-};
-
 export type Modals = {
     deploy: boolean;
     execute: boolean;

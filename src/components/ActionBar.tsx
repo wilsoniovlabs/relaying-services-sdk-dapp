@@ -1,17 +1,37 @@
+import { useCallback, useEffect, useState } from 'react';
 import { Button, Col, Icon, Row } from 'react-materialize';
 import 'src/components/ActionBar.css';
 import AllowedTokens from 'src/components/AllowedTokens';
 import { useStore } from 'src/context/context';
-import { TRIF_PRICE } from 'src/Utils';
 
 function ActionBar() {
     const { state, dispatch } = useStore();
 
-    const { token } = state;
+    const { token, provider, reload } = state;
+
+    const [tokenPrice, setTokenPrice] = useState('0');
 
     const createSmartWallet = async () => {
         dispatch({ type: 'set_modals', modal: { validate: true } });
     };
+
+    const reloadTokenPrice = useCallback(async () => {
+        if (token) {
+            try {
+                const price = await provider!.getERC20TokenPrice(
+                    token!,
+                    'RBTC'
+                );
+                setTokenPrice(price.toString());
+            } catch (error) {
+                setTokenPrice('-');
+            }
+        }
+    }, [token]);
+
+    useEffect(() => {
+        reloadTokenPrice();
+    }, [token, reload]);
 
     return (
         <Row className='space-row vertical-align'>
@@ -31,7 +51,7 @@ function ActionBar() {
             </Col>
             <Col s={3}>
                 <h6>
-                    {token?.symbol} price: <span>{TRIF_PRICE}</span> RBTC
+                    {token?.symbol} price: <span>{tokenPrice}</span> RBTC
                 </h6>
             </Col>
         </Row>

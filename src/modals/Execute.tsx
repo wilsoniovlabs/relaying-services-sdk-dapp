@@ -2,7 +2,8 @@ import { useState } from 'react';
 import {
     RelayGasEstimationOptions,
     RelayingTransactionOptions,
-    RelayingResult
+    RelayingResult,
+    RelayEstimation
 } from '@rsksmart/rif-relay-sdk';
 import IForwarderAbi from 'src/contracts/IForwarderAbi.json';
 import 'src/modals/Execute.css';
@@ -15,8 +16,8 @@ import {
     Icon,
     Switch
 } from 'react-materialize';
-import Utils, { TRIF_PRICE } from 'src/Utils';
-import { AbiItem, toBN } from 'web3-utils';
+import Utils from 'src/Utils';
+import { AbiItem } from 'web3-utils';
 import LoadingButton from 'src/modals/LoadingButton';
 import { useStore } from 'src/context/context';
 
@@ -33,18 +34,28 @@ type ExecuteInfoKey = keyof ExecuteInfo;
 
 function Execute() {
     const { state, dispatch } = useStore();
-    const { modals } = state;
+    const { modals, account, token, smartWallet, provider, chainId } = state;
+
     const [results, setResults] = useState('');
-    const [execute, setExecute] = useState<ExecuteInfo>({
+
+    const initialState: ExecuteInfo = {
         check: false,
         show: false,
         address: '',
         value: '',
         function: '',
         fees: ''
-    });
+    };
+
+    const [execute, setExecute] = useState<ExecuteInfo>(initialState);
     const [executeLoading, setExecuteLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
+
+    const checkAddress = (address: string) => {
+        if (!Utils.checkAddress(address.toLowerCase())) {
+            throw Error('Contract address is not valid');
+        }
+    };
 
     const calculateAbiEncodedFunction = () => {
         const contractFunction = execute.function.trim();
@@ -77,6 +88,12 @@ function Execute() {
         return funcData;
     };
 
+    const close = () => {
+        dispatch({ type: 'set_modals', modal: { execute: false } });
+        setResults('');
+        setExecute(initialState);
+    };
+
     const relayTransactionDirectExecution = async (
         toAddress: string,
         swAddress: string,
@@ -87,11 +104,11 @@ function Execute() {
             swAddress
         );
 
-        const transaction = await swContract.methods
+        const transaction = swContract.methods
             .directExecute(toAddress, abiEncodedTx)
             .send(
                 {
-                    from: state.account
+                    from: account
                 },
                 // TODO: we may add the types
                 async (error: any, data: any) => {
@@ -112,27 +129,16 @@ function Execute() {
                         console.log(trxData);
                         if (execute.show) {
                             setResults(JSON.stringify(transaction));
+                        } else {
+                            close();
                         }
                     }
                 }
             );
-        Utils.addTransaction(state.smartWallet!.address, state.chainId, {
+        Utils.addTransaction(smartWallet!.address, chainId, {
             date: new Date(),
             id: transaction.transactionHash,
             type: 'Execute RBTC'
-        });
-    };
-
-    const close = () => {
-        dispatch({ type: 'set_modals', modal: { execute: false } });
-        setResults('');
-        setExecute({
-            check: false,
-            show: false,
-            address: '',
-            value: '',
-            function: '',
-            fees: ''
         });
     };
 
@@ -143,9 +149,10 @@ function Execute() {
     const handleExecuteSmartWalletButtonClick = async () => {
         setExecuteLoading(true);
         try {
+            checkAddress(execute.address);
             const funcData = calculateAbiEncodedFunction();
             const destinationContract = execute.address;
-            const swAddress = state.smartWallet!.address;
+            const swAddress = smartWallet!.address;
 
             if (execute.check) {
                 await relayTransactionDirectExecution(
@@ -154,35 +161,38 @@ function Execute() {
                     funcData
                 );
             } else {
-                const fees = execute.fees === '' ? '0' : execute.fees;
+                const tokenAmount = execute.fees === '' ? '0' : execute.fees;
                 const relayTransactionOpts: RelayingTransactionOptions = {
                     unsignedTx: {
-                        data: funcData
+                        data: funcData,
+                        to: execute.address
                     },
-                    smartWallet: state.smartWallet!,
-                    tokenAmount: Number(fees),
-                    tokenAddress: state.token!.address
+                    smartWallet: smartWallet!,
+                    tokenAmount,
+                    tokenAddress: token!.instance.address,
+                    transactionDetails: {
+                        to: execute.address
+                    }
                 };
-                const result: RelayingResult =
-                    await state.provider!.relayTransaction(
-                        relayTransactionOpts
-                    );
+                const result: RelayingResult = await provider!.relayTransaction(
+                    relayTransactionOpts
+                );
 
                 const txHash: string = result
                     .transaction!.hash(true)
                     .toString('hex');
 
-                Utils.addTransaction(
-                    state.smartWallet!.address,
-                    state.chainId,
-                    {
-                        date: new Date(),
-                        id: txHash,
-                        type: `Execute ${state.token!.symbol}`
-                    }
-                );
+                Utils.addTransaction(smartWallet!.address, chainId, {
+                    date: new Date(),
+                    id: txHash,
+                    type: `Execute ${token!.symbol}`
+                });
                 dispatch({ type: 'reload', reload: true });
-                close();
+                if (execute.show) {
+                    setResults(JSON.stringify(result?.transaction));
+                } else {
+                    close();
+                }
             }
         } catch (error) {
             const errorObj = error as Error;
@@ -198,7 +208,7 @@ function Execute() {
         swAddress: string,
         toAddress: string,
         abiEncodedTx: string
-    ) => {
+    ): Promise<BN> => {
         const swContract = new web3.eth.Contract(
             IForwarderAbi as AbiItem[],
             swAddress
@@ -206,108 +216,41 @@ function Execute() {
 
         const estimate = await swContract.methods
             .directExecute(toAddress, abiEncodedTx)
-            .estimateGas({ from: state.account });
+            .estimateGas({ from: account });
         return estimate;
     };
 
     const handleEstimateSmartWalletButtonClick = async () => {
         setEstimateLoading(true);
         try {
-            const isUnitRBTC = execute.check;
-
+            checkAddress(execute.address);
             const funcData = calculateAbiEncodedFunction();
             const destinationContract = execute.address;
-            const swAddress = state.smartWallet!.address;
+            const swAddress = smartWallet!.address;
 
-            // for estimation we will use an eight of the user's token balance, it's just to estimate the gas cost
-            const tokenBalance = await Utils.getTokenBalance(
-                swAddress,
-                state.token!.address
-            );
-            const userTokenBalance = toBN(tokenBalance);
-
-            if (userTokenBalance.gt(toBN('0'))) {
-                const eightOfBalance = await Utils.fromWei(
-                    userTokenBalance.divRound(toBN('8')).toString()
+            if (execute.check === true) {
+                const result = await estimateDirectExecution(
+                    swAddress,
+                    destinationContract,
+                    funcData
                 );
-                console.log(
-                    'Your Balance: ',
-                    await Utils.fromWei(userTokenBalance.toString())
-                );
-                console.log('Estimating with: ', eightOfBalance.toString());
-
-                let result = 0;
-                if (isUnitRBTC) {
-                    result = await estimateDirectExecution(
-                        swAddress,
-                        destinationContract,
-                        funcData
-                    );
-                    changeValue(result, 'fees');
-                    console.log('Estimated direct SWCall cost: ', result);
-                } else {
-                    const gasEstimationOpts: RelayGasEstimationOptions = {
-                        destinationContract,
-                        smartWalletAddress: swAddress,
-                        tokenFees: '0',
-                        abiEncodedTx: funcData,
-                        tokenAddress: state.token!.address
-                    };
-
-                    const costInWei =
-                        await state.provider!.estimateMaxPossibleRelayGasWithLinearFit(
-                            gasEstimationOpts
-                        );
-
-                    const costInRBTC = await Utils.fromWei(
-                        costInWei.toString()
-                    );
-                    // TODO: We need to change it to support different tokens
-                    // (we may want to receive it from the user)
-                    const tRifPriceInRBTC = TRIF_PRICE;
-                    const tRifPriceInWei = toBN(
-                        await Utils.toWei(tRifPriceInRBTC.toString())
-                    ); // 1 tRIF = tRifPriceInWei wei
-
-                    console.log('Cost in RBTC (wei): ', costInWei.toString());
-                    console.log('Cost in RBTC:', costInRBTC);
-                    console.log(
-                        'TRIf price in RBTC:',
-                        tRifPriceInRBTC.toString()
-                    );
-                    console.log(
-                        'TRIf price in Wei:',
-                        tRifPriceInWei.toString()
-                    );
-                    const tokenDecimals = await Utils.getTokenDecimals(
-                        state.token!.address
-                    );
-                    console.log('TRIF Decimals: ', tokenDecimals);
-
-                    const costInTrif = Number(costInRBTC) / tRifPriceInRBTC;
-                    console.log('Cost in TRIF (rbtc): ', costInTrif.toString());
-
-                    const costInTrifFixed = costInTrif.toFixed(tokenDecimals);
-                    console.log(
-                        'Cost in TRIF Fixed (rbtc): ',
-                        costInTrifFixed.toString()
-                    );
-
-                    const costInTrifAsWei = Utils.toWei(
-                        costInTrifFixed.toString()
-                    );
-                    console.log(
-                        'Cost in TRIF (wei): ',
-                        costInTrifAsWei.toString()
-                    );
-
-                    console.log('Token Decimals: ', tokenDecimals);
-
-                    changeValue(costInTrifFixed, 'fees');
-                    console.log('Cost in TRif: ', costInTrifFixed);
-                }
+                changeValue(result.toString(), 'fees');
             } else {
-                throw new Error('You dont have any token balance');
+                const opts: RelayGasEstimationOptions = {
+                    destinationContract,
+                    smartWalletAddress: swAddress,
+                    tokenFees: '0',
+                    abiEncodedTx: funcData,
+                    tokenAddress: token!.instance.address,
+                    isLinearEstimation: true
+                };
+
+                const estimation: RelayEstimation =
+                    await provider!.estimateMaxPossibleGas(opts);
+
+                console.log('estimation', estimation);
+
+                changeValue(estimation.requiredTokenAmount, 'fees');
             }
         } catch (error) {
             const errorObj = error as Error;
@@ -428,7 +371,7 @@ function Execute() {
                     </Col>
                     <Col s={8}>
                         <TextInput
-                            label={`Fees (${state.token!.symbol})`}
+                            label={`Fees (${token!.symbol})`}
                             placeholder='0'
                             value={execute.fees}
                             type='text'
@@ -440,7 +383,7 @@ function Execute() {
                     </Col>
                     <Col s={4}>
                         <Switch
-                            offLabel={state.token!.symbol}
+                            offLabel={token!.symbol!}
                             onLabel='RBTC'
                             checked={execute.check}
                             onChange={(event) => {
@@ -452,14 +395,16 @@ function Execute() {
                         />
                     </Col>
                     <Col s={12}>
-                        <span
-                            style={{
-                                wordBreak: 'break-all',
-                                width: 'inherit'
-                            }}
-                        >
-                            {results}
-                        </span>
+                        {execute.show && (
+                            <span
+                                style={{
+                                    wordBreak: 'break-all',
+                                    width: 'inherit'
+                                }}
+                            >
+                                {results}
+                            </span>
+                        )}
                     </Col>
                 </form>
             </Row>

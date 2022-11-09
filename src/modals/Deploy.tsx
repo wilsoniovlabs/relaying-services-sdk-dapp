@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { RelayGasEstimationOptions } from '@rsksmart/rif-relay-sdk';
+import {
+    RelayGasEstimationOptions,
+    RelayEstimation
+} from '@rsksmart/rif-relay-sdk';
 import { Modal, Col, Row, TextInput, Button } from 'react-materialize';
-import Utils, { TRIF_PRICE, ZERO_ADDRESS } from 'src/Utils';
+import Utils, { ZERO_ADDRESS } from 'src/Utils';
 import 'src/modals/Deploy.css';
 import LoadingButton from 'src/modals/LoadingButton';
 import { useStore } from 'src/context/context';
 
 type DeployInfo = {
     fees: string;
-    check: boolean;
     tokenGas: number | string;
     relayGas: number;
 };
@@ -17,15 +19,15 @@ type DeployInfoKey = keyof DeployInfo;
 
 function Deploy() {
     const { state, dispatch } = useStore();
-
     const { chainId, account, smartWallet, token, provider, modals } = state;
 
-    const [deploy, setDeploy] = useState<DeployInfo>({
+    const initialState: DeployInfo = {
         fees: '0',
-        check: false,
         tokenGas: 0,
         relayGas: 0
-    });
+    };
+
+    const [deploy, setDeploy] = useState<DeployInfo>(initialState);
 
     const [deployLoading, setDeployLoading] = useState(false);
     const [estimateLoading, setEstimateLoading] = useState(false);
@@ -53,30 +55,15 @@ function Deploy() {
                 tokenFees: '1',
                 isSmartWalletDeploy: true,
                 index: smartWallet!.index.toString(),
-                tokenAddress: token!.address
+                tokenAddress: token!.instance.address
             };
 
-            const estimate = await provider!.estimateMaxPossibleRelayGas(opts);
+            const estimation: RelayEstimation =
+                await provider!.estimateMaxPossibleGas(opts);
+            console.log('estimation', estimation);
 
-            if (estimate) {
-                const costInRBTC = await Utils.fromWei(estimate.toString());
-                console.log('Cost in RBTC:', costInRBTC);
-
-                const costInTrif = parseFloat(costInRBTC) / TRIF_PRICE;
-                const tokenContract = await Utils.getTokenContract(
-                    token!.address
-                );
-                const ritTokenDecimals = await tokenContract.methods
-                    .decimals()
-                    .call();
-                const costInTrifFixed = costInTrif.toFixed(ritTokenDecimals);
-                console.log('Cost in TRif: ', costInTrifFixed);
-
-                if (deploy.check === true) {
-                    changeValue(costInRBTC, 'fees');
-                } else {
-                    changeValue(costInTrifFixed, 'fees');
-                }
+            if (estimation) {
+                changeValue(estimation.requiredTokenAmount, 'fees');
             }
         } catch (error) {
             const errorObj = error as Error;
@@ -99,18 +86,17 @@ function Deploy() {
         return receipt.status;
     };
 
-    const relaySmartWalletDeployment = async (tokenAmount: string | number) => {
+    const relaySmartWalletDeployment = async (tokenAmount: string) => {
         try {
             const isTokenAllowed = await provider!.isAllowedToken(
-                token!.address
+                token!.instance.address
             );
             if (isTokenAllowed) {
-                const fees = await Utils.toWei(`${tokenAmount}`);
                 const newSmartWallet = await provider!.deploySmartWallet(
                     smartWallet!,
                     {
-                        tokenAddress: token!.address,
-                        tokenAmount: Number(fees),
+                        tokenAddress: token!.instance.address,
+                        tokenAmount,
                         transactionDetails: {
                             ignoreTransactionReceipt: true
                         }
@@ -139,20 +125,15 @@ function Deploy() {
 
     const close = () => {
         dispatch({ type: 'set_modals', modal: { deploy: false } });
-        setDeploy({
-            fees: '0',
-            check: false,
-            tokenGas: 0,
-            relayGas: 0
-        });
+        setDeploy(initialState);
     };
 
     const handleDeploySmartWalletButtonClick = async () => {
-        deploy.fees = deploy.fees === '' ? '0' : deploy.fees;
+        const fees = deploy.fees === '' ? '0' : deploy.fees;
         deploy.tokenGas = deploy.tokenGas === '' ? '0' : deploy.tokenGas;
 
         setDeployLoading(true);
-        const newSmartWallet = await relaySmartWalletDeployment(deploy.fees);
+        const newSmartWallet = await relaySmartWalletDeployment(fees);
         if (newSmartWallet?.deployment) {
             smartWallet!.deployed = true;
             Utils.addLocalSmartWallet(chainId, account, smartWallet!);

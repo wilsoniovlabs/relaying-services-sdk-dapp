@@ -37,7 +37,7 @@ function getEnvParamAsInt(value: string | undefined): number | undefined {
 
 function App() {
     const { state, dispatch } = useStore();
-    const { chainId, account, loader } = state;
+    const { chainId, account, loader, connected, provider, token } = state;
 
     useEffect(() => {
         const workerAddr = process.env.REACT_APP_CONTRACTS_RELAY_WORKER!;
@@ -121,7 +121,8 @@ function App() {
             account
         );
         dispatch({ type: 'set_smart_wallets', smartWallets: wallets });
-    }, [account, chainId]);
+        dispatch({ type: 'reload', reload: true });
+    }, [account, chainId, dispatch]);
 
     const refreshAccount = async () => {
         const accounts = await Utils.getAccounts();
@@ -129,10 +130,11 @@ function App() {
         dispatch({ type: 'set_account', account: currentAccount });
     };
 
-    const reload = async () => {
+    const reloadApp = async () => {
         dispatch({ type: 'set_loader', loader: true });
         await initProvider();
         await refreshAccount();
+        dispatch({ type: 'reload_token', reloadToken: true });
         dispatch({ type: 'set_loader', loader: false });
     };
 
@@ -145,7 +147,7 @@ function App() {
                 const login = connect.provider;
 
                 login.on('accountsChanged', async (/* accounts */) => {
-                    await reload();
+                    await reloadApp();
                 });
 
                 login.on('chainChanged', async (newChain: string) => {
@@ -172,12 +174,12 @@ function App() {
         // TODO refactor this code
         try {
             let isConnected = false;
-            if (!state.connected) {
+            if (!connected) {
                 isConnected = await connectToRLogin();
             }
 
             if (isConnected) {
-                await reload();
+                await reloadApp();
             } else {
                 console.warn('Unable to connect to Metamask');
             }
@@ -193,9 +195,9 @@ function App() {
             {!!loader && <Loading />}
             <Header connect={connect} />
 
-            {state.provider && <ActionBar />}
+            {provider && <ActionBar />}
 
-            {state.token && (
+            {token && (
                 <div>
                     <SmartWallets />
                     <PartnerBalances />

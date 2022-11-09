@@ -1,5 +1,6 @@
 import {
     createContext,
+    useCallback,
     useContext,
     useEffect,
     useMemo,
@@ -19,6 +20,7 @@ const initialState: State = {
     token: undefined,
     smartWallet: undefined,
     reload: false,
+    reloadToken: false,
     modals: {
         deploy: false,
         execute: false,
@@ -43,52 +45,45 @@ function StoreProvider({ children }: ProviderProps) {
     const { smartWallets, token, reload, worker, collector, partners } = state;
 
     const getSmartWalletBalance = async (
-        smartWalelt: SmartWalletWithBalance,
-        tokenAddress: string
-    ) => {
+        smartWallet: SmartWalletWithBalance
+    ): Promise<SmartWalletWithBalance> => {
         try {
             const [tokenBalance, rbtcBalance] = await Promise.all([
-                await Utils.getTokenBalance(
-                    smartWalelt.address,
-                    tokenAddress,
-                    true
-                ),
-                await Utils.getBalance(smartWalelt.address, true)
+                await Utils.getTokenBalance(smartWallet.address, token!),
+                await Utils.getBalance(smartWallet.address)
             ]);
             return {
-                ...smartWalelt,
+                ...smartWallet,
                 tokenBalance,
                 rbtcBalance
             };
         } catch (error) {
             console.error(error);
             return {
-                ...smartWalelt,
+                ...smartWallet,
                 tokenBalance: '-',
                 rbtcBalance: '-'
             };
         }
     };
 
-    const refreshSmartWallets = async () => {
-        const updatedBalances = await Promise.all(
-            smartWallets.map((wallet) =>
-                getSmartWalletBalance(wallet, token!.address)
-            )
-        );
-        dispatch({
-            type: 'set_smart_wallets',
-            smartWallets: updatedBalances
-        });
-    };
-
-    const getPartnerBalance = async (address: string, tokenAddress: string) => {
-        try {
-            const balance = await Utils.getTokenBalance(
-                address,
-                tokenAddress,
-                true
+    const refreshSmartWallets = useCallback(async () => {
+        if (token) {
+            const updatedBalances = await Promise.all(
+                smartWallets.map((wallet: SmartWalletWithBalance) =>
+                    getSmartWalletBalance(wallet)
+                )
             );
+            dispatch({
+                type: 'set_smart_wallets',
+                smartWallets: updatedBalances
+            });
+        }
+    }, [token, reload]);
+
+    const getPartnerBalance = async (address: string) => {
+        try {
+            const balance = await Utils.getTokenBalance(address, token!);
             return { address, balance };
         } catch (error) {
             console.error(error);
@@ -96,7 +91,7 @@ function StoreProvider({ children }: ProviderProps) {
         }
     };
 
-    const refreshPartnersBalances = async () => {
+    const refreshPartnersBalances = useCallback(async () => {
         if (worker && token) {
             let localPartners: Partner[];
             if (collector) {
@@ -106,7 +101,7 @@ function StoreProvider({ children }: ProviderProps) {
             }
             const updatedBalances = await Promise.all(
                 localPartners.map((partner) =>
-                    getPartnerBalance(partner.address, token.address)
+                    getPartnerBalance(partner.address)
                 )
             );
             const [newWorker, newCollector, ...newPartners] = updatedBalances;
@@ -117,7 +112,7 @@ function StoreProvider({ children }: ProviderProps) {
                 partners: newPartners
             });
         }
-    };
+    }, [token, reload]);
 
     useEffect(() => {
         if (reload || token) {
@@ -128,7 +123,7 @@ function StoreProvider({ children }: ProviderProps) {
                 reload: false
             });
         }
-    }, [token, reload]);
+    }, [refreshSmartWallets, refreshPartnersBalances]);
 
     const value = useMemo(() => ({ state, dispatch }), [state]);
     return <Context.Provider value={value}>{children}</Context.Provider>;
