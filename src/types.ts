@@ -1,26 +1,36 @@
-import { SmartWallet } from '@rsksmart/rif-relay-sdk';
+import type { ERC20 } from '@rsksmart/rif-relay-contracts';
 
-export interface SmartWalletWithBalance extends SmartWallet {
-    tokenBalance: string;
-    rbtcBalance: string;
-}
+export type SmartWallet = {
+  index: number;
+  address: string;
+  isDeployed: boolean;
+  tokenBalance: string;
+  rbtcBalance: string;
+};
+
+export type ERC20Token = {
+  instance: ERC20;
+  symbol: string;
+  name: string;
+  decimals: number;
+};
 
 export type Partner = {
-    address: string;
-    balance: string;
+  address: string;
+  balance: string;
 };
 
 export type Modals = {
-    deploy: boolean;
-    execute: boolean;
-    receive: boolean;
-    transfer: boolean;
-    transactions: boolean;
-    validate: boolean;
+  deploy: boolean;
+  execute: boolean;
+  receive: boolean;
+  transfer: boolean;
+  transactions: boolean;
+  validate: boolean;
 };
 
-export type Transaction = {
-    date: Date;
-    id: string;
-    type: string;
+export type LocalTransaction = {
+  date: Date;
+  id: string;
+  type: string;
 };
